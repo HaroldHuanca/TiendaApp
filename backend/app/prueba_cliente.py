@@ -20,7 +20,7 @@ def menu_clientes():
             clientes = mostrar_clientes()
             if clientes:
                 for c in clientes:
-                    print(f"ID: {c['id']} | Documento: {c['documento']} | Nombre: {c['nombre']} | Estado: {c['descripcion']}")
+                    print(f"ID: {c['Id']} | Documento: {c['Documento']} | Nombre: {c['Nombre']} | Estado: {c['Estado']}")
             else:
                 print("No hay clientes registrados.")
         

@@ -1,12 +1,12 @@
 from sqlalchemy import text
 from typing import List, Dict, Any
-from app.database import DatabaseManager
+from database import DatabaseManager
 
 # ✅ Mostrar todos los proveedores
 def mostrar_proveedores() -> List[Dict[str, Any]]:
     with DatabaseManager() as db:
         result = db.execute(text("CALL proc_mostrar_proveedores()"))
-        return [dict(row) for row in result.fetchall()]
+        return [dict(row._mapping) for row in result.fetchall()]
 
 # ✅ Insertar un nuevo proveedor
 def insertar_proveedor(ruc: str, nombre: str, descripcion_estado: str) -> None:

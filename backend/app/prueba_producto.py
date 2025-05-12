@@ -23,7 +23,7 @@ def menu_productos():
             productos = obtener_productos_actualizados(fecha)
             if productos:
                 for p in productos:
-                    print(f"ID: {p['id']} | Descripción: {p['descripcion']} | Stock: {p['stock']} | Estado: {p['descripcion_estado']}")
+                    print(f"ID: {p['Id']} | Descripcion: {p['Descripcion']} | Stock: {p['Stock']} | Estado: {p['Estado']}")
             else:
                 print("No hay productos actualizados desde esa fecha.")
 
