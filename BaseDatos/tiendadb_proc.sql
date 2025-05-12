@@ -565,7 +565,7 @@ SELECT
     v.id as Id,
     v.id_serie as 'Id Serie',
     v.contador_serie as 'Contador Serie',
-    v.id_usuario as 'Id Usuario|',
+    v.id_usuario as 'Id Usuario',
     v.id_cliente as 'Id Cliente',
     e.descripcion as 'Estado',
     v.fecha as Fecha,
