@@ -1,5 +1,5 @@
 from datetime import datetime
-from models.venta import (
+from app.models.venta import (
     mostrar_ventas,
     insertar_venta,
     actualizar_venta,

@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from typing import Optional, List, Dict, Any, Tuple
-from database import DatabaseManager
+from app.database import DatabaseManager
 
 # ✅ Obtener contraseña y estado
 def obtener_contrasena(nombre_usuario: str) -> Optional[Tuple]:

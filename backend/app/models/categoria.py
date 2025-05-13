@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from typing import Optional, List, Dict, Any
-from database import DatabaseManager
+from app.database import DatabaseManager
 
 # ✅ Mostrar todas las categorías
 def mostrar_categorias() -> List[Dict[str, Any]]:
@@ -27,10 +27,3 @@ def actualizar_categoria(id: int, nombre: str) -> None:
         )
         db.commit()
 
-# ✅ Obtener la fecha y hora actual del servidor
-def obtener_fecha_actual() -> Optional[str]:
-    with DatabaseManager() as db:
-        result = db.execute(text("CALL proc_obtener_fecha_actual()"))
-        row = result.fetchone()
-        _ = result.fetchall()
-        return row[0] if row else None

@@ -1,5 +1,5 @@
 from typing import Any
-from models.proveedor import (
+from app.models.proveedor import (
     mostrar_proveedores,
     insertar_proveedor,
     actualizar_proveedor,

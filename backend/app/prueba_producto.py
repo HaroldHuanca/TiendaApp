@@ -1,4 +1,4 @@
-from models.producto import (
+from app.models.producto import (
     obtener_productos_actualizados,
     insertar_producto,
     actualizar_producto,

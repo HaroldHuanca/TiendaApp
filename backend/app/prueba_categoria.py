@@ -1,9 +1,8 @@
 # main.py
-from models.categoria import (
+from app.models.categoria import (
     mostrar_categorias,
     insertar_categoria,
-    actualizar_categoria,
-    obtener_fecha_actual,
+    actualizar_categoria
 )
 
 def menu():
@@ -12,8 +11,7 @@ def menu():
         print("1. Mostrar todas las categorías")
         print("2. Insertar una nueva categoría")
         print("3. Actualizar una categoría")
-        print("4. Obtener fecha actual del servidor")
-        print("5. Salir")
+        print("4. Salir")
 
         opcion = input("Selecciona una opción: ")
 
@@ -39,15 +37,8 @@ def menu():
                 print("✅ Categoría actualizada con éxito.")
             except ValueError:
                 print("⚠️ ID inválido.")
-        
+           
         elif opcion == "4":
-            fecha = obtener_fecha_actual()
-            if fecha:
-                print(f"🕒 Fecha y hora actual del servidor: {fecha}")
-            else:
-                print("⚠️ No se pudo obtener la fecha.")
-        
-        elif opcion == "5":
             print("Saliendo del programa.")
             break
         

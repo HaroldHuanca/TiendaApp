@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from typing import List, Dict, Any
-from database import DatabaseManager
+from app.database import DatabaseManager
 
 # ✅ Mostrar todas las unidades
 def mostrar_unidades() -> List[Dict[str, Any]]:

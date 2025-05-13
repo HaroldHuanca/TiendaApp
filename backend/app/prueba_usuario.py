@@ -1,4 +1,4 @@
-from models.usuario import (
+from app.models.usuario import (
     mostrar_usuarios,
     insertar_usuario,
     actualizar_usuario,
