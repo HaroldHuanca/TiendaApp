@@ -39,33 +39,28 @@ END;
 
 CREATE PROCEDURE proc_insertar_usuario (
     IN p_nombre_usuario varchar(50),
-    p_contrasena varchar(255),
-    p_correo varchar(100),
-    p_direccion_mac char(17),
-    p_descripcion_estado varchar(100),
-    OUT p_id tinyint UNSIGNED
-) BEGIN DECLARE p_estado tinyint UNSIGNED;
+    IN p_contrasena varchar(255),
+    IN p_correo varchar(100),
+    IN p_direccion_mac char(17),
+    IN p_descripcion_estado varchar(100)
+)
+BEGIN
+    DECLARE p_estado tinyint UNSIGNED;
 
-SET
-    p_estado = (
-        SELECT
-            estado
-        FROM
-            tbl_estados
-        WHERE
-            descripcion = p_descripcion_estado
+    SET p_estado = (
+        SELECT estado
+        FROM tbl_estados
+        WHERE descripcion = p_descripcion_estado
+        and nombre_tabla = 'tbl_usuarios'
     );
 
-INSERT INTO
-    tbl_usuarios (
+    INSERT INTO tbl_usuarios (
         nombre_usuario,
         contrasena,
         correo,
         direccion_mac,
         estado
-    )
-VALUES
-    (
+    ) VALUES (
         p_nombre_usuario,
         p_contrasena,
         p_correo,
@@ -73,9 +68,8 @@ VALUES
         p_estado
     );
 
-SELECT
-    LAST_INSERT_ID () INTO p_id;
-
+    -- Devolver el ID insertado directamente
+    SELECT LAST_INSERT_ID() AS id_usuario;
 END;
 
 CREATE PROCEDURE proc_actualizar_usuario (

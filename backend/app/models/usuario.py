@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from typing import Optional, List, Dict, Any, Tuple
-from app.database import DatabaseManager
+from database import DatabaseManager
 
 # ✅ Obtener contraseña y estado
 def obtener_contrasena(nombre_usuario: str) -> Optional[Tuple]:
@@ -32,19 +32,32 @@ def restablecer_intento(nombre_usuario: str) -> None:
 # ✅ Insertar usuario
 def insertar_usuario(nombre_usuario: str, contrasena: str, correo: str, direccion_mac: str, descripcion_estado: str) -> Optional[int]:
     with DatabaseManager() as db:
-        db.execute(
-            text("CALL proc_insertar_usuario(:p_nombre_usuario, :p_contrasena, :p_correo, :p_direccion_mac, :p_descripcion_estado, @p_id)"),
-            {
-                "p_nombre_usuario": nombre_usuario,
-                "p_contrasena": contrasena,
-                "p_correo": correo,
-                "p_direccion_mac": direccion_mac,
-                "p_descripcion_estado": descripcion_estado
-            }
-        )
-        result = db.execute(text("SELECT @p_id"))
-        return result.scalar()
+        connection = db.connection()
+        raw_connection = connection.connection  # Accede a la conexión del driver (no SQLAlchemy)
 
+        cursor = raw_connection.cursor()
+
+        try:
+            cursor.callproc("proc_insertar_usuario", [
+                nombre_usuario,
+                contrasena,
+                correo,
+                direccion_mac,
+                descripcion_estado
+            ])
+
+            # Avanzar hasta llegar al resultado del SELECT LAST_INSERT_ID()
+            while True:
+                result = cursor.fetchall()
+                if result:
+                    return result[0][0]
+                if not cursor.nextset():
+                    break
+
+        finally:
+            cursor.close()
+            raw_connection.commit()
+            
 # ✅ Actualizar usuario
 def actualizar_usuario(id: int, nombre_usuario: str, contrasena: str, descripcion_estado: str) -> None:
     with DatabaseManager() as db:
@@ -73,4 +86,4 @@ def mostrar_usuarios() -> List[Dict[str, Any]]:
     with DatabaseManager() as db:
         result = db.execute(text("CALL proc_mostrar_usuario()"))
         rows = result.fetchall()
-        return [dict(row) for row in rows]
+        return [dict(row._mapping) for row in rows]

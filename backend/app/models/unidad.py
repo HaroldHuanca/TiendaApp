@@ -1,13 +1,13 @@
 from sqlalchemy import text
 from typing import List, Dict, Any
-from app.database import DatabaseManager
+from database import DatabaseManager
 
 # ✅ Mostrar todas las unidades
 def mostrar_unidades() -> List[Dict[str, Any]]:
     with DatabaseManager() as db:
         result = db.execute(text("CALL proc_mostrar_unidad()"))
         rows = result.fetchall()
-        return [dict(row) for row in rows]
+        return [dict(row._mapping) for row in rows]
 
 # ✅ Insertar una nueva unidad
 def insertar_unidad(nombre: str) -> None:
