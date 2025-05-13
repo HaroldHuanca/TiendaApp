@@ -577,8 +577,7 @@ CREATE PROCEDURE proc_insertar_venta (
     p_id_cliente smallint UNSIGNED,
     p_descripcion_estado varchar(100),
     p_fecha datetime,
-    p_total decimal(9, 2),
-    OUT p_id mediumint UNSIGNED
+    p_total decimal(9, 2)
 ) BEGIN DECLARE p_contador_serie mediumint UNSIGNED;
 
 DECLARE p_estado tinyint UNSIGNED;
@@ -637,8 +636,8 @@ SET
 WHERE
     id = p_id_serie;
 
-SET
-    p_id = LAST_INSERT_ID ();
+SELECT
+    LAST_INSERT_ID() AS id_venta;
 
 COMMIT;
 

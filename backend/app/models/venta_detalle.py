@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from typing import List, Dict, Any
-from app.database import DatabaseManager
+from database import DatabaseManager
 
 # ✅ Mostrar detalles de una venta específica
 def mostrar_detalles_venta(id_venta: int) -> List[Dict[str, Any]]:
@@ -9,7 +9,7 @@ def mostrar_detalles_venta(id_venta: int) -> List[Dict[str, Any]]:
             text("CALL proc_mostrar_venta_detalles(:p_id_venta)"),
             {"p_id_venta": id_venta}
         )
-        return [dict(row) for row in result.fetchall()]
+        return [dict(row._mapping) for row in result.fetchall()]
 
 # ✅ Insertar un detalle de venta
 def insertar_detalle_venta(

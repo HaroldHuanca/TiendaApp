@@ -1,50 +1,41 @@
 from sqlalchemy import text
-from typing import List, Dict, Any
-from app.database import DatabaseManager
+from typing import Optional, List, Dict, Any
+from database import DatabaseManager
 
 # ✅ Mostrar todas las ventas
 def mostrar_ventas() -> List[Dict[str, Any]]:
     with DatabaseManager() as db:
         result = db.execute(text("CALL proc_mostrar_ventas()"))
-        return [dict(row) for row in result.fetchall()]
+        return [dict(row._mapping) for row in result.fetchall()]
 
 # ✅ Insertar una venta (retorna el ID generado)
-def insertar_venta(
-    id_serie: int,
-    id_usuario: int,
-    id_cliente: int,
-    descripcion_estado: str,
-    fecha: str,  # formato: 'YYYY-MM-DD HH:MM:SS'
-    total: float
-) -> int:
+def insertar_venta(id_serie: int, id_usuario: int, id_cliente: int, descripcion_estado: str, fecha: str, total: float) -> Optional[int]:
     with DatabaseManager() as db:
-        result = db.execute(
-            text("""
-                CALL proc_insertar_venta(
-                    :p_id_serie,
-                    :p_id_usuario,
-                    :p_id_cliente,
-                    :p_descripcion_estado,
-                    :p_fecha,
-                    :p_total,
-                    @p_id
-                );
-                SELECT @p_id AS id;
-            """),
-            {
-                "p_id_serie": id_serie,
-                "p_id_usuario": id_usuario,
-                "p_id_cliente": id_cliente,
-                "p_descripcion_estado": descripcion_estado,
-                "p_fecha": fecha,
-                "p_total": total
-            }
-        )
-        # El ID insertado está en el segundo result set
-        result.nextset()
-        row = result.fetchone()
-        return row["id"] if row else None
+        connection = db.connection()
+        raw_connection = connection.connection  # conexión real de MariaDB
+        cursor = raw_connection.cursor()
 
+        try:
+            cursor.callproc("proc_insertar_venta", [
+                id_serie,
+                id_usuario,
+                id_cliente,
+                descripcion_estado,
+                fecha,
+                total
+            ])
+
+            # Recorremos todos los resultsets hasta encontrar el resultado del SELECT
+            while True:
+                result = cursor.fetchall()
+                if result:
+                    return result[0][0]  # ID de la venta insertada
+                if not cursor.nextset():
+                    break
+
+        finally:
+            cursor.close()
+            raw_connection.commit()
 # ✅ Actualizar una venta
 def actualizar_venta(
     id: int,
