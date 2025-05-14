@@ -65,9 +65,10 @@ def menu_usuarios():
             nombre = input("Nombre del usuario: ")
             resultado = obtener_contrasena(nombre)
             if resultado:
-                print(f"Contraseña: {resultado[0]} | Estado: {resultado[1]}")
+                for u in resultado:
+                    print(f"ID: {u['Id']} | Contraseña: {u['Contraseña']} | Estado: {u['Estado']}")            
             else:
-                print("Usuario no encontrado.")
+                print("No hay usuarios registrados.")
 
         elif opcion == "6":
             nombre = input("Nombre del usuario: ")

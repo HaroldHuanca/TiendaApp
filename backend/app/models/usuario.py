@@ -2,15 +2,6 @@ from sqlalchemy import text
 from typing import Optional, List, Dict, Any, Tuple
 from app.database import DatabaseManager
 
-# ✅ Obtener contraseña y estado
-def obtener_contrasena(nombre_usuario: str) -> Optional[Tuple]:
-    with DatabaseManager() as db:
-        result = db.execute(
-            text("CALL proc_obtener_contrasena(:p_nombre_usuario)"),
-            {"p_nombre_usuario": nombre_usuario}
-        )
-        return result.fetchone()
-
 # ✅ Reducir intentos
 def reducir_intento(nombre_usuario: str) -> None:
     with DatabaseManager() as db:
@@ -85,5 +76,15 @@ def eliminar_usuario(id: int) -> None:
 def mostrar_usuarios() -> List[Dict[str, Any]]:
     with DatabaseManager() as db:
         result = db.execute(text("CALL proc_mostrar_usuario()"))
+        rows = result.fetchall()
+        return [dict(row._mapping) for row in rows]
+
+# ✅ Obtener contraseña y estado
+def obtener_contrasena(nombre_usuario: str) -> List[Dict[str, Any]]:
+    with DatabaseManager() as db:
+        result = db.execute(
+            text("CALL proc_obtener_contrasena(:p_nombre_usuario)"),
+            {"p_nombre_usuario": nombre_usuario}
+        )
         rows = result.fetchall()
         return [dict(row._mapping) for row in rows]
