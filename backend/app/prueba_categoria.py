@@ -1,5 +1,5 @@
 # main.py
-from app.models.categoria import (
+from app.services.categoria_service import (
     mostrar_categorias,
     insertar_categoria,
     actualizar_categoria
