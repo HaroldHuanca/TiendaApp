@@ -1,5 +1,5 @@
 from sqlalchemy import text
-from typing import Optional, List, Dict, Any
+from typing import List, Dict, Any
 from app.database import DatabaseManager
 
 # ✅ Mostrar todas las categorías
