@@ -7,8 +7,8 @@ import app.models.cliente as cli
 def validar_nombre(nombre: str) -> None:
     if not isinstance(nombre, str):
         raise ValueError("El nombre debe ser una cadena de texto.")
-    if len(nombre) == 0 or len(nombre) > 50:
-        raise ValueError("El nombre debe tener entre 1 y 50 caracteres.")
+    if len(nombre) == 0 or len(nombre) > 1500:
+        raise ValueError("El nombre debe tener entre 1 y 1500 caracteres.")
     if not re.fullmatch(r"[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ' -]+", nombre):
         raise ValueError("El nombre contiene caracteres no permitidos.")
 
@@ -16,8 +16,8 @@ def validar_nombre(nombre: str) -> None:
 def validar_documento(documento: str) -> None:
     if not isinstance(documento, str):
         raise ValueError("El documento debe ser una cadena de texto.")
-    if len(documento) == 0 or len(documento) > 20:
-        raise ValueError("El documento debe tener entre 1 y 20 caracteres.")
+    if len(documento) == 0 or len(documento) > 15:
+        raise ValueError("El documento debe tener entre 1 y 15 caracteres.")
     if not re.fullmatch(r"[a-zA-Z0-9]+", documento):
         raise ValueError("El documento solo puede contener letras y números.")
 
@@ -25,15 +25,15 @@ def validar_documento(documento: str) -> None:
 def validar_descripcion_estado(descripcion_estado: str) -> None:
     if not isinstance(descripcion_estado, str):
         raise ValueError("La descripción del estado debe ser una cadena de texto.")
-    if len(descripcion_estado) == 0 or len(descripcion_estado) > 30:
-        raise ValueError("La descripción del estado debe tener entre 1 y 30 caracteres.")
+    if len(descripcion_estado) == 0 or len(descripcion_estado) > 100:
+        raise ValueError("La descripción del estado debe tener entre 1 y 100 caracteres.")
     if not re.fullmatch(r"[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ ]+", descripcion_estado):
         raise ValueError("La descripción del estado contiene caracteres no permitidos.")
 
 # Validación para 'id_cliente': entero positivo
 def validar_id(id_cliente: int) -> None:
-    if not isinstance(id_cliente, int) or id_cliente <= 0:
-        raise ValueError("El ID debe ser un número entero positivo.")
+    if not isinstance(id_cliente, int) or id_cliente <= 0 or id_cliente >65535:
+        raise ValueError("El ID debe ser un número entero positivo menor o igual que 65535.")
 
 # Lógica de servicio
 def mostrar_clientes() -> List[Dict[str, Any]]:

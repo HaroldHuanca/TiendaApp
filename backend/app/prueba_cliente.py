@@ -1,4 +1,4 @@
-from app.models.cliente import (
+from app.services.cliente_service import (
     mostrar_clientes,
     insertar_cliente,
     actualizar_cliente,
