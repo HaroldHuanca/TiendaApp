@@ -6,14 +6,14 @@ import app.models.producto as producto_model
 # Validaciones
 
 def validar_id(id_: int, nombre: str = "ID") -> None:
-    if not isinstance(id_, int) or id_ <= 0:
+    if not isinstance(id_, int) or id_ <= 0 or id_ > 65535:
         raise ValueError(f"{nombre} debe ser un número entero positivo.")
 
 def validar_codigo_barras(codigo_barras: str) -> None:
     if not isinstance(codigo_barras, str):
         raise ValueError("El código de barras debe ser una cadena de texto.")
-    if len(codigo_barras) == 0 or len(codigo_barras) > 30:
-        raise ValueError("El código de barras debe tener entre 1 y 30 caracteres.")
+    if len(codigo_barras) == 0 or len(codigo_barras) > 13:
+        raise ValueError("El código de barras debe tener entre 1 y 13 caracteres.")
     if not re.fullmatch(r"[a-zA-Z0-9\-]+", codigo_barras):
         raise ValueError("El código de barras contiene caracteres no permitidos.")
 
@@ -33,14 +33,6 @@ def validar_stock(valor: float, campo: str) -> None:
     if not isinstance(valor, (float, int)) or valor < 0:
         raise ValueError(f"{campo} debe ser un número positivo.")
 
-def validar_descripcion_estado(descripcion_estado: str) -> None:
-    if not isinstance(descripcion_estado, str):
-        raise ValueError("La descripción del estado debe ser una cadena de texto.")
-    if len(descripcion_estado) == 0 or len(descripcion_estado) > 30:
-        raise ValueError("La descripción del estado debe tener entre 1 y 30 caracteres.")
-    if not re.fullmatch(r"[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ ]+", descripcion_estado):
-        raise ValueError("La descripción del estado contiene caracteres no permitidos.")
-
 # Lógica del servicio
 
 def obtener_productos_actualizados(tiempo_actualizacion: str) -> List[Dict[str, Any]]:
@@ -49,8 +41,8 @@ def obtener_productos_actualizados(tiempo_actualizacion: str) -> List[Dict[str, 
 
 def insertar_producto(
     codigo_barras: str,
-    id_unidad: int,
-    id_categoria: int,
+    nombre_unidad: str,
+    nombre_categoria: str,
     descripcion: str,
     precio_compra: float,
     precio_venta: float,
@@ -59,25 +51,25 @@ def insertar_producto(
     descripcion_estado: str
 ) -> None:
     validar_codigo_barras(codigo_barras)
-    validar_id(id_unidad, "ID de unidad")
-    validar_id(id_categoria, "ID de categoría")
+    validar_descripcion(nombre_categoria)
+    validar_descripcion(nombre_unidad)
     validar_descripcion(descripcion)
     validar_precio(precio_compra, "Precio de compra")
     validar_precio(precio_venta, "Precio de venta")
     validar_stock(stock, "Stock")
     validar_stock(stock_minimo, "Stock mínimo")
-    validar_descripcion_estado(descripcion_estado)
+    validar_descripcion(descripcion_estado)
 
     producto_model.insertar_producto(
-        codigo_barras, id_unidad, id_categoria, descripcion,
+        codigo_barras, nombre_unidad, nombre_categoria, descripcion,
         precio_compra, precio_venta, stock, stock_minimo, descripcion_estado
     )
 
 def actualizar_producto(
     id_producto: int,
     codigo_barras: str,
-    id_unidad: int,
-    id_categoria: int,
+    nombre_unidad: str,
+    nombre_categoria: str,
     descripcion: str,
     precio_compra: float,
     precio_venta: float,
@@ -85,13 +77,18 @@ def actualizar_producto(
     stock_minimo: float,
     descripcion_estado: str
 ) -> None:
-    validar_id(id_producto, "ID de producto")
-    insertar_producto(
-        codigo_barras, id_unidad, id_categoria, descripcion,
-        precio_compra, precio_venta, stock, stock_minimo, descripcion_estado
-    )  # Reutiliza la validación
+    validar_id(id_producto)
+    validar_codigo_barras(codigo_barras)
+    validar_descripcion(nombre_categoria)
+    validar_descripcion(nombre_unidad)
+    validar_descripcion(descripcion)
+    validar_precio(precio_compra, "Precio de compra")
+    validar_precio(precio_venta, "Precio de venta")
+    validar_stock(stock, "Stock")
+    validar_stock(stock_minimo, "Stock mínimo")
+    validar_descripcion(descripcion_estado)
     producto_model.actualizar_producto(
-        id_producto, codigo_barras, id_unidad, id_categoria, descripcion,
+        id_producto, codigo_barras, nombre_unidad, nombre_categoria, descripcion,
         precio_compra, precio_venta, stock, stock_minimo, descripcion_estado
     )
 

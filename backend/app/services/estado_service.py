@@ -14,15 +14,15 @@ def validar_nombre_tabla(nombre_tabla: str) -> None:
 
 # Validación para 'estado': debe ser entero positivo (ej. 1 para activo, 2 para inactivo)
 def validar_estado(estado: int) -> None:
-    if not isinstance(estado, int) or estado <= 0:
+    if not isinstance(estado, int) or estado <= 0 or estado > 255:
         raise ValueError("El estado debe ser un número entero positivo.")
 
 # Validación para 'descripcion': letras, espacios, tildes, hasta 30 caracteres
 def validar_descripcion(descripcion: str) -> None:
     if not isinstance(descripcion, str):
         raise ValueError("La descripción debe ser una cadena de texto.")
-    if len(descripcion) == 0 or len(descripcion) > 30:
-        raise ValueError("La descripción debe tener entre 1 y 30 caracteres.")
+    if len(descripcion) == 0 or len(descripcion) > 100:
+        raise ValueError("La descripción debe tener entre 1 y 100 caracteres.")
     if not re.fullmatch(r"[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ ]+", descripcion):
         raise ValueError("La descripción contiene caracteres no permitidos.")
 

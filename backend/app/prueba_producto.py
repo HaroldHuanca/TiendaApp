@@ -1,4 +1,4 @@
-from app.models.producto import (
+from app.services.producto_service import (
     obtener_productos_actualizados,
     insertar_producto,
     actualizar_producto,
@@ -29,29 +29,29 @@ def menu_productos():
 
         elif opcion == "2":
             cb = input("Código de barras: ")
-            id_unidad = int(input("ID unidad: "))
-            id_categoria = int(input("ID categoría: "))
+            descripcion_unidad = input("Descripcion unidad: ")
+            descripcion_categoria = input("Descripcion categoría: ")
             descripcion = input("Descripción: ")
             precio_compra = float(input("Precio de compra: "))
             precio_venta = float(input("Precio de venta: "))
             stock = float(input("Stock: "))
             stock_minimo = float(input("Stock mínimo: "))
             estado = input("Estado (activo/inactivo): ")
-            insertar_producto(cb, id_unidad, id_categoria, descripcion, precio_compra, precio_venta, stock, stock_minimo, estado)
+            insertar_producto(cb, descripcion_unidad, descripcion_categoria, descripcion, precio_compra, precio_venta, stock, stock_minimo, estado)
             print("✅ Producto insertado.")
 
         elif opcion == "3":
             id_producto = int(input("ID del producto a actualizar: "))
             cb = input("Nuevo código de barras: ")
-            id_unidad = int(input("Nuevo ID unidad: "))
-            id_categoria = int(input("Nuevo ID categoría: "))
+            descripcion_unidad = input("Nuevo ID unidad: ")
+            descripcion_categoria = input("Nuevo ID categoría: ")
             descripcion = input("Nueva descripción: ")
             precio_compra = float(input("Nuevo precio de compra: "))
             precio_venta = float(input("Nuevo precio de venta: "))
             stock = float(input("Nuevo stock: "))
             stock_minimo = float(input("Nuevo stock mínimo: "))
             estado = input("Nuevo estado (activo/inactivo): ")
-            actualizar_producto(id_producto, cb, id_unidad, id_categoria, descripcion, precio_compra, precio_venta, stock, stock_minimo, estado)
+            actualizar_producto(id_producto, cb, descripcion_unidad, descripcion_categoria, descripcion, precio_compra, precio_venta, stock, stock_minimo, estado)
             print("✅ Producto actualizado.")
 
         elif opcion == "4":

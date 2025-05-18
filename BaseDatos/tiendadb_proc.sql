@@ -220,8 +220,8 @@ END;
 
 CREATE PROCEDURE proc_Insertar_producto (
     IN p_Codigo_Barras varchar(13),
-    p_Id_Unidad tinyint UNSIGNED,
-    p_Id_Categoria tinyint UNSIGNED,
+    p_Nombre_Unidad VARCHAR(100),
+    p_Nombre_Categoria varchar(100),
     p_Descripcion varchar(100),
     p_Precio_Compra decimal(9, 2),
     p_Precio_Venta decimal(9, 2),
@@ -229,6 +229,8 @@ CREATE PROCEDURE proc_Insertar_producto (
     p_Stock_Minimo decimal(9, 2),
     p_descripcion_estado varchar(100)
 ) BEGIN DECLARE p_Estado tinyint unsigned;
+DECLARE p_Id_Unidad tinyint UNSIGNED;
+DECLARE p_Id_Categoria tinyint UNSIGNED;
 
 SET
     p_Estado = (
@@ -240,7 +242,20 @@ SET
             descripcion = p_descripcion_estado
             AND nombre_tabla = "tbl_productos"
     );
-
+SET p_id_Categoria = (
+    select
+        Id
+    FROM
+        tbl_categorias
+    where nombre = p_Nombre_Categoria
+);
+SET p_id_Unidad = (
+    select
+        Id
+    from
+        tbl_unidades
+    where nombre = p_Nombre_Unidad
+);
 INSERT INTO
     tbl_productos (
         codigo_barras,
@@ -271,8 +286,8 @@ END;
 CREATE PROCEDURE proc_Actualizar_producto (
     IN p_id smallint UNSIGNED,
     p_Codigo_Barras varchar(13),
-    p_Id_Unidad tinyint UNSIGNED,
-    p_Id_Categoria tinyint UNSIGNED,
+    p_Nombre_Unidad VARCHAR(100),
+    p_Nombre_Categoria VARCHAR(100),
     p_Descripcion varchar(100),
     p_Precio_Compra decimal(9, 2),
     p_Precio_Venta decimal(9, 2),
@@ -280,6 +295,8 @@ CREATE PROCEDURE proc_Actualizar_producto (
     p_Stock_Minimo decimal(9, 2),
     p_descripcion_estado varchar(100)
 ) BEGIN DECLARE p_Estado tinyint unsigned;
+DECLARE p_Id_Unidad tinyint UNSIGNED;
+DECLARE p_Id_Categoria tinyint UNSIGNED;
 
 SET
     p_Estado = (
@@ -291,7 +308,20 @@ SET
             descripcion = p_descripcion_estado
             AND nombre_tabla = "tbl_productos"
     );
-
+SET p_id_Categoria = (
+    select
+        Id
+    FROM
+        tbl_categorias
+    where nombre = p_Nombre_Categoria
+);
+SET p_id_Unidad = (
+    select
+        Id
+    from
+        tbl_unidades
+    where nombre = p_Nombre_Unidad
+);
 UPDATE tbl_productos
 SET
     codigo_barras = p_Codigo_Barras,

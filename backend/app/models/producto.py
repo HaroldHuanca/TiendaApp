@@ -14,8 +14,8 @@ def obtener_productos_actualizados(tiempo_actualizacion: str) -> List[Dict[str, 
 # ✅ Insertar un nuevo producto
 def insertar_producto(
     codigo_barras: str,
-    id_unidad: int,
-    id_categoria: int,
+    p_nombre_unidad: str,
+    p_nombre_categoria: str,
     descripcion: str,
     precio_compra: float,
     precio_venta: float,
@@ -28,8 +28,8 @@ def insertar_producto(
             text("""
                 CALL proc_Insertar_producto(
                     :p_Codigo_Barras,
-                    :p_Id_Unidad,
-                    :p_Id_Categoria,
+                    :p_Nombre_Unidad,
+                    :p_Nombre_Categoria,
                     :p_Descripcion,
                     :p_Precio_Compra,
                     :p_Precio_Venta,
@@ -40,8 +40,8 @@ def insertar_producto(
             """),
             {
                 "p_Codigo_Barras": codigo_barras,
-                "p_Id_Unidad": id_unidad,
-                "p_Id_Categoria": id_categoria,
+                "p_Nombre_Unidad": p_nombre_unidad,
+                "p_Nombre_Categoria": p_nombre_categoria,
                 "p_Descripcion": descripcion,
                 "p_Precio_Compra": precio_compra,
                 "p_Precio_Venta": precio_venta,
@@ -56,8 +56,8 @@ def insertar_producto(
 def actualizar_producto(
     id_producto: int,
     codigo_barras: str,
-    id_unidad: int,
-    id_categoria: int,
+    p_nombre_unidad: int,
+    p_nombre_categoria: int,
     descripcion: str,
     precio_compra: float,
     precio_venta: float,
@@ -71,8 +71,8 @@ def actualizar_producto(
                 CALL proc_Actualizar_producto(
                     :p_id,
                     :p_Codigo_Barras,
-                    :p_Id_Unidad,
-                    :p_Id_Categoria,
+                    :p_Nombre_Unidad,
+                    :p_Nombre_Categoria,
                     :p_Descripcion,
                     :p_Precio_Compra,
                     :p_Precio_Venta,
@@ -84,8 +84,8 @@ def actualizar_producto(
             {
                 "p_id": id_producto,
                 "p_Codigo_Barras": codigo_barras,
-                "p_Id_Unidad": id_unidad,
-                "p_Id_Categoria": id_categoria,
+                "p_Nombre_Unidad": p_nombre_unidad,
+                "p_Nombre_Categoria": p_nombre_categoria,
                 "p_Descripcion": descripcion,
                 "p_Precio_Compra": precio_compra,
                 "p_Precio_Venta": precio_venta,

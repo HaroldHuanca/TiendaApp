@@ -19,16 +19,16 @@ CREATE TABLE IF NOT EXISTS tbl_usuarios (
 );
 
 -- Crear la tabla para unidades
-CREATE TABLE if NOT EXISTS tbl_unidades (
-    id tinyint unsigned auto_increment PRIMARY key,
-    nombre varchar(100),
-    codigo char(3) DEFAULT 'NIU'
+CREATE TABLE IF NOT EXISTS tbl_unidades (
+    id TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) UNIQUE,
+    codigo CHAR(3) DEFAULT 'NIU'
 );
 
 -- Crear la tabla para las categorias
 CREATE TABLE tbl_categorias (
     id tinyint unsigned auto_increment PRIMARY key,
-    nombre varchar(100)
+    nombre varchar(100) UNIQUE
 );
 
 -- Crear la tabla para los productos
