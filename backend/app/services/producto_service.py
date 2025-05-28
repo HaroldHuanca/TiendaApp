@@ -17,18 +17,22 @@ def validar_codigo_barras(codigo_barras: str) -> None:
     if not re.fullmatch(r"[a-zA-Z0-9\-]+", codigo_barras):
         raise ValueError("El código de barras contiene caracteres no permitidos.")
 
-def validar_descripcion(descripcion: str) -> None:
+def validar_descripcion(descripcion: str, campo: str) -> None:
     if not isinstance(descripcion, str):
-        raise ValueError("La descripción debe ser una cadena de texto.")
+        raise ValueError(f"La descripción de {campo} debe ser una cadena de texto.")
     if len(descripcion) == 0 or len(descripcion) > 100:
-        raise ValueError("La descripción debe tener entre 1 y 100 caracteres.")
+        raise ValueError(f"La descripción de {campo} debe tener entre 1 y 100 caracteres.")
     if not re.fullmatch(r"[a-zA-Z0-9 áéíóúÁÉÍÓÚñÑ.,\-_/()]+", descripcion):
-        raise ValueError("La descripción contiene caracteres no permitidos.")
+        raise ValueError(f"La descripción de {campo} contiene caracteres no permitidos.")
 
-def validar_precio(valor: float, campo: str) -> None:
-    if not isinstance(valor, (float, int)) or valor < 0:
-        raise ValueError(f"{campo} debe ser un número positivo.")
-
+def validar_precios(valor1: float, campo1: str,valor2: float, campo2: str) -> None:
+    if not isinstance(valor1, (float, int)) or valor1 < 0:
+        raise ValueError(f"{campo1} debe ser un número positivo.")
+    if not isinstance(valor2, (float, int)) or valor2 < 0:
+        raise ValueError(f"{campo2} debe ser un número positivo.")
+    if valor1 >= valor2:
+        raise ValueError(f"El {campo1} debe ser menor al {campo2}")
+    
 def validar_stock(valor: float, campo: str) -> None:
     if not isinstance(valor, (float, int)) or valor < 0:
         raise ValueError(f"{campo} debe ser un número positivo.")
@@ -51,14 +55,13 @@ def insertar_producto(
     descripcion_estado: str
 ) -> None:
     validar_codigo_barras(codigo_barras)
-    validar_descripcion(nombre_categoria)
-    validar_descripcion(nombre_unidad)
-    validar_descripcion(descripcion)
-    validar_precio(precio_compra, "Precio de compra")
-    validar_precio(precio_venta, "Precio de venta")
+    validar_descripcion(nombre_categoria, "Categoria")
+    validar_descripcion(nombre_unidad, "Unidad")
+    validar_descripcion(descripcion, "Producto")
+    validar_precios(precio_compra, "Precio de compra",precio_venta, "Precio de venta")
     validar_stock(stock, "Stock")
     validar_stock(stock_minimo, "Stock mínimo")
-    validar_descripcion(descripcion_estado)
+    validar_descripcion(descripcion_estado, "Estado")
 
     producto_model.insertar_producto(
         codigo_barras, nombre_unidad, nombre_categoria, descripcion,
@@ -78,15 +81,13 @@ def actualizar_producto(
     descripcion_estado: str
 ) -> None:
     validar_id(id_producto)
-    validar_codigo_barras(codigo_barras)
-    validar_descripcion(nombre_categoria)
-    validar_descripcion(nombre_unidad)
-    validar_descripcion(descripcion)
-    validar_precio(precio_compra, "Precio de compra")
-    validar_precio(precio_venta, "Precio de venta")
+    validar_descripcion(nombre_categoria, "Categoria")
+    validar_descripcion(nombre_unidad, "Unidad")
+    validar_descripcion(descripcion, "DProducto")
+    validar_precios(precio_compra, "Precio de compra", precio_venta, "Precio de venta")
     validar_stock(stock, "Stock")
     validar_stock(stock_minimo, "Stock mínimo")
-    validar_descripcion(descripcion_estado)
+    validar_descripcion(descripcion_estado,"Estado")
     producto_model.actualizar_producto(
         id_producto, codigo_barras, nombre_unidad, nombre_categoria, descripcion,
         precio_compra, precio_venta, stock, stock_minimo, descripcion_estado
