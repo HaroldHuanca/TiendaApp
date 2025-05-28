@@ -2,13 +2,8 @@
 
 from app.models.tiempo import obtener_fecha_actual
 
-def obtener_fecha_actual_formateada() -> str:
+def obtener_fecha_actual_formateada() -> (str|None):
     """
     Lógica de negocio que obtiene la fecha actual del servidor y la devuelve formateada.
     """
-    fecha = obtener_fecha_actual()
-    if fecha is None:
-        return "Fecha no disponible"
-    
-    # Aquí podrías aplicar formato adicional si quisieras
-    return f"La fecha y hora actual es: {fecha}"
+    return obtener_fecha_actual()

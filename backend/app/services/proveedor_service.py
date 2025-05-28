@@ -5,28 +5,28 @@ import app.models.proveedor as proveedor_model
 # Validaciones
 
 def validar_id(id_: int, nombre: str = "ID") -> None:
-    if not isinstance(id_, int) or id_ <= 0:
-        raise ValueError(f"{nombre} debe ser un número entero positivo.")
+    if not isinstance(id_, int) or id_ <= 0 or id >65535:
+        raise ValueError(f"{nombre} debe ser un número entero positivo o menor a 65535.")
 
 def validar_ruc(ruc: str) -> None:
     if not isinstance(ruc, str):
         raise ValueError("El RUC debe ser una cadena de texto.")
-    if not re.fullmatch(r"\d{11}", ruc):
-        raise ValueError("El RUC debe contener exactamente 11 dígitos numéricos.")
+    if not re.fullmatch(r"\d{11}?", ruc):
+        raise ValueError("El RUC debe contener exactamente 11 dígitos numéricos o no tener digitos.")
 
 def validar_nombre(nombre: str) -> None:
     if not isinstance(nombre, str):
         raise ValueError("El nombre debe ser una cadena de texto.")
-    if len(nombre) == 0 or len(nombre) > 100:
-        raise ValueError("El nombre debe tener entre 1 y 100 caracteres.")
+    if len(nombre) == 0 or len(nombre) > 1500:
+        raise ValueError("El nombre debe tener entre 1 y 1500 caracteres.")
     if not re.fullmatch(r"[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9 .,'\-&()]+", nombre):
         raise ValueError("El nombre contiene caracteres no permitidos.")
 
 def validar_descripcion_estado(descripcion_estado: str) -> None:
     if not isinstance(descripcion_estado, str):
         raise ValueError("La descripción del estado debe ser una cadena de texto.")
-    if len(descripcion_estado) == 0 or len(descripcion_estado) > 30:
-        raise ValueError("La descripción del estado debe tener entre 1 y 30 caracteres.")
+    if len(descripcion_estado) == 0 or len(descripcion_estado) > 100:
+        raise ValueError("La descripción del estado debe tener entre 1 y 100 caracteres.")
     if not re.fullmatch(r"[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ ]+", descripcion_estado):
         raise ValueError("La descripción del estado contiene caracteres no permitidos.")
 
