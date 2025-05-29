@@ -2,12 +2,9 @@ from typing import List, Dict, Any
 import re
 
 import app.models.producto as producto_model
+from app.services.validaciones import validar_descripcion, validar_id_smallint
 
 # Validaciones
-
-def validar_id(id_: int, nombre: str = "ID") -> None:
-    if not isinstance(id_, int) or id_ <= 0 or id_ > 65535:
-        raise ValueError(f"{nombre} debe ser un número entero positivo.")
 
 def validar_codigo_barras(codigo_barras: str) -> None:
     if not isinstance(codigo_barras, str):
@@ -16,14 +13,6 @@ def validar_codigo_barras(codigo_barras: str) -> None:
         raise ValueError("El código de barras debe tener entre 1 y 13 caracteres.")
     if not re.fullmatch(r"[a-zA-Z0-9\-]+", codigo_barras):
         raise ValueError("El código de barras contiene caracteres no permitidos.")
-
-def validar_descripcion(descripcion: str, campo: str) -> None:
-    if not isinstance(descripcion, str):
-        raise ValueError(f"La descripción de {campo} debe ser una cadena de texto.")
-    if len(descripcion) == 0 or len(descripcion) > 100:
-        raise ValueError(f"La descripción de {campo} debe tener entre 1 y 100 caracteres.")
-    if not re.fullmatch(r"[a-zA-Z0-9 áéíóúÁÉÍÓÚñÑ.,\-_/()]+", descripcion):
-        raise ValueError(f"La descripción de {campo} contiene caracteres no permitidos.")
 
 def validar_precios(valor1: float, campo1: str,valor2: float, campo2: str) -> None:
     if not isinstance(valor1, (float, int)) or valor1 < 0:
@@ -80,7 +69,7 @@ def actualizar_producto(
     stock_minimo: float,
     descripcion_estado: str
 ) -> None:
-    validar_id(id_producto)
+    validar_id_smallint(id_producto,"ID Producto")
     validar_descripcion(nombre_categoria, "Categoria")
     validar_descripcion(nombre_unidad, "Unidad")
     validar_descripcion(descripcion, "DProducto")
@@ -94,7 +83,7 @@ def actualizar_producto(
     )
 
 def eliminar_producto(id_producto: int) -> None:
-    validar_id(id_producto, "ID de producto")
+    validar_id_smallint(id_producto, "ID de producto")
     producto_model.eliminar_producto(id_producto)
 
 def buscar_id_por_codigo_barras(codigo_barras: str) -> int:

@@ -3,22 +3,13 @@ import re
 from datetime import datetime
 
 import app.models.venta as venta_model
+from app.services.validaciones import validar_descripcion,validar_id_mediumint,validar_id_smallint,validar_id_tinyint
 
 # Validaciones
-
-def validar_id(id_: int, nombre: str = "ID") -> None:
-    if not isinstance(id_, int) or id_ <= 0:
-        raise ValueError(f"{nombre} debe ser un número entero positivo.")
 
 def validar_total(total: float) -> None:
     if not isinstance(total, (int, float)) or total < 0:
         raise ValueError("El total debe ser un número no negativo.")
-
-def validar_descripcion_estado(descripcion_estado: str) -> None:
-    if not isinstance(descripcion_estado, str) or not (1 <= len(descripcion_estado) <= 30):
-        raise ValueError("La descripción del estado debe tener entre 1 y 30 caracteres.")
-    if not re.fullmatch(r"[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ ]+", descripcion_estado):
-        raise ValueError("La descripción del estado contiene caracteres no permitidos.")
 
 def validar_fecha(fecha: str) -> None:
     try:
@@ -39,10 +30,10 @@ def insertar_venta(
     fecha: str,
     total: float
 ) -> Optional[int]:
-    validar_id(id_serie, "ID de serie")
-    validar_id(id_usuario, "ID de usuario")
-    validar_id(id_cliente, "ID de cliente")
-    validar_descripcion_estado(descripcion_estado)
+    validar_id_tinyint(id_serie, "ID de serie")
+    validar_id_tinyint(id_usuario, "ID de usuario")
+    validar_id_smallint(id_cliente, "ID de cliente")
+    validar_descripcion(descripcion_estado, "Descripcion Estado")
     validar_fecha(fecha)
     validar_total(total)
 
@@ -56,9 +47,9 @@ def actualizar_venta(
     descripcion_estado: str,
     total: float
 ) -> None:
-    validar_id(id, "ID de venta")
-    validar_id(id_cliente, "ID de cliente")
-    validar_descripcion_estado(descripcion_estado)
+    validar_id_mediumint(id, "ID de venta")
+    validar_id_smallint(id_cliente, "ID de cliente")
+    validar_descripcion(descripcion_estado,"Descripcion Estado")
     validar_total(total)
 
     venta_model.actualizar_venta(
@@ -66,5 +57,5 @@ def actualizar_venta(
     )
 
 def eliminar_venta(id: int) -> None:
-    validar_id(id, "ID de venta")
+    validar_id_mediumint(id, "ID de venta")
     venta_model.eliminar_venta(id)

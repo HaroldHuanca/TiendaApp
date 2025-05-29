@@ -1,4 +1,4 @@
-from app.models.venta_detalle import (
+from app.services.venta_detalle_service import (
     mostrar_detalles_venta,
     insertar_detalle_venta,
     actualizar_detalle_venta,
