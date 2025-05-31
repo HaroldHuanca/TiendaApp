@@ -12,7 +12,7 @@ def menu_ventas():
         print("1. Mostrar todas las ventas")
         print("2. Insertar nueva venta")
         print("3. Actualizar una venta")
-        print("4. Eliminar (anular) una venta")
+        print("4. Eliminar (anu2lar) una venta")
         print("0. Salir")
 
         opcion = input("Elige una opción: ")

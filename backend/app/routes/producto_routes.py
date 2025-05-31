@@ -1,0 +1,67 @@
+from flask import Blueprint, request, jsonify
+from app.services import producto_service
+
+producto_bp = Blueprint('producto_bp', __name__)
+
+@producto_bp.route('/productos/actualizados/<string:tiempo_actualizacion>', methods=['GET'])
+def obtener_productos_actualizados(tiempo_actualizacion):
+    try:
+        productos = producto_service.obtener_productos_actualizados(tiempo_actualizacion)
+        return jsonify(productos), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@producto_bp.route('/productos', methods=['POST'])
+def crear_producto():
+    datos = request.get_json()
+    try:
+        producto_service.insertar_producto(
+            datos.get("codigo_barras"),
+            datos.get("nombre_unidad"),
+            datos.get("nombre_categoria"),
+            datos.get("descripcion"),
+            datos.get("precio_compra"),
+            datos.get("precio_venta"),
+            datos.get("stock"),
+            datos.get("stock_minimo"),
+            datos.get("descripcion_estado")
+        )
+        return jsonify({"mensaje": "Producto creado exitosamente"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@producto_bp.route('/productos/<int:id_producto>', methods=['PUT'])
+def actualizar_producto(id_producto):
+    datos = request.get_json()
+    try:
+        producto_service.actualizar_producto(
+            id_producto,
+            datos.get("codigo_barras"),
+            datos.get("nombre_unidad"),
+            datos.get("nombre_categoria"),
+            datos.get("descripcion"),
+            datos.get("precio_compra"),
+            datos.get("precio_venta"),
+            datos.get("stock"),
+            datos.get("stock_minimo"),
+            datos.get("descripcion_estado")
+        )
+        return jsonify({"mensaje": "Producto actualizado exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@producto_bp.route('/productos/<int:id_producto>', methods=['DELETE'])
+def eliminar_producto(id_producto):
+    try:
+        producto_service.eliminar_producto(id_producto)
+        return jsonify({"mensaje": "Producto eliminado exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@producto_bp.route('/productos/buscar-id/<string:codigo_barras>', methods=['GET'])
+def buscar_id_producto(codigo_barras):
+    try:
+        id_producto = producto_service.buscar_id_por_codigo_barras(codigo_barras)
+        return jsonify({"id_producto": id_producto}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
