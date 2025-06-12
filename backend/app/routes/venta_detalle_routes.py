@@ -3,7 +3,7 @@ from app.services import venta_detalle_service
 
 venta_detalle_bp = Blueprint('venta_detalle_bp', __name__)
 
-@venta_detalle_bp.route('/venta-detalles/<int:id_venta>', methods=['GET'])
+@venta_detalle_bp.route('/mostrar_venta_detalles/<int:id_venta>', methods=['GET'])
 def obtener_detalles_venta(id_venta):
     try:
         detalles = venta_detalle_service.mostrar_detalles_venta(id_venta)
@@ -11,7 +11,7 @@ def obtener_detalles_venta(id_venta):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@venta_detalle_bp.route('/venta-detalles', methods=['POST'])
+@venta_detalle_bp.route('/insertar_venta_detalle', methods=['POST'])
 def crear_detalle_venta():
     datos = request.get_json()
     try:
@@ -27,7 +27,7 @@ def crear_detalle_venta():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@venta_detalle_bp.route('/venta-detalles', methods=['PUT'])
+@venta_detalle_bp.route('/actualizar_venta_detalle', methods=['PUT'])
 def modificar_detalle_venta():
     datos = request.get_json()
     try:
@@ -43,7 +43,7 @@ def modificar_detalle_venta():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@venta_detalle_bp.route('/venta-detalles/<int:id_venta>/<int:id_producto>', methods=['DELETE'])
+@venta_detalle_bp.route('/eliminar_venta_detalle/<int:id_venta>/<int:id_producto>', methods=['DELETE'])
 def eliminar_detalle_venta(id_venta, id_producto):
     try:
         venta_detalle_service.eliminar_detalle_venta(id_venta, id_producto)

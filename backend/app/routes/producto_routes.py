@@ -3,7 +3,7 @@ from app.services import producto_service
 
 producto_bp = Blueprint('producto_bp', __name__)
 
-@producto_bp.route('/productos/actualizados/<string:tiempo_actualizacion>', methods=['GET'])
+@producto_bp.route('/productos_actualizados/<string:tiempo_actualizacion>', methods=['GET'])
 def obtener_productos_actualizados(tiempo_actualizacion):
     try:
         productos = producto_service.obtener_productos_actualizados(tiempo_actualizacion)
@@ -11,7 +11,7 @@ def obtener_productos_actualizados(tiempo_actualizacion):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@producto_bp.route('/productos', methods=['POST'])
+@producto_bp.route('/insertar_producto', methods=['POST'])
 def crear_producto():
     datos = request.get_json()
     try:
@@ -30,7 +30,7 @@ def crear_producto():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@producto_bp.route('/productos/<int:id_producto>', methods=['PUT'])
+@producto_bp.route('/actualizar_producto/<int:id_producto>', methods=['PUT'])
 def actualizar_producto(id_producto):
     datos = request.get_json()
     try:
@@ -50,7 +50,7 @@ def actualizar_producto(id_producto):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@producto_bp.route('/productos/<int:id_producto>', methods=['DELETE'])
+@producto_bp.route('/eliminar_producto/<int:id_producto>', methods=['DELETE'])
 def eliminar_producto(id_producto):
     try:
         producto_service.eliminar_producto(id_producto)
@@ -58,7 +58,7 @@ def eliminar_producto(id_producto):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@producto_bp.route('/productos/buscar-id/<string:codigo_barras>', methods=['GET'])
+@producto_bp.route('/buscar_id_producto/<string:codigo_barras>', methods=['GET'])
 def buscar_id_producto(codigo_barras):
     try:
         id_producto = producto_service.buscar_id_por_codigo_barras(codigo_barras)

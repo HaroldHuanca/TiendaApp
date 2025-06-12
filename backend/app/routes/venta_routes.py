@@ -3,7 +3,7 @@ from app.services import venta_service
 
 venta_bp = Blueprint('venta_bp', __name__)
 
-@venta_bp.route('/ventas', methods=['GET'])
+@venta_bp.route('/mostrar_ventas', methods=['GET'])
 def obtener_ventas():
     try:
         ventas = venta_service.mostrar_ventas()
@@ -11,7 +11,7 @@ def obtener_ventas():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@venta_bp.route('/ventas', methods=['POST'])
+@venta_bp.route('/insertar_venta', methods=['POST'])
 def crear_venta():
     datos = request.get_json()
     try:
@@ -27,7 +27,7 @@ def crear_venta():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@venta_bp.route('/ventas', methods=['PUT'])
+@venta_bp.route('/actualizar_venta', methods=['PUT'])
 def modificar_venta():
     datos = request.get_json()
     try:
@@ -41,7 +41,7 @@ def modificar_venta():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@venta_bp.route('/ventas/<int:id>', methods=['DELETE'])
+@venta_bp.route('/eliminar_venta/<int:id>', methods=['DELETE'])
 def eliminar_venta(id):
     try:
         venta_service.eliminar_venta(id)

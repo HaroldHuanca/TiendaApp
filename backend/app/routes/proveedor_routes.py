@@ -3,7 +3,7 @@ from app.services import proveedor_service
 
 proveedor_bp = Blueprint('proveedor_bp', __name__)
 
-@proveedor_bp.route('/proveedores', methods=['GET'])
+@proveedor_bp.route('/mostrar_proveedores', methods=['GET'])
 def listar_proveedores():
     try:
         proveedores = proveedor_service.mostrar_proveedores()
@@ -11,7 +11,7 @@ def listar_proveedores():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@proveedor_bp.route('/proveedores', methods=['POST'])
+@proveedor_bp.route('/insertar_proveedor', methods=['POST'])
 def crear_proveedor():
     datos = request.get_json()
     try:
@@ -24,7 +24,7 @@ def crear_proveedor():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@proveedor_bp.route('/proveedores/<int:id_proveedor>', methods=['PUT'])
+@proveedor_bp.route('/actualizar_proveedor/<int:id_proveedor>', methods=['PUT'])
 def modificar_proveedor(id_proveedor):
     datos = request.get_json()
     try:
@@ -38,7 +38,7 @@ def modificar_proveedor(id_proveedor):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@proveedor_bp.route('/proveedores/<int:id_proveedor>', methods=['DELETE'])
+@proveedor_bp.route('/eliminar_proveedor/<int:id_proveedor>', methods=['DELETE'])
 def borrar_proveedor(id_proveedor):
     try:
         proveedor_service.eliminar_proveedor(id_proveedor)

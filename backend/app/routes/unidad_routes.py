@@ -3,7 +3,7 @@ from app.services import unidad_service
 
 unidad_bp = Blueprint('unidad_bp', __name__)
 
-@unidad_bp.route('/unidades', methods=['GET'])
+@unidad_bp.route('/mostrar_unidades', methods=['GET'])
 def listar_unidades():
     try:
         unidades = unidad_service.mostrar_unidades()
@@ -11,7 +11,7 @@ def listar_unidades():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@unidad_bp.route('/unidades', methods=['POST'])
+@unidad_bp.route('/insertar_unidad', methods=['POST'])
 def crear_unidad():
     datos = request.get_json()
     try:
@@ -20,7 +20,7 @@ def crear_unidad():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@unidad_bp.route('/unidades/<int:id_unidad>', methods=['PUT'])
+@unidad_bp.route('/actualizar_unidad/<int:id_unidad>', methods=['PUT'])
 def modificar_unidad(id_unidad):
     datos = request.get_json()
     try:

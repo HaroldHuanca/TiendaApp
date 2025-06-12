@@ -3,7 +3,7 @@ from app.services import usuario_service
 
 usuario_bp = Blueprint('usuario_bp', __name__)
 
-@usuario_bp.route('/usuarios', methods=['GET'])
+@usuario_bp.route('/mostrar_usuarios', methods=['GET'])
 def listar_usuarios():
     try:
         usuarios = usuario_service.mostrar_usuarios()
@@ -11,7 +11,7 @@ def listar_usuarios():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@usuario_bp.route('/usuarios', methods=['POST'])
+@usuario_bp.route('/insetar_usuario', methods=['POST'])
 def crear_usuario():
     datos = request.get_json()
     try:
@@ -26,7 +26,7 @@ def crear_usuario():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@usuario_bp.route('/usuarios/<int:id_usuario>', methods=['PUT'])
+@usuario_bp.route('/actualizar_usuario/<int:id_usuario>', methods=['PUT'])
 def modificar_usuario(id_usuario):
     datos = request.get_json()
     try:
@@ -40,7 +40,7 @@ def modificar_usuario(id_usuario):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@usuario_bp.route('/usuarios/<int:id_usuario>', methods=['DELETE'])
+@usuario_bp.route('/eliminar_usuario/<int:id_usuario>', methods=['DELETE'])
 def eliminar_usuario(id_usuario):
     try:
         usuario_service.eliminar_usuario(id_usuario)
@@ -48,7 +48,7 @@ def eliminar_usuario(id_usuario):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@usuario_bp.route('/usuarios/credenciales/<string:nombre_usuario>', methods=['GET'])
+@usuario_bp.route('/obtener_contrasena/<string:nombre_usuario>', methods=['GET'])
 def obtener_contrasena(nombre_usuario):
     try:
         resultado = usuario_service.obtener_contrasena(nombre_usuario)
@@ -59,7 +59,7 @@ def obtener_contrasena(nombre_usuario):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@usuario_bp.route('/usuarios/reintentos/reducir/<string:nombre_usuario>', methods=['POST'])
+@usuario_bp.route('/reducir_intento/<string:nombre_usuario>', methods=['POST'])
 def reducir_intento(nombre_usuario):
     try:
         usuario_service.reducir_intento(nombre_usuario)
@@ -67,7 +67,7 @@ def reducir_intento(nombre_usuario):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@usuario_bp.route('/usuarios/reintentos/restablecer/<string:nombre_usuario>', methods=['POST'])
+@usuario_bp.route('/restablecer_intento/<string:nombre_usuario>', methods=['POST'])
 def restablecer_intento(nombre_usuario):
     try:
         usuario_service.restablecer_intento(nombre_usuario)

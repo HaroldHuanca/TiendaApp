@@ -18,16 +18,16 @@ def create_app():
     CORS(app)  # Permite solicitudes desde otros orígenes
 
     # Registro de blueprints
-    app.register_blueprint(categoria_bp, url_prefix="/api/categorias")
-    app.register_blueprint(cliente_bp, url_prefix="/api/clientes")
-    app.register_blueprint(estado_bp, url_prefix="/api/estados")
-    app.register_blueprint(producto_bp, url_prefix="/api/productos")
-    app.register_blueprint(proveedor_bp, url_prefix="/api/proveedores")
-    app.register_blueprint(tiempo_bp, url_prefix="/api/tiempo")
-    app.register_blueprint(unidad_bp, url_prefix="/api/unidades")
-    app.register_blueprint(usuario_bp, url_prefix="/api/usuarios")
-    app.register_blueprint(venta_bp, url_prefix="/api/ventas")
-    app.register_blueprint(venta_detalle_bp, url_prefix="/api/venta_detalle")
+    app.register_blueprint(categoria_bp, url_prefix="/categorias")
+    app.register_blueprint(cliente_bp, url_prefix="/clientes")
+    app.register_blueprint(estado_bp, url_prefix="/estados")
+    app.register_blueprint(producto_bp, url_prefix="/productos")
+    app.register_blueprint(proveedor_bp, url_prefix="/proveedores")
+    app.register_blueprint(tiempo_bp, url_prefix="/tiempo")
+    app.register_blueprint(unidad_bp, url_prefix="/unidades")
+    app.register_blueprint(usuario_bp, url_prefix="/usuarios")
+    app.register_blueprint(venta_bp, url_prefix="/ventas")
+    app.register_blueprint(venta_detalle_bp, url_prefix="/venta_detalles")
 
     return app
 

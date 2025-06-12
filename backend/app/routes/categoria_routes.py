@@ -3,7 +3,7 @@ from app.services import categoria_service
 
 categoria_bp = Blueprint('categoria_bp', __name__)
 
-@categoria_bp.route('/categorias', methods=['GET'])
+@categoria_bp.route('/mostrar_categorias', methods=['GET'])
 def obtener_categorias():
     try:
         categorias = categoria_service.mostrar_categorias()
@@ -11,7 +11,7 @@ def obtener_categorias():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@categoria_bp.route('/categorias', methods=['POST'])
+@categoria_bp.route('/insertar_categoria', methods=['POST'])
 def crear_categoria():
     datos = request.get_json()
     try:
@@ -23,7 +23,7 @@ def crear_categoria():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@categoria_bp.route('/categorias/<int:id>', methods=['PUT'])
+@categoria_bp.route('/actualizar_categoria/<int:id>', methods=['PUT'])
 def modificar_categoria(id):
     datos = request.get_json()
     try:

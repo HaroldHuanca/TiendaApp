@@ -3,7 +3,7 @@ from app.services import estado_service
 
 estado_bp = Blueprint('estado_bp', __name__)
 
-@estado_bp.route('/estados/<string:nombre_tabla>', methods=['GET'])
+@estado_bp.route('/mostrar_estados/<string:nombre_tabla>', methods=['GET'])
 def obtener_estados(nombre_tabla):
     try:
         estados = estado_service.mostrar_estados(nombre_tabla)
@@ -11,7 +11,7 @@ def obtener_estados(nombre_tabla):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@estado_bp.route('/estados/<string:nombre_tabla>', methods=['POST'])
+@estado_bp.route('/insertar_estado/<string:nombre_tabla>', methods=['POST'])
 def crear_estado(nombre_tabla):
     datos = request.get_json()
     try:
@@ -24,7 +24,7 @@ def crear_estado(nombre_tabla):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@estado_bp.route('/estados/<string:nombre_tabla>', methods=['PUT'])
+@estado_bp.route('/actualizar_estado/<string:nombre_tabla>', methods=['PUT'])
 def modificar_estado(nombre_tabla):
     datos = request.get_json()
     try:

@@ -5,7 +5,7 @@ from app.services import cliente_service
 
 cliente_bp = Blueprint('cliente_bp', __name__)
 
-@cliente_bp.route('/clientes', methods=['GET'])
+@cliente_bp.route('/mostrar_clientes', methods=['GET'])
 def obtener_clientes():
     try:
         clientes = cliente_service.mostrar_clientes()
@@ -13,7 +13,7 @@ def obtener_clientes():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@cliente_bp.route('/clientes', methods=['POST'])
+@cliente_bp.route('/insertar_cliente', methods=['POST'])
 def crear_cliente():
     datos = request.get_json()
     try:
@@ -25,7 +25,7 @@ def crear_cliente():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@cliente_bp.route('/clientes/<int:id_cliente>', methods=['PUT'])
+@cliente_bp.route('/actualizar_cliente/<int:id_cliente>', methods=['PUT'])
 def modificar_cliente(id_cliente):
     datos = request.get_json()
     try:
@@ -37,7 +37,7 @@ def modificar_cliente(id_cliente):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@cliente_bp.route('/clientes/<int:id_cliente>', methods=['DELETE'])
+@cliente_bp.route('/eliminar_cliente/<int:id_cliente>', methods=['DELETE'])
 def borrar_cliente(id_cliente):
     try:
         cliente_service.eliminar_cliente(id_cliente)
