@@ -1,45 +1,60 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Clientes</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
+
 <body>
-    <h1>Clientes</h1>
+    <div class="container">
+        <h1>Gestión de Clientes</h1>
+        <div class="row">
+            <!-- Columna del formulario -->
+            <div class="col" style="flex: 1;">
+                <div class="card">
+                    <h2>Formulario de Cliente</h2>
+                    <label for="documento">Documento</label>
+                    <input type="text" id="documento" placeholder="Ingrese el documento">
 
-    <label for="documento">Documento</label>
-    <input type="text" id="documento"><br>
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" placeholder="Ingrese el nombre">
 
-    <label for="nombre">Nombre</label>
-    <input type="text" id="nombre"><br>
+                    <label for="estado">Estado</label>
+                    <select id="estado"></select>
 
-    <label for="estado">Estado</label>
-    <select id="estado"></select><br>
+                    <button class="primary" onclick="crearCliente()">Crear</button>
+                    <button class="success" onclick="actualizarCliente()">Actualizar</button>
+                </div>
+            </div>
 
-    <button onclick="crearCliente()">Crear</button>
-    <button onclick="actualizarCliente()">Actualizar</button>
-
-    <h2>Lista de Clientes</h2>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Documento</th>
-                <th>Nombre</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody id="clientes-lista"></tbody>
-    </table>
-
+            <!-- Columna de la tabla -->
+            <div class="col" style="flex: 2;">
+                <div class="card">
+                    <h2>Lista de Clientes</h2>
+                    <table id="tablaClientes">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Documento</th>
+                                <th>Nombre</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientesBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
         let clienteIdSeleccionado = null;
 
         async function cargarEstados() {
             try {
-                const respuesta = await fetch("http://localhost:5000/estados/mostrar_estados/tbl_clientes");
+                const respuesta = await fetch("/estados/mostrar_estados/tbl_clientes");
                 const estados = await respuesta.json();
                 const select = document.getElementById("estado");
 
@@ -57,9 +72,9 @@
 
         async function cargarClientes() {
             try {
-                const respuesta = await fetch("http://localhost:5000/clientes/mostrar_clientes");
+                const respuesta = await fetch("/clientes/mostrar_clientes");
                 const clientes = await respuesta.json();
-                const tbody = document.getElementById("clientes-lista");
+                const tbody = document.getElementById("clientesBody");
                 tbody.innerHTML = "";
 
                 clientes.forEach(cliente => {
@@ -96,7 +111,7 @@
             };
 
             try {
-                const respuesta = await fetch("http://localhost:5000/clientes/insertar_cliente", {
+                const respuesta = await fetch("/clientes/insertar_cliente", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(datos)
@@ -128,7 +143,7 @@
             };
 
             try {
-                const respuesta = await fetch(`http://localhost:5000/clientes/actualizar_cliente/${clienteIdSeleccionado}`, {
+                const respuesta = await fetch(`/clientes/actualizar_cliente/${clienteIdSeleccionado}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(datos)
@@ -151,7 +166,7 @@
             if (!confirm("¿Seguro que deseas eliminar este cliente?")) return;
 
             try {
-                const respuesta = await fetch(`http://localhost:5000/clientes/eliminar_cliente/${id}`, {
+                const respuesta = await fetch(`/clientes/eliminar_cliente/${id}`, {
                     method: "DELETE"
                 });
 
@@ -180,4 +195,5 @@
         };
     </script>
 </body>
+
 </html>
