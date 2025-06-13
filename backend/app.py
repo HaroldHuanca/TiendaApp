@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
+from flask import render_template
 
 # Importación de blueprints
 from app.routes.categoria_routes import categoria_bp
@@ -28,6 +29,14 @@ def create_app():
     app.register_blueprint(usuario_bp, url_prefix="/usuarios")
     app.register_blueprint(venta_bp, url_prefix="/ventas")
     app.register_blueprint(venta_detalle_bp, url_prefix="/venta_detalles")
+
+    @app.route("/")
+    def index():
+        return render_template("index.html")
+    
+    @app.route('/clientes-web')
+    def clientes_web():
+        return render_template('clientes.html')
 
     return app
 
