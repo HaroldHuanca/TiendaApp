@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Clientes</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Clientes</h1>
+
+    <label for="documento">Documento</label>
+    <input type="text" id="documento"><br>
+
+    <label for="nombre">Nombre</label>
+    <input type="text" id="nombre"><br>
+
+    <label for="estado">Estado</label>
+    <select id="estado"></select><br>
+
+    <button onclick="crearCliente()">Crear</button>
+    <button onclick="actualizarCliente()">Actualizar</button>
+
+    <h2>Lista de Clientes</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Documento</th>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="clientes-lista"></tbody>
+    </table>
+
+    <script>
+        let clienteIdSeleccionado = null;
+
+        async function cargarEstados() {
+            try {
+                const respuesta = await fetch("http://localhost:5000/estados/mostrar_estados/tbl_clientes");
+                const estados = await respuesta.json();
+                const select = document.getElementById("estado");
+
+                select.innerHTML = "";
+                estados.forEach(estado => {
+                    const opcion = document.createElement("option");
+                    opcion.value = estado.descripcion;
+                    opcion.textContent = estado.descripcion;
+                    select.appendChild(opcion);
+                });
+            } catch (error) {
+                console.error("Error cargando estados:", error);
+            }
+        }
+
+        async function cargarClientes() {
+            try {
+                const respuesta = await fetch("http://localhost:5000/clientes/mostrar_clientes");
+                const clientes = await respuesta.json();
+                const tbody = document.getElementById("clientes-lista");
+                tbody.innerHTML = "";
+
+                clientes.forEach(cliente => {
+                    const fila = document.createElement("tr");
+                    fila.innerHTML = `
+                        <td>${cliente.Id}</td>
+                        <td>${cliente.Documento}</td>
+                        <td>${cliente.Nombre}</td>
+                        <td>${cliente.Estado}</td>
+                        <td>
+                            <button onclick='editarCliente(${JSON.stringify(cliente)})'>Editar</button>
+                            <button onclick='eliminarCliente(${cliente.Id})'>Eliminar</button>
+                        </td>
+                    `;
+                    tbody.appendChild(fila);
+                });
+            } catch (error) {
+                console.error("Error cargando clientes:", error);
+            }
+        }
+
+        function editarCliente(cliente) {
+            clienteIdSeleccionado = cliente.Id;
+            document.getElementById("documento").value = cliente.Documento;
+            document.getElementById("nombre").value = cliente.Nombre;
+            document.getElementById("estado").value = cliente.Estado;
+        }
+
+        async function crearCliente() {
+            const datos = {
+                documento: document.getElementById("documento").value,
+                nombre: document.getElementById("nombre").value,
+                descripcion_estado: document.getElementById("estado").value
+            };
+
+            try {
+                const respuesta = await fetch("http://localhost:5000/clientes/insertar_cliente", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(datos)
+                });
+
+                if (respuesta.ok) {
+                    alert("Cliente creado exitosamente");
+                    limpiarFormulario();
+                    cargarClientes();
+                } else {
+                    const error = await respuesta.json();
+                    alert("Error: " + error.error);
+                }
+            } catch (error) {
+                console.error("Error al crear cliente:", error);
+            }
+        }
+
+        async function actualizarCliente() {
+            if (!clienteIdSeleccionado) {
+                alert("Selecciona un cliente para actualizar");
+                return;
+            }
+
+            const datos = {
+                documento: document.getElementById("documento").value,
+                nombre: document.getElementById("nombre").value,
+                descripcion_estado: document.getElementById("estado").value
+            };
+
+            try {
+                const respuesta = await fetch(`http://localhost:5000/clientes/actualizar_cliente/${clienteIdSeleccionado}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(datos)
+                });
+
+                if (respuesta.ok) {
+                    alert("Cliente actualizado exitosamente");
+                    limpiarFormulario();
+                    cargarClientes();
+                } else {
+                    const error = await respuesta.json();
+                    alert("Error: " + error.error);
+                }
+            } catch (error) {
+                console.error("Error al actualizar cliente:", error);
+            }
+        }
+
+        async function eliminarCliente(id) {
+            if (!confirm("¿Seguro que deseas eliminar este cliente?")) return;
+
+            try {
+                const respuesta = await fetch(`http://localhost:5000/clientes/eliminar_cliente/${id}`, {
+                    method: "DELETE"
+                });
+
+                if (respuesta.ok) {
+                    alert("Cliente eliminado");
+                    cargarClientes();
+                } else {
+                    const error = await respuesta.json();
+                    alert("Error: " + error.error);
+                }
+            } catch (error) {
+                console.error("Error al eliminar cliente:", error);
+            }
+        }
+
+        function limpiarFormulario() {
+            clienteIdSeleccionado = null;
+            document.getElementById("documento").value = "";
+            document.getElementById("nombre").value = "";
+            document.getElementById("estado").selectedIndex = 0;
+        }
+
+        window.onload = () => {
+            cargarEstados();
+            cargarClientes();
+        };
+    </script>
+</body>
+</html>

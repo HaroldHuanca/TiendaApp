@@ -1,3 +1,0 @@
-from app.services.tiempo_service import obtener_fecha_actual_formateada
-
-print(obtener_fecha_actual_formateada())
