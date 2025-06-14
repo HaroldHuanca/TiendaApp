@@ -16,10 +16,10 @@ def validar_nombre(nombre: str) -> None:
 def validar_documento(documento: str) -> None:
     if not isinstance(documento, str):
         raise ValueError("El documento debe ser una cadena de texto.")
-    if len(documento) == 0 or len(documento) > 15:
-        raise ValueError("El documento debe tener entre 1 y 15 caracteres.")
-    if not re.fullmatch(r"[a-zA-Z0-9]+", documento):
-        raise ValueError("El documento solo puede contener letras y números.")
+    if len(documento) > 15:
+        raise ValueError("El documento debe tener entre 0 y 15 caracteres.")
+    if documento != "" and not re.fullmatch(r"[a-zA-Z0-9]+", documento):
+        raise ValueError("El documento solo puede contener letras y números o estar vacio.")
 # Lógica de servicio
 def mostrar_clientes() -> List[Dict[str, Any]]:
     return cli.mostrar_clientes()
