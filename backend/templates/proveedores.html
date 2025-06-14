@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Proveedores</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>Gestión de Proveedores</h1>
+
+    <div class="row">
+        <!-- Formulario -->
+        <div class="col" style="flex: 1;">
+            <div class="card">
+                <h2>Formulario de Proveedor</h2>
+                <label for="ruc">RUC</label>
+                <input type="text" id="ruc" placeholder="Ingrese RUC">
+
+                <label for="nombre">Nombre</label>
+                <input type="text" id="nombre" placeholder="Ingrese nombre">
+
+                <label for="estado">Estado</label>
+                <select id="estado"></select>
+
+                <button class="primary" onclick="crearProveedor()">Crear</button>
+                <button class="success" onclick="actualizarProveedor()">Actualizar</button>
+            </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="col" style="flex: 2;">
+            <div class="card">
+                <h2>Lista de Proveedores</h2>
+                <table id="tablaProveedores">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>RUC</th>
+                            <th>Nombre</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="proveedoresBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let proveedorIdSeleccionado = null;
+
+    async function cargarEstados() {
+        try {
+            const res = await fetch("http://localhost:5000/estados/mostrar_estados/tbl_proveedores");
+            const estados = await res.json();
+            const select = document.getElementById("estado");
+
+            select.innerHTML = "";
+            estados.forEach(estado => {
+                const opcion = document.createElement("option");
+                opcion.value = estado.descripcion;
+                opcion.textContent = estado.descripcion;
+                select.appendChild(opcion);
+            });
+        } catch (err) {
+            console.error("Error al cargar estados:", err);
+        }
+    }
+
+    async function cargarProveedores() {
+        try {
+            const res = await fetch("http://localhost:5000/mostrar_proveedores");
+            const proveedores = await res.json();
+            const tbody = document.getElementById("proveedoresBody");
+
+            tbody.innerHTML = "";
+            proveedores.forEach(p => {
+                const fila = document.createElement("tr");
+                fila.innerHTML = `
+                    <td>${p.Id}</td>
+                    <td>${p.RUC}</td>
+                    <td>${p.Nombre}</td>
+                    <td>${p.Estado}</td>
+                    <td>
+                        <button onclick='editarProveedor(${JSON.stringify(p)})'>Editar</button>
+                        <button onclick='eliminarProveedor(${p.Id})'>Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(fila);
+            });
+        } catch (err) {
+            console.error("Error al cargar proveedores:", err);
+        }
+    }
+
+    function editarProveedor(p) {
+        proveedorIdSeleccionado = p.Id;
+        document.getElementById("ruc").value = p.RUC;
+        document.getElementById("nombre").value = p.Nombre;
+        document.getElementById("estado").value = p.Estado;
+    }
+
+    async function crearProveedor() {
+        const datos = {
+            ruc: document.getElementById("ruc").value,
+            nombre: document.getElementById("nombre").value,
+            descripcion_estado: document.getElementById("estado").value
+        };
+
+        try {
+            const res = await fetch("http://localhost:5000/insertar_proveedor", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(datos)
+            });
+
+            if (res.ok) {
+                alert("Proveedor creado exitosamente");
+                limpiarFormulario();
+                cargarProveedores();
+            } else {
+                const err = await res.json();
+                alert("Error: " + err.error);
+            }
+        } catch (err) {
+            console.error("Error al crear proveedor:", err);
+        }
+    }
+
+    async function actualizarProveedor() {
+        if (!proveedorIdSeleccionado) {
+            alert("Seleccione un proveedor para actualizar");
+            return;
+        }
+
+        const datos = {
+            ruc: document.getElementById("ruc").value,
+            nombre: document.getElementById("nombre").value,
+            descripcion_estado: document.getElementById("estado").value
+        };
+
+        try {
+            const res = await fetch(`http://localhost:5000/actualizar_proveedor/${proveedorIdSeleccionado}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(datos)
+            });
+
+            if (res.ok) {
+                alert("Proveedor actualizado exitosamente");
+                limpiarFormulario();
+                cargarProveedores();
+            } else {
+                const err = await res.json();
+                alert("Error: " + err.error);
+            }
+        } catch (err) {
+            console.error("Error al actualizar proveedor:", err);
+        }
+    }
+
+    async function eliminarProveedor(id) {
+        if (!confirm("¿Seguro que desea eliminar este proveedor?")) return;
+
+        try {
+            const res = await fetch(`http://localhost:5000/eliminar_proveedor/${id}`, {
+                method: "DELETE"
+            });
+
+            if (res.ok) {
+                alert("Proveedor eliminado");
+                cargarProveedores();
+            } else {
+                const err = await res.json();
+                alert("Error: " + err.error);
+            }
+        } catch (err) {
+            console.error("Error al eliminar proveedor:", err);
+        }
+    }
+
+    function limpiarFormulario() {
+        proveedorIdSeleccionado = null;
+        document.getElementById("ruc").value = "";
+        document.getElementById("nombre").value = "";
+        document.getElementById("estado").selectedIndex = 0;
+    }
+
+    window.onload = () => {
+        cargarEstados();
+        cargarProveedores();
+    };
+</script>
+</body>
+</html>

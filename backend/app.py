@@ -37,7 +37,9 @@ def create_app():
     @app.route('/clientes-web')
     def clientes_web():
         return render_template('clientes.html')
-
+    @app.route('/proveedores-web')
+    def proveedores_web():
+        return render_template('proveedores.html')
     return app
 
 if __name__ == "__main__":
