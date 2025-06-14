@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestión de Usuarios</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Gestión de Usuarios</h1>
+
+    <div class="row">
+      <!-- Formulario -->
+      <div class="col" style="flex: 1;">
+        <div class="card">
+          <h2>Formulario de Usuario</h2>
+
+          <label for="nombre_usuario">Nombre de Usuario</label>
+          <input type="text" id="nombre_usuario" placeholder="Ingrese el nombre de usuario">
+
+          <label for="contrasena">Contraseña</label>
+          <input type="password" id="contrasena" placeholder="Ingrese la contraseña">
+
+          <label for="correo">Correo</label>
+          <input type="email" id="correo" placeholder="Ingrese el correo (opcional)">
+
+          <label for="direccion_mac">Dirección MAC</label>
+          <input type="text" id="direccion_mac" placeholder="Ingrese la MAC (opcional)">
+
+          <label for="descripcion_estado">Estado</label>
+          <select id="descripcion_estado"></select>
+
+          <button class="primary" onclick="crearUsuario()">Crear</button>
+          <button class="success" onclick="actualizarUsuario()">Actualizar</button>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="col" style="flex: 2;">
+        <div class="card">
+          <h2>Lista de Usuarios</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="usuariosBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let usuarioSeleccionadoId = null;
+
+    async function cargarEstados() {
+      try {
+        const res = await fetch("/estados/mostrar_estados/tbl_usuarios");
+        const estados = await res.json();
+        console.log(estados);
+        const select = document.getElementById("descripcion_estado");
+        select.innerHTML = "";
+
+        estados.forEach(estado => {
+          const option = document.createElement("option");
+          option.value = estado.descripcion;
+          option.textContent = estado.descripcion;
+          select.appendChild(option);
+        });
+      } catch (error) {
+        console.error("Error cargando estados:", error);
+      }
+    }
+
+    async function cargarUsuarios() {
+      try {
+        const res = await fetch("/usuarios/mostrar_usuarios");
+        const usuarios = await res.json();
+        const tbody = document.getElementById("usuariosBody");
+        tbody.innerHTML = "";
+
+        usuarios.forEach(usuario => {
+          const fila = document.createElement("tr");
+          fila.innerHTML = `
+            <td>${usuario["Id"]}</td>
+            <td>${usuario["Nombre Usuario"]}</td>
+            <td>${usuario["Descripcion"]}</td>
+            <td>
+              <button onclick='editarUsuario(${JSON.stringify(usuario)})'>Editar</button>
+              <button onclick='eliminarUsuario(${usuario["Id"]})'>Eliminar</button>
+            </td>
+          `;
+          tbody.appendChild(fila);
+        });
+      } catch (error) {
+        console.error("Error cargando usuarios:", error);
+      }
+    }
+
+    function editarUsuario(usuario) {
+      usuarioSeleccionadoId = usuario["Id"];
+      document.getElementById("nombre_usuario").value = usuario["Nombre Usuario"];
+      document.getElementById("contrasena").value = "";
+      document.getElementById("correo").value = "";
+      document.getElementById("direccion_mac").value = "";
+      document.getElementById("descripcion_estado").value = usuario["Descripcion"];
+    }
+
+    async function crearUsuario() {
+      const nombre_usuario = document.getElementById("nombre_usuario").value;
+      const contrasena = document.getElementById("contrasena").value;
+      const correo = document.getElementById("correo").value;
+      const direccion_mac = document.getElementById("direccion_mac").value;
+      const descripcion_estado = document.getElementById("descripcion_estado").value;
+
+      if (!nombre_usuario || !contrasena || !descripcion_estado) {
+        alert("Por favor, completa los campos obligatorios.");
+        return;
+      }
+
+      try {
+        const res = await fetch("/usuarios/insetar_usuario", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nombre_usuario,
+            contrasena,
+            correo,
+            direccion_mac,
+            descripcion_estado
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert(data.mensaje);
+          limpiarFormulario();
+          cargarUsuarios();
+        } else {
+          alert("Error: " + data.error);
+        }
+      } catch (error) {
+        console.error("Error al crear usuario:", error);
+      }
+    }
+
+    async function actualizarUsuario() {
+      if (!usuarioSeleccionadoId) {
+        alert("Selecciona un usuario para actualizar.");
+        return;
+      }
+
+      const nombre_usuario = document.getElementById("nombre_usuario").value;
+      const contrasena = document.getElementById("contrasena").value;
+      const descripcion_estado = document.getElementById("descripcion_estado").value;
+
+      try {
+        const res = await fetch(`/usuarios/actualizar_usuario/${usuarioSeleccionadoId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nombre_usuario, contrasena, descripcion_estado })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert(data.mensaje);
+          limpiarFormulario();
+          cargarUsuarios();
+        } else {
+          alert("Error: " + data.error);
+        }
+      } catch (error) {
+        console.error("Error al actualizar usuario:", error);
+      }
+    }
+
+    async function eliminarUsuario(id) {
+      if (!confirm("¿Estás seguro de que deseas eliminar este usuario?")) return;
+
+      try {
+        const res = await fetch(`/usuarios/eliminar_usuario/${id}`, {
+          method: "DELETE"
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert(data.mensaje);
+          cargarUsuarios();
+        } else {
+          alert("Error: " + data.error);
+        }
+      } catch (error) {
+        console.error("Error al eliminar usuario:", error);
+      }
+    }
+
+    function limpiarFormulario() {
+      usuarioSeleccionadoId = null;
+      document.getElementById("nombre_usuario").value = "";
+      document.getElementById("contrasena").value = "";
+      document.getElementById("correo").value = "";
+      document.getElementById("direccion_mac").value = "";
+      document.getElementById("descripcion_estado").selectedIndex = 0;
+    }
+
+    window.onload = () => {
+      cargarEstados();
+      cargarUsuarios();
+    };
+  </script>
+</body>
+</html>

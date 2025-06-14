@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Categorías</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Gestión de Categorías</h1>
+
+    <div class="row">
+      <!-- Columna del formulario -->
+      <div class="col" style="flex: 1;">
+        <div class="card">
+          <h2>Formulario de Categoría</h2>
+
+          <label for="nombre">Nombre</label>
+          <input type="text" id="nombre" placeholder="Ingrese el nombre">
+
+          <button class="primary" onclick="crearCategoria()">Crear</button>
+          <button class="success" onclick="actualizarCategoria()">Actualizar</button>
+        </div>
+      </div>
+
+      <!-- Columna de la tabla -->
+      <div class="col" style="flex: 2;">
+        <div class="card">
+          <h2>Lista de Categorías</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="categoriasBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let categoriaIdSeleccionada = null;
+
+    async function cargarCategorias() {
+      try {
+        const respuesta = await fetch("/categorias/mostrar_categorias");
+        const categorias = await respuesta.json();
+        const tbody = document.getElementById("categoriasBody");
+        tbody.innerHTML = "";
+        categorias.forEach(categoria => {
+          const fila = document.createElement("tr");
+          fila.innerHTML = `
+            <td>${categoria.id}</td>
+            <td>${categoria.nombre}</td>
+            <td>
+              <button onclick='editarCategoria(${JSON.stringify(categoria)})'>Editar</button>
+            </td>
+          `;
+          tbody.appendChild(fila);
+        });
+      } catch (error) {
+        console.error("Error cargando categorías:", error);
+      }
+    }
+
+    function editarCategoria(categoria) {
+      categoriaIdSeleccionada = categoria.id;
+      document.getElementById("nombre").value = categoria.nombre;
+    }
+
+    async function crearCategoria() {
+      const nombre = document.getElementById("nombre").value;
+      if (!nombre) {
+        alert("El nombre no puede estar vacío");
+        return;
+      }
+
+      try {
+        const respuesta = await fetch("/categorias/insertar_categoria", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nombre })
+        });
+
+        if (respuesta.ok) {
+          alert("Categoría creada exitosamente");
+          limpiarFormulario();
+          cargarCategorias();
+        } else {
+          const error = await respuesta.json();
+          alert("Error: " + error.error);
+        }
+      } catch (error) {
+        console.error("Error al crear categoría:", error);
+      }
+    }
+
+    async function actualizarCategoria() {
+      if (!categoriaIdSeleccionada) {
+        alert("Selecciona una categoría para actualizar");
+        return;
+      }
+
+      const nombre = document.getElementById("nombre").value;
+
+      try {
+        const respuesta = await fetch(`/categorias/actualizar_categoria/${categoriaIdSeleccionada}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nombre })
+        });
+
+        if (respuesta.ok) {
+          alert("Categoría actualizada");
+          limpiarFormulario();
+          cargarCategorias();
+        } else {
+          const error = await respuesta.json();
+          alert("Error: " + error.error);
+        }
+      } catch (error) {
+        console.error("Error al actualizar categoría:", error);
+      }
+    }
+
+    function limpiarFormulario() {
+      categoriaIdSeleccionada = null;
+      document.getElementById("nombre").value = "";
+    }
+
+    window.onload = () => {
+      cargarCategorias();
+    };
+  </script>
+</body>
+</html>

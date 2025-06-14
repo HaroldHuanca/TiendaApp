@@ -40,6 +40,15 @@ def create_app():
     @app.route('/proveedores-web')
     def proveedores_web():
         return render_template('proveedores.html')
+    @app.route('/categorias-web')
+    def categorias_web():
+        return render_template('categorias.html')
+    @app.route('/unidades-web')
+    def unidades_web():
+        return render_template('unidades.html')
+    @app.route('/usuarios-web')
+    def usuarios_web():
+        return render_template('usuarios.html')
     return app
 
 if __name__ == "__main__":
