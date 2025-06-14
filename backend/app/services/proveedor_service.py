@@ -7,7 +7,7 @@ from app.services.validaciones import validar_descripcion, validar_id_smallint
 def validar_ruc(ruc: str) -> None:
     if not isinstance(ruc, str):
         raise ValueError("El RUC debe ser una cadena de texto.")
-    if not re.fullmatch(r"\d{11}?", ruc):
+    if ruc != "" and not re.fullmatch(r"\d{11}?", ruc):
         raise ValueError("El RUC debe contener exactamente 11 dígitos numéricos o no tener digitos.")
 
 def validar_nombre(nombre: str) -> None:
@@ -38,3 +38,4 @@ def actualizar_proveedor(id_proveedor: int, ruc: str, nombre: str, descripcion_e
 def eliminar_proveedor(id_proveedor: int) -> None:
     validar_id_smallint(id_proveedor, "ID del proveedor")
     proveedor_model.eliminar_proveedor(id_proveedor)
+"descripcion_estado"

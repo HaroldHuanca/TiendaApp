@@ -20,8 +20,8 @@
                 <label for="nombre">Nombre</label>
                 <input type="text" id="nombre" placeholder="Ingrese nombre">
 
-                <label for="estado">Estado</label>
-                <select id="estado"></select>
+                <label for="descripcion_estado">Estado</label>
+                <select id="descripcion_estado"></select>
 
                 <button class="primary" onclick="crearProveedor()">Crear</button>
                 <button class="success" onclick="actualizarProveedor()">Actualizar</button>
@@ -54,9 +54,9 @@
 
     async function cargarEstados() {
         try {
-            const res = await fetch("http://localhost:5000/estados/mostrar_estados/tbl_proveedores");
+            const res = await fetch("/estados/mostrar_estados/tbl_proveedores");
             const estados = await res.json();
-            const select = document.getElementById("estado");
+            const select = document.getElementById("descripcion_estado");
 
             select.innerHTML = "";
             estados.forEach(estado => {
@@ -72,7 +72,7 @@
 
     async function cargarProveedores() {
         try {
-            const res = await fetch("http://localhost:5000/mostrar_proveedores");
+            const res = await fetch("/proveedores/mostrar_proveedores");
             const proveedores = await res.json();
             const tbody = document.getElementById("proveedoresBody");
 
@@ -100,18 +100,18 @@
         proveedorIdSeleccionado = p.Id;
         document.getElementById("ruc").value = p.RUC;
         document.getElementById("nombre").value = p.Nombre;
-        document.getElementById("estado").value = p.Estado;
+        document.getElementById("descripcion_estado").value = p.Estado;
     }
 
     async function crearProveedor() {
         const datos = {
             ruc: document.getElementById("ruc").value,
             nombre: document.getElementById("nombre").value,
-            descripcion_estado: document.getElementById("estado").value
+            descripcion_estado: document.getElementById("descripcion_estado").value
         };
 
         try {
-            const res = await fetch("http://localhost:5000/insertar_proveedor", {
+            const res = await fetch("/proveedores/insertar_proveedor", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(datos)
@@ -139,11 +139,11 @@
         const datos = {
             ruc: document.getElementById("ruc").value,
             nombre: document.getElementById("nombre").value,
-            descripcion_estado: document.getElementById("estado").value
+            descripcion_estado: document.getElementById("descripcion_estado").value
         };
 
         try {
-            const res = await fetch(`http://localhost:5000/actualizar_proveedor/${proveedorIdSeleccionado}`, {
+            const res = await fetch(`/proveedores/actualizar_proveedor/${proveedorIdSeleccionado}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(datos)
@@ -166,7 +166,7 @@
         if (!confirm("¿Seguro que desea eliminar este proveedor?")) return;
 
         try {
-            const res = await fetch(`http://localhost:5000/eliminar_proveedor/${id}`, {
+            const res = await fetch(`proveedores/eliminar_proveedor/${id}`, {
                 method: "DELETE"
             });
 
@@ -186,7 +186,7 @@
         proveedorIdSeleccionado = null;
         document.getElementById("ruc").value = "";
         document.getElementById("nombre").value = "";
-        document.getElementById("estado").selectedIndex = 0;
+        document.getElementById("descripcion_estado").selectedIndex = 0;
     }
 
     window.onload = () => {
