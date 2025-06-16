@@ -266,3 +266,11 @@ tbody tr:hover {
         flex-direction: column;
     }
 }
+label[for="contrasena"],
+input#contrasena,
+label[for="correo"],
+input#correo,
+label[for="direccion_mac"],
+input#direccion_mac {
+    display: none;
+}
