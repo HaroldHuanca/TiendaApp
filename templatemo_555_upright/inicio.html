@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+</head>
+<body>
+    <div class="login-container">
+        <h1 class="login-title">Login</h1>
+        
+        <form>
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <div class="input-icon">
+                    <input type="text" class="form-input" placeholder="Type your username">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <div class="input-icon password-icon">
+                    <input type="password" class="form-input" placeholder="Type your password">
+                </div>
+                <div class="forgot-password">
+                    <a href="#">Forgot password?</a>
+                </div>
+            </div>
+
+            <button type="submit" class="login-btn">LOGIN</button>
+        </form>
+
+        <div class="divider">
+            <span>Or Sign Up Using</span>
+        </div>
+
+        <div class="social-login">
+            <button class="social-btn facebook">f</button>
+            <button class="social-btn twitter">t</button>
+            <button class="social-btn google">G</button>
+        </div>
+
+        <div class="signup-link">
+            <div class="divider">
+                <span>Or Sign Up Using</span>
+            </div>
+            <p><a href="#">SIGN UP</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Agregar interactividad al formulario
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.querySelector('input[type="text"]').value;
+            const password = document.querySelector('input[type="password"]').value;
+            
+            if (username && password) {
+                // Simular login exitoso
+                const btn = document.querySelector('.login-btn');
+                btn.textContent = 'LOGGING IN...';
+                btn.style.background = '#28a745';
+                
+                setTimeout(() => {
+                    alert('Login simulado exitoso!');
+                    btn.textContent = 'LOGIN';
+                    btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                }, 1500);
+            } else {
+                alert('Por favor, completa todos los campos');
+            }
+        });
+
+        // Efectos hover para los inputs
+        document.querySelectorAll('.form-input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+
+        // Efectos para botones sociales
+        document.querySelectorAll('.social-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const platform = this.classList[1];
+                alert(`Conectando con ${platform}...`);
+            });
+        });
+    </script>
+</body>
+</html>
