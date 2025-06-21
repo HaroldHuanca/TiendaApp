@@ -32,7 +32,7 @@ def create_app():
 
     @app.route("/")
     def index():
-        return render_template("inicio.html")
+        return render_template("index.html")
     
     @app.route('/clientes-web')
     def clientes_web():
