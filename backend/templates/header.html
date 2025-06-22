@@ -1,11 +1,25 @@
-<header style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background-color: #333; color: white;">
-  <nav style="display: flex; gap: 15px;">
-    <a href="{{ url_for('index') }}" style="color: white; text-decoration: none;">Inicio</a>
-    <a href="{{ url_for('clientes_web') }}" style="color: white; text-decoration: none;">Clientes</a>
-    <a href="{{ url_for('proveedores_web') }}" style="color: white; text-decoration: none;">Proveedores</a>
-    <a href="{{ url_for('usuarios_web') }}" style="color: white; text-decoration: none;">Usuarios</a>
+<header class="tm-header" style="
+    position: fixed;
+    top: 0;
+    left: 300px; /* = ancho del sidebar */
+    right: 0;
+    height: 60px;
+    background-color: #2c3e50;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 1000; /* Encima del sidebar */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+">
+  <nav class="tm-header-nav">
+    <a href="{{ url_for('index') }}" class="tm-header-link">Inicio</a>
+    <a href="{{ url_for('clientes_web') }}" class="tm-header-link">Clientes</a>
+    <a href="{{ url_for('proveedores_web') }}" class="tm-header-link">Proveedores</a>
+    <a href="{{ url_for('usuarios_web') }}" class="tm-header-link">Usuarios</a>
   </nav>
-  <div>
-    <label>Usuario: {{ nombre_usuario }}</label>
+  <div class="tm-user-info">
+    <span>Usuario: {{ nombre_usuario }}</span>
   </div>
 </header>
