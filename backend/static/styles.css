@@ -335,3 +335,105 @@ input#direccion_mac {
     margin: 1rem auto;
     object-fit: cover;
 }
+/* Header styles */
+.tm-header {
+    transition: all 0.3s;
+}
+
+.tm-header-nav {
+    display: flex;
+    gap: 15px;
+}
+
+.tm-header-link {
+    color: white !important;
+    text-decoration: none !important;
+    padding: 5px 10px;
+    border-radius: 3px;
+    transition: background 0.3s;
+}
+
+.tm-header-link:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.tm-user-info {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* Ajuste para el contenido principal */
+.tm-main {
+    margin-top: 60px !important; /* = altura del header */
+}
+/* Estilos para el header secundario */
+.secondary-header {
+    background-color: #2c3e50;
+    color: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    height: 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.secondary-header .logo a {
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+    text-decoration: none;
+}
+
+.secondary-header .main-nav ul {
+    display: flex;
+    list-style: none;
+    gap: 20px;
+    margin: 0;
+    padding: 0;
+}
+
+.secondary-header .main-nav a {
+    color: white;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.secondary-header .main-nav a:hover,
+.secondary-header .main-nav a.active {
+    background-color: #3498db;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.username {
+    font-weight: 500;
+}
+
+.logout-btn {
+    color: white;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: #e74c3c;
+    transition: background-color 0.3s;
+}
+
+.logout-btn:hover {
+    background-color: #c0392b;
+}

@@ -1,0 +1,22 @@
+<!-- templates/header2.html -->
+<header class="secondary-header">
+    <div class="header-container">
+        <div class="logo">
+            <a href="{{ url_for('index') }}">Abarrotes Sarita</a>
+        </div>
+        
+        <nav class="main-nav">
+            <ul>
+                <li><a href="{{ url_for('index') }}" class="{{ 'active' if request.endpoint == 'index' }}">Inicio</a></li>
+                <li><a href="{{ url_for('clientes_web') }}" class="{{ 'active' if request.endpoint == 'clientes_web' }}">Clientes</a></li>
+                <li><a href="{{ url_for('proveedores_web') }}" class="{{ 'active' if request.endpoint == 'proveedores_web' }}">Proveedores</a></li>
+                <li><a href="{{ url_for('usuarios_web') }}" class="{{ 'active' if request.endpoint == 'usuarios_web' }}">Usuarios</a></li>
+            </ul>
+        </nav>
+        
+        <div class="user-info">
+            <span class="username">{{ nombre_usuario }}</span>
+            <a href="{{ url_for('categorias_web') }}" class="logout-btn">Salir</a>
+        </div>
+    </div>
+</header>

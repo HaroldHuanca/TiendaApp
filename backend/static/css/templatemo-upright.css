@@ -735,3 +735,34 @@ select:not([multiple]) {
 		margin-left: 0;
 	}
 }
+/* Header styles */
+.tm-header {
+    transition: all 0.3s;
+}
+
+.tm-header-nav {
+    display: flex;
+    gap: 15px;
+}
+
+.tm-header-link {
+    color: white !important;
+    text-decoration: none !important;
+    padding: 5px 10px;
+    border-radius: 3px;
+    transition: background 0.3s;
+}
+
+.tm-header-link:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.tm-user-info {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* Ajuste para el contenido principal */
+.tm-main {
+    margin-top: 60px !important; /* = altura del header */
+}
