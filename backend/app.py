@@ -1,6 +1,5 @@
-from flask import Flask
+from flask import Flask, render_template, request, make_response
 from flask_cors import CORS
-from flask import render_template
 
 # Importación de blueprints
 from app.routes.categoria_routes import categoria_bp
@@ -16,7 +15,7 @@ from app.routes.venta_detalle_routes import venta_detalle_bp
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)  # Permite solicitudes desde otros orígenes
+    CORS(app)
 
     # Registro de blueprints
     app.register_blueprint(categoria_bp, url_prefix="/categorias")
@@ -30,27 +29,39 @@ def create_app():
     app.register_blueprint(venta_bp, url_prefix="/ventas")
     app.register_blueprint(venta_detalle_bp, url_prefix="/venta_detalles")
 
+    def render_con_cookie(template):
+        usuario_cookie = request.cookies.get("usuario")
+        if usuario_cookie:
+            return render_template(template, usuario=usuario_cookie)
+        else:
+            resp = make_response(render_template(template, usuario="admin"))
+            resp.set_cookie("usuario", "admin")
+            return resp
+
     @app.route("/")
     def index():
-        return render_template("inicio.html")
-    
-    @app.route('/clientes-web')
+        return render_con_cookie("index.html")
+
+    @app.route('/clientes')
     def clientes_web():
-        return render_template('clientes.html')
-    @app.route('/proveedores-web')
+        return render_con_cookie("clientes.html")
+
+    @app.route('/proveedores')
     def proveedores_web():
-        return render_template('proveedores.html')
-    @app.route('/categorias-web')
+        return render_con_cookie("proveedores.html")
+
+    @app.route('/categorias')
     def categorias_web():
-        return render_template('categorias.html')
-    @app.route('/unidades-web')
+        return render_con_cookie("categorias.html")
+
+    @app.route('/unidades')
     def unidades_web():
-        return render_template('unidades.html')
-    @app.route('/usuarios-web')
+        return render_con_cookie("unidades.html")
+    @app.route('/usuarios')
     def usuarios_web():
-        return render_template('usuarios.html')
+        return render_con_cookie("usuarios.html")
     return app
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=True, host='0.0.0.0' ,port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000)
