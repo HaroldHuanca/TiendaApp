@@ -1,0 +1,11 @@
+<header style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background-color: #333; color: white;">
+  <nav style="display: flex; gap: 15px;">
+    <a href="{{ url_for('index') }}" style="color: white; text-decoration: none;">Inicio</a>
+    <a href="{{ url_for('clientes_web') }}" style="color: white; text-decoration: none;">Clientes</a>
+    <a href="{{ url_for('proveedores_web') }}" style="color: white; text-decoration: none;">Proveedores</a>
+    <a href="{{ url_for('usuarios_web') }}" style="color: white; text-decoration: none;">Usuarios</a>
+  </nav>
+  <div>
+    <label>Usuario: {{ nombre_usuario }}</label>
+  </div>
+</header>
