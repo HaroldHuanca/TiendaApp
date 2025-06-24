@@ -1,55 +1,64 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Proveedores</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    {% include 'header2.html' with context %} 
-<div class="container">
-    <h1>Gestión de Proveedores</h1>
+{% extends "base.html" %}
+
+{% block title %}Proveedores - Mi Abarrotes{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4"><i class="bi bi-truck"></i> Gestión de Proveedores</h1>
 
     <div class="row">
         <!-- Formulario -->
-        <div class="col" style="flex: 1;">
-            <div class="card">
-                <h2>Formulario de Proveedor</h2>
-                <label for="ruc">RUC</label>
-                <input type="text" id="ruc" placeholder="Ingrese RUC">
+        <div class="col-md-4">
+            <div class="card shadow-sm p-3">
+                <h5 class="card-title">Formulario de Proveedor</h5>
 
-                <label for="nombre">Nombre</label>
-                <input type="text" id="nombre" placeholder="Ingrese nombre">
+                <div class="mb-3">
+                    <label for="ruc" class="form-label">RUC</label>
+                    <input type="text" id="ruc" class="form-control" placeholder="Ingrese RUC">
+                </div>
 
-                <label for="descripcion_estado">Estado</label>
-                <select id="descripcion_estado"></select>
+                <div class="mb-3">
+                    <label for="nombre" class="form-label">Nombre</label>
+                    <input type="text" id="nombre" class="form-control" placeholder="Ingrese nombre">
+                </div>
 
-                <button class="primary" onclick="crearProveedor()">Crear</button>
-                <button class="success" onclick="actualizarProveedor()">Actualizar</button>
+                <div class="mb-3">
+                    <label for="descripcion_estado" class="form-label">Estado</label>
+                    <select id="descripcion_estado" class="form-select"></select>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" onclick="crearProveedor()">Crear</button>
+                    <button class="btn btn-success" onclick="actualizarProveedor()">Actualizar</button>
+                </div>
             </div>
         </div>
 
         <!-- Tabla -->
-        <div class="col" style="flex: 2;">
-            <div class="card">
-                <h2>Lista de Proveedores</h2>
-                <table id="tablaProveedores">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>RUC</th>
-                            <th>Nombre</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="proveedoresBody"></tbody>
-                </table>
+        <div class="col-md-8">
+            <div class="card shadow-sm p-3">
+                <h5 class="card-title">Lista de Proveedores</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" id="tablaProveedores">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>RUC</th>
+                                <th>Nombre</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="proveedoresBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
     let proveedorIdSeleccionado = null;
 
@@ -86,8 +95,12 @@
                     <td>${p.Nombre}</td>
                     <td>${p.Estado}</td>
                     <td>
-                        <button onclick='editarProveedor(${JSON.stringify(p)})'>Editar</button>
-                        <button onclick='eliminarProveedor(${p.Id})'>Eliminar</button>
+                        <button class="btn btn-outline-primary btn-sm" onclick='editarProveedor(${JSON.stringify(p)})'>
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" onclick='eliminarProveedor(${p.Id})'>
+                            <i class="bi bi-trash"></i>
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(fila);
@@ -167,7 +180,7 @@
         if (!confirm("¿Seguro que desea eliminar este proveedor?")) return;
 
         try {
-            const res = await fetch(`proveedores/eliminar_proveedor/${id}`, {
+            const res = await fetch(`/proveedores/eliminar_proveedor/${id}`, {
                 method: "DELETE"
             });
 
@@ -195,5 +208,4 @@
         cargarProveedores();
     };
 </script>
-</body>
-</html>
+{% endblock %}

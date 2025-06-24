@@ -1,41 +1,46 @@
-<!DOCTYPE html>
-<html lang="es">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Clientes</title>
-    <link rel="stylesheet" href="../static/styles.css">
-</head>
-<!--{{ url_for('static', filename='styles.css') }}-->
-<body>
-    {% include 'header2.html' with context %} 
-    <div class="container">
-        <h1>Gestión de Clientes</h1>
-        <div class="row">
-            <!-- Columna del formulario -->
-            <div class="col" style="flex: 1;">
-                <div class="card">
-                    <h2>Formulario de Cliente</h2>
-                    <label for="documento">Documento</label>
-                    <input type="text" id="documento" placeholder="Ingrese el documento">
+{% block title %}Clientes - Mi Abarrotes{% endblock %}
 
-                    <label for="nombre">Nombre</label>
-                    <input type="text" id="nombre" placeholder="Ingrese el nombre">
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4"><i class="bi bi-people"></i> Gestión de Clientes</h1>
 
-                    <label for="estado">Estado</label>
-                    <select id="estado"></select>
+    <div class="row">
+        <!-- Formulario -->
+        <div class="col-md-4">
+            <div class="card shadow-sm p-3">
+                <h5 class="card-title">Formulario de Cliente</h5>
 
-                    <button class="primary" onclick="crearCliente()">Crear</button>
-                    <button class="success" onclick="actualizarCliente()">Actualizar</button>
+                <div class="mb-3">
+                    <label for="documento" class="form-label">Documento</label>
+                    <input type="text" id="documento" class="form-control" placeholder="Ingrese el documento">
+                </div>
+
+                <div class="mb-3">
+                    <label for="nombre" class="form-label">Nombre</label>
+                    <input type="text" id="nombre" class="form-control" placeholder="Ingrese el nombre">
+                </div>
+
+                <div class="mb-3">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select id="estado" class="form-select"></select>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" onclick="crearCliente()">Crear</button>
+                    <button class="btn btn-success" onclick="actualizarCliente()">Actualizar</button>
                 </div>
             </div>
+        </div>
 
-            <!-- Columna de la tabla -->
-            <div class="col" style="flex: 2;">
-                <div class="card">
-                    <h2>Lista de Clientes</h2>
-                    <table id="tablaClientes">
-                        <thead>
+        <!-- Tabla -->
+        <div class="col-md-8">
+            <div class="card shadow-sm p-3">
+                <h5 class="card-title">Lista de Clientes</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" id="tablaClientes">
+                        <thead class="table-light">
                             <tr>
                                 <th>ID</th>
                                 <th>Documento</th>
@@ -50,151 +55,157 @@
             </div>
         </div>
     </div>
-    <script>
-        let clienteIdSeleccionado = null;
+</div>
+{% endblock %}
 
-        async function cargarEstados() {
-            try {
-                const respuesta = await fetch("/estados/mostrar_estados/tbl_clientes");
-                const estados = await respuesta.json();
-                const select = document.getElementById("estado");
+{% block scripts %}
+<script>
+    let clienteIdSeleccionado = null;
 
-                select.innerHTML = "";
-                estados.forEach(estado => {
-                    const opcion = document.createElement("option");
-                    opcion.value = estado.descripcion;
-                    opcion.textContent = estado.descripcion;
-                    select.appendChild(opcion);
-                });
-            } catch (error) {
-                console.error("Error cargando estados:", error);
-            }
+    async function cargarEstados() {
+        try {
+            const respuesta = await fetch("/estados/mostrar_estados/tbl_clientes");
+            const estados = await respuesta.json();
+            const select = document.getElementById("estado");
+
+            select.innerHTML = "";
+            estados.forEach(estado => {
+                const opcion = document.createElement("option");
+                opcion.value = estado.descripcion;
+                opcion.textContent = estado.descripcion;
+                select.appendChild(opcion);
+            });
+        } catch (error) {
+            console.error("Error cargando estados:", error);
         }
+    }
 
-        async function cargarClientes() {
-            try {
-                const respuesta = await fetch("/clientes/mostrar_clientes");
-                const clientes = await respuesta.json();
-                const tbody = document.getElementById("clientesBody");
-                tbody.innerHTML = "";
+    async function cargarClientes() {
+        try {
+            const respuesta = await fetch("/clientes/mostrar_clientes");
+            const clientes = await respuesta.json();
+            const tbody = document.getElementById("clientesBody");
+            tbody.innerHTML = "";
 
-                clientes.forEach(cliente => {
-                    const fila = document.createElement("tr");
-                    fila.innerHTML = `
-                        <td>${cliente.Id}</td>
-                        <td>${cliente.Documento}</td>
-                        <td>${cliente.Nombre}</td>
-                        <td>${cliente.Estado}</td>
-                        <td>
-                            <button onclick='editarCliente(${JSON.stringify(cliente)})'>Editar</button>
-                            <button onclick='eliminarCliente(${cliente.Id})'>Eliminar</button>
-                        </td>
-                    `;
-                    tbody.appendChild(fila);
-                });
-            } catch (error) {
-                console.error("Error cargando clientes:", error);
-            }
+            clientes.forEach(cliente => {
+                const fila = document.createElement("tr");
+                fila.innerHTML = `
+                    <td>${cliente.Id}</td>
+                    <td>${cliente.Documento}</td>
+                    <td>${cliente.Nombre}</td>
+                    <td>${cliente.Estado}</td>
+                    <td>
+                        <button class="btn btn-outline-primary btn-sm" onclick='editarCliente(${JSON.stringify(cliente)})'>
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" onclick='eliminarCliente(${cliente.Id})'>
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(fila);
+            });
+        } catch (error) {
+            console.error("Error cargando clientes:", error);
         }
+    }
 
-        function editarCliente(cliente) {
-            clienteIdSeleccionado = cliente.Id;
-            document.getElementById("documento").value = cliente.Documento;
-            document.getElementById("nombre").value = cliente.Nombre;
-            document.getElementById("estado").value = cliente.Estado;
-        }
+    function editarCliente(cliente) {
+        clienteIdSeleccionado = cliente.Id;
+        document.getElementById("documento").value = cliente.Documento;
+        document.getElementById("nombre").value = cliente.Nombre;
+        document.getElementById("estado").value = cliente.Estado;
+    }
 
-        async function crearCliente() {
-            const datos = {
-                documento: document.getElementById("documento").value,
-                nombre: document.getElementById("nombre").value,
-                descripcion_estado: document.getElementById("estado").value
-            };
-
-            try {
-                const respuesta = await fetch("/clientes/insertar_cliente", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(datos)
-                });
-
-                if (respuesta.ok) {
-                    alert("Cliente creado exitosamente");
-                    limpiarFormulario();
-                    cargarClientes();
-                } else {
-                    const error = await respuesta.json();
-                    alert("Error: " + error.error);
-                }
-            } catch (error) {
-                console.error("Error al crear cliente:", error);
-            }
-        }
-
-        async function actualizarCliente() {
-            if (!clienteIdSeleccionado) {
-                alert("Selecciona un cliente para actualizar");
-                return;
-            }
-
-            const datos = {
-                documento: document.getElementById("documento").value,
-                nombre: document.getElementById("nombre").value,
-                descripcion_estado: document.getElementById("estado").value
-            };
-
-            try {
-                const respuesta = await fetch(`/clientes/actualizar_cliente/${clienteIdSeleccionado}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(datos)
-                });
-
-                if (respuesta.ok) {
-                    alert("Cliente actualizado exitosamente");
-                    limpiarFormulario();
-                    cargarClientes();
-                } else {
-                    const error = await respuesta.json();
-                    alert("Error: " + error.error);
-                }
-            } catch (error) {
-                console.error("Error al actualizar cliente:", error);
-            }
-        }
-
-        async function eliminarCliente(id) {
-            if (!confirm("¿Seguro que deseas eliminar este cliente?")) return;
-
-            try {
-                const respuesta = await fetch(`/clientes/eliminar_cliente/${id}`, {
-                    method: "DELETE"
-                });
-
-                if (respuesta.ok) {
-                    alert("Cliente eliminado");
-                    cargarClientes();
-                } else {
-                    const error = await respuesta.json();
-                    alert("Error: " + error.error);
-                }
-            } catch (error) {
-                console.error("Error al eliminar cliente:", error);
-            }
-        }
-
-        function limpiarFormulario() {
-            clienteIdSeleccionado = null;
-            document.getElementById("documento").value = "";
-            document.getElementById("nombre").value = "";
-            document.getElementById("estado").selectedIndex = 0;
-        }
-
-        window.onload = () => {
-            cargarEstados();
-            cargarClientes();
+    async function crearCliente() {
+        const datos = {
+            documento: document.getElementById("documento").value,
+            nombre: document.getElementById("nombre").value,
+            descripcion_estado: document.getElementById("estado").value
         };
-    </script>
-</body>
 
-</html>
+        try {
+            const respuesta = await fetch("/clientes/insertar_cliente", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(datos)
+            });
+
+            if (respuesta.ok) {
+                alert("Cliente creado exitosamente");
+                limpiarFormulario();
+                cargarClientes();
+            } else {
+                const error = await respuesta.json();
+                alert("Error: " + error.error);
+            }
+        } catch (error) {
+            console.error("Error al crear cliente:", error);
+        }
+    }
+
+    async function actualizarCliente() {
+        if (!clienteIdSeleccionado) {
+            alert("Selecciona un cliente para actualizar");
+            return;
+        }
+
+        const datos = {
+            documento: document.getElementById("documento").value,
+            nombre: document.getElementById("nombre").value,
+            descripcion_estado: document.getElementById("estado").value
+        };
+
+        try {
+            const respuesta = await fetch(`/clientes/actualizar_cliente/${clienteIdSeleccionado}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(datos)
+            });
+
+            if (respuesta.ok) {
+                alert("Cliente actualizado exitosamente");
+                limpiarFormulario();
+                cargarClientes();
+            } else {
+                const error = await respuesta.json();
+                alert("Error: " + error.error);
+            }
+        } catch (error) {
+            console.error("Error al actualizar cliente:", error);
+        }
+    }
+
+    async function eliminarCliente(id) {
+        if (!confirm("¿Seguro que deseas eliminar este cliente?")) return;
+
+        try {
+            const respuesta = await fetch(`/clientes/eliminar_cliente/${id}`, {
+                method: "DELETE"
+            });
+
+            if (respuesta.ok) {
+                alert("Cliente eliminado");
+                cargarClientes();
+            } else {
+                const error = await respuesta.json();
+                alert("Error: " + error.error);
+            }
+        } catch (error) {
+            console.error("Error al eliminar cliente:", error);
+        }
+    }
+
+    function limpiarFormulario() {
+        clienteIdSeleccionado = null;
+        document.getElementById("documento").value = "";
+        document.getElementById("nombre").value = "";
+        document.getElementById("estado").selectedIndex = 0;
+    }
+
+    window.onload = () => {
+        cargarEstados();
+        cargarClientes();
+    };
+</script>
+{% endblock %}
