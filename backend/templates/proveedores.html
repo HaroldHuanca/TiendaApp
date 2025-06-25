@@ -1,199 +1,291 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Proveedores</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    {% include 'header2.html' with context %} 
-<div class="container">
-    <h1>Gestión de Proveedores</h1>
+{% extends "base.html" %}
+
+{% block title %}Proveedores - Abarrotes Sarita{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4"><i class="fas fa-truck me-2"></i> Gestión de Proveedores</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+        <li class="breadcrumb-item active">Proveedores</li>
+    </ol>
 
     <div class="row">
         <!-- Formulario -->
-        <div class="col" style="flex: 1;">
-            <div class="card">
-                <h2>Formulario de Proveedor</h2>
-                <label for="ruc">RUC</label>
-                <input type="text" id="ruc" placeholder="Ingrese RUC">
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-truck-loading me-1"></i>
+                    Formulario de Proveedor
+                </div>
+                <div class="card-body">
+                    <form id="formProveedor">
+                        <div class="mb-3">
+                            <label for="ruc" class="form-label">RUC</label>
+                            <input type="text" id="ruc" class="form-control" placeholder="Ingrese RUC del proveedor" required>
+                        </div>
 
-                <label for="nombre">Nombre</label>
-                <input type="text" id="nombre" placeholder="Ingrese nombre">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" id="nombre" class="form-control" placeholder="Nombre del proveedor" required>
+                        </div>
 
-                <label for="descripcion_estado">Estado</label>
-                <select id="descripcion_estado"></select>
+                        <div class="mb-3">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select id="estado" class="form-select" required>
+                                <option value="" disabled selected>Seleccione un estado</option>
+                            </select>
+                        </div>
 
-                <button class="primary" onclick="crearProveedor()">Crear</button>
-                <button class="success" onclick="actualizarProveedor()">Actualizar</button>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-danger me-md-2" onclick="limpiarFormulario()">
+                                <i class="fas fa-times me-1"></i> Limpiar
+                            </button>
+                            <button type="button" class="btn btn-success" onclick="guardarProveedor()">
+                                <i class="fas fa-save me-1"></i> Guardar
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 
-        <!-- Tabla -->
-        <div class="col" style="flex: 2;">
-            <div class="card">
-                <h2>Lista de Proveedores</h2>
-                <table id="tablaProveedores">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>RUC</th>
-                            <th>Nombre</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="proveedoresBody"></tbody>
-                </table>
+        <!-- Tabla de Proveedores -->
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-table me-1"></i>
+                    Registro de Proveedores
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-striped" id="tablaProveedores" width="100%" cellspacing="0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>RUC</th>
+                                    <th>Nombre</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="proveedoresBody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
+    // Variables globales
     let proveedorIdSeleccionado = null;
+    const apiProveedores = {
+        listar: "/proveedores/mostrar_proveedores",
+        crear: "/proveedores/insertar_proveedor",
+        actualizar: "/proveedores/actualizar_proveedor",
+        eliminar: "/proveedores/eliminar_proveedor",
+        estados: "/estados/mostrar_estados/tbl_proveedores"
+    };
 
+    // DOM Ready
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarEstados();
+        cargarProveedores();
+        
+        // Configurar tooltips
+        $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    });
+
+    // Funciones CRUD
     async function cargarEstados() {
         try {
-            const res = await fetch("/estados/mostrar_estados/tbl_proveedores");
-            const estados = await res.json();
-            const select = document.getElementById("descripcion_estado");
-
-            select.innerHTML = "";
+            const response = await fetch(apiProveedores.estados);
+            if (!response.ok) throw new Error('Error al cargar estados');
+            const estados = await response.json();
+            
+            const selectEstado = document.getElementById('estado');
+            selectEstado.innerHTML = '<option value="" disabled selected>Seleccione un estado</option>';
+            
             estados.forEach(estado => {
-                const opcion = document.createElement("option");
-                opcion.value = estado.descripcion;
-                opcion.textContent = estado.descripcion;
-                select.appendChild(opcion);
+                const option = document.createElement('option');
+                option.value = estado.descripcion;
+                option.textContent = estado.descripcion;
+                selectEstado.appendChild(option);
             });
-        } catch (err) {
-            console.error("Error al cargar estados:", err);
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarAlerta('Error al cargar estados', 'danger');
         }
     }
 
     async function cargarProveedores() {
         try {
-            const res = await fetch("/proveedores/mostrar_proveedores");
-            const proveedores = await res.json();
-            const tbody = document.getElementById("proveedoresBody");
-
-            tbody.innerHTML = "";
-            proveedores.forEach(p => {
-                const fila = document.createElement("tr");
-                fila.innerHTML = `
-                    <td>${p.Id}</td>
-                    <td>${p.RUC}</td>
-                    <td>${p.Nombre}</td>
-                    <td>${p.Estado}</td>
+            const response = await fetch(apiProveedores.listar);
+            if (!response.ok) throw new Error('Error al cargar proveedores');
+            const proveedores = await response.json();
+            
+            const tbody = document.getElementById('proveedoresBody');
+            tbody.innerHTML = '';
+            
+            proveedores.forEach(proveedor => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${proveedor.Id}</td>
+                    <td>${proveedor.RUC}</td>
+                    <td>${proveedor.Nombre}</td>
+                    <td><span class="badge ${proveedor.Estado === 'Activo' ? 'bg-success' : 'bg-secondary'}">${proveedor.Estado}</span></td>
                     <td>
-                        <button onclick='editarProveedor(${JSON.stringify(p)})'>Editar</button>
-                        <button onclick='eliminarProveedor(${p.Id})'>Eliminar</button>
+                        <button class="btn btn-sm btn-warning me-1" onclick="editarProveedor(${proveedor.Id})" data-toggle="tooltip" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="confirmarEliminar(${proveedor.Id})" data-toggle="tooltip" title="Eliminar">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                     </td>
                 `;
-                tbody.appendChild(fila);
+                tbody.appendChild(tr);
             });
-        } catch (err) {
-            console.error("Error al cargar proveedores:", err);
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarAlerta('Error al cargar proveedores', 'danger');
         }
     }
 
-    function editarProveedor(p) {
-        proveedorIdSeleccionado = p.Id;
-        document.getElementById("ruc").value = p.RUC;
-        document.getElementById("nombre").value = p.Nombre;
-        document.getElementById("descripcion_estado").value = p.Estado;
-    }
-
-    async function crearProveedor() {
-        const datos = {
-            ruc: document.getElementById("ruc").value,
-            nombre: document.getElementById("nombre").value,
-            descripcion_estado: document.getElementById("descripcion_estado").value
-        };
-
-        try {
-            const res = await fetch("/proveedores/insertar_proveedor", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(datos)
-            });
-
-            if (res.ok) {
-                alert("Proveedor creado exitosamente");
-                limpiarFormulario();
-                cargarProveedores();
-            } else {
-                const err = await res.json();
-                alert("Error: " + err.error);
-            }
-        } catch (err) {
-            console.error("Error al crear proveedor:", err);
-        }
-    }
-
-    async function actualizarProveedor() {
-        if (!proveedorIdSeleccionado) {
-            alert("Seleccione un proveedor para actualizar");
+    async function guardarProveedor() {
+        const ruc = document.getElementById('ruc').value.trim();
+        const nombre = document.getElementById('nombre').value.trim();
+        const estado = document.getElementById('estado').value;
+        
+        if (!ruc || !nombre || !estado) {
+            mostrarAlerta('Todos los campos son obligatorios', 'warning');
             return;
         }
-
-        const datos = {
-            ruc: document.getElementById("ruc").value,
-            nombre: document.getElementById("nombre").value,
-            descripcion_estado: document.getElementById("descripcion_estado").value
+        
+        const proveedorData = {
+            ruc,
+            nombre,
+            descripcion_estado: estado
         };
-
+        
         try {
-            const res = await fetch(`/proveedores/actualizar_proveedor/${proveedorIdSeleccionado}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(datos)
+            const url = proveedorIdSeleccionado 
+                ? `${apiProveedores.actualizar}/${proveedorIdSeleccionado}`
+                : apiProveedores.crear;
+                
+            const method = proveedorIdSeleccionado ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(proveedorData)
             });
-
-            if (res.ok) {
-                alert("Proveedor actualizado exitosamente");
-                limpiarFormulario();
-                cargarProveedores();
-            } else {
-                const err = await res.json();
-                alert("Error: " + err.error);
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Error en la operación');
             }
-        } catch (err) {
-            console.error("Error al actualizar proveedor:", err);
+            
+            const accion = proveedorIdSeleccionado ? 'actualizado' : 'creado';
+            mostrarAlerta(`Proveedor ${accion} correctamente`, 'success');
+            
+            limpiarFormulario();
+            cargarProveedores();
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarAlerta(error.message || 'Error al guardar el proveedor', 'danger');
         }
+    }
+
+    async function editarProveedor(id) {
+        try {
+            const response = await fetch(`${apiProveedores.listar}/${id}`);
+            if (!response.ok) throw new Error('Error al obtener proveedor');
+            
+            const proveedor = await response.json();
+            if (!proveedor) throw new Error('Proveedor no encontrado');
+            
+            proveedorIdSeleccionado = proveedor.Id;
+            document.getElementById('ruc').value = proveedor.RUC;
+            document.getElementById('nombre').value = proveedor.Nombre;
+            document.getElementById('estado').value = proveedor.Estado;
+            
+            // Scroll al formulario
+            document.querySelector('.col-xl-4').scrollIntoView({
+                behavior: 'smooth'
+            });
+            
+            mostrarAlerta('Modo edición activado', 'info');
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarAlerta(error.message, 'danger');
+        }
+    }
+
+    function confirmarEliminar(id) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¡No podrás revertir esto!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                eliminarProveedor(id);
+            }
+        });
     }
 
     async function eliminarProveedor(id) {
-        if (!confirm("¿Seguro que desea eliminar este proveedor?")) return;
-
         try {
-            const res = await fetch(`proveedores/eliminar_proveedor/${id}`, {
-                method: "DELETE"
+            const response = await fetch(`${apiProveedores.eliminar}/${id}`, {
+                method: 'DELETE'
             });
-
-            if (res.ok) {
-                alert("Proveedor eliminado");
-                cargarProveedores();
-            } else {
-                const err = await res.json();
-                alert("Error: " + err.error);
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Error al eliminar');
             }
-        } catch (err) {
-            console.error("Error al eliminar proveedor:", err);
+            
+            mostrarAlerta('Proveedor eliminado correctamente', 'success');
+            cargarProveedores();
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarAlerta(error.message, 'danger');
         }
     }
 
     function limpiarFormulario() {
         proveedorIdSeleccionado = null;
-        document.getElementById("ruc").value = "";
-        document.getElementById("nombre").value = "";
-        document.getElementById("descripcion_estado").selectedIndex = 0;
+        document.getElementById('formProveedor').reset();
+        document.getElementById('estado').selectedIndex = 0;
     }
 
-    window.onload = () => {
-        cargarEstados();
-        cargarProveedores();
-    };
+    function mostrarAlerta(mensaje, tipo) {
+        const alerta = document.createElement('div');
+        alerta.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alerta.role = 'alert';
+        alerta.innerHTML = `
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        const container = document.querySelector('.container-fluid');
+        container.prepend(alerta);
+        
+        setTimeout(() => {
+            alerta.remove();
+        }, 5000);
+    }
 </script>
-</body>
-</html>
+{% endblock %}

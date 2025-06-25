@@ -1,142 +1,147 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Unidades</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-{% include 'header2.html' with context %} 
-<body>
-  <div class="container">
-    <h1>Gestión de Unidades</h1>
+{% extends "base.html" %}
+
+{% block title %}Unidades - Mi Abarrotes{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4"><i class="bi bi-rulers"></i> Gestión de Unidades</h1>
 
     <div class="row">
-      <!-- Columna del formulario -->
-      <div class="col" style="flex: 1;">
-        <div class="card">
-          <h2>Formulario de Unidad</h2>
+        <!-- Formulario -->
+        <div class="col-md-4">
+            <div class="card shadow-sm p-3">
+                <h5 class="card-title">Formulario de Unidad</h5>
 
-          <label for="nombre">Nombre</label>
-          <input type="text" id="nombre" placeholder="Ingrese el nombre de la unidad">
+                <div class="mb-3">
+                    <label for="nombre" class="form-label">Nombre</label>
+                    <input type="text" id="nombre" class="form-control" placeholder="Ingrese el nombre de la unidad">
+                </div>
 
-          <button class="primary" onclick="crearUnidad()">Crear</button>
-          <button class="success" onclick="actualizarUnidad()">Actualizar</button>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" onclick="crearUnidad()">Crear</button>
+                    <button class="btn btn-success" onclick="actualizarUnidad()">Actualizar</button>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Columna de la tabla -->
-      <div class="col" style="flex: 2;">
-        <div class="card">
-          <h2>Lista de Unidades</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="unidadesBody"></tbody>
-          </table>
+        <!-- Tabla -->
+        <div class="col-md-8">
+            <div class="card shadow-sm p-3">
+                <h5 class="card-title">Lista de Unidades</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="unidadesBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
+</div>
+{% endblock %}
 
-  <script>
+{% block scripts %}
+<script>
     let unidadIdSeleccionada = null;
 
     async function cargarUnidades() {
-      try {
-        const respuesta = await fetch("/unidades/mostrar_unidades");
-        const unidades = await respuesta.json();
-        const tbody = document.getElementById("unidadesBody");
-        tbody.innerHTML = "";
+        try {
+            const respuesta = await fetch("/unidades/mostrar_unidades");
+            const unidades = await respuesta.json();
+            const tbody = document.getElementById("unidadesBody");
+            tbody.innerHTML = "";
 
-        unidades.forEach(unidad => {
-          const fila = document.createElement("tr");
-          fila.innerHTML = `
-            <td>${unidad.id}</td>
-            <td>${unidad.nombre}</td>
-            <td>
-              <button onclick='editarUnidad(${JSON.stringify(unidad)})'>Editar</button>
-            </td>
-          `;
-          tbody.appendChild(fila);
-        });
-      } catch (error) {
-        console.error("Error cargando unidades:", error);
-      }
+            unidades.forEach(unidad => {
+                const fila = document.createElement("tr");
+                fila.innerHTML = `
+                    <td>${unidad.id}</td>
+                    <td>${unidad.nombre}</td>
+                    <td>
+                        <button class="btn btn-outline-primary btn-sm" onclick='editarUnidad(${JSON.stringify(unidad)})'>
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(fila);
+            });
+        } catch (error) {
+            console.error("Error cargando unidades:", error);
+        }
     }
 
     function editarUnidad(unidad) {
-      unidadIdSeleccionada = unidad.id;
-      document.getElementById("nombre").value = unidad.nombre;
+        unidadIdSeleccionada = unidad.id;
+        document.getElementById("nombre").value = unidad.nombre;
     }
 
     async function crearUnidad() {
-      const nombre = document.getElementById("nombre").value;
-      if (!nombre) {
-        alert("El nombre no puede estar vacío");
-        return;
-      }
-
-      try {
-        const respuesta = await fetch("/unidades/insertar_unidad", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nombre })
-        });
-
-        if (respuesta.ok) {
-          alert("Unidad creada exitosamente");
-          limpiarFormulario();
-          cargarUnidades();
-        } else {
-          const error = await respuesta.json();
-          alert("Error: " + error.error);
+        const nombre = document.getElementById("nombre").value;
+        if (!nombre) {
+            alert("El nombre no puede estar vacío");
+            return;
         }
-      } catch (error) {
-        console.error("Error al crear unidad:", error);
-      }
+
+        try {
+            const respuesta = await fetch("/unidades/insertar_unidad", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre })
+            });
+
+            if (respuesta.ok) {
+                alert("Unidad creada exitosamente");
+                limpiarFormulario();
+                cargarUnidades();
+            } else {
+                const error = await respuesta.json();
+                alert("Error: " + error.error);
+            }
+        } catch (error) {
+            console.error("Error al crear unidad:", error);
+        }
     }
 
     async function actualizarUnidad() {
-      if (!unidadIdSeleccionada) {
-        alert("Selecciona una unidad para actualizar");
-        return;
-      }
-
-      const nombre = document.getElementById("nombre").value;
-
-      try {
-        const respuesta = await fetch(`/unidades/actualizar_unidad/${unidadIdSeleccionada}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nombre })
-        });
-
-        if (respuesta.ok) {
-          alert("Unidad actualizada");
-          limpiarFormulario();
-          cargarUnidades();
-        } else {
-          const error = await respuesta.json();
-          alert("Error: " + error.error);
+        if (!unidadIdSeleccionada) {
+            alert("Selecciona una unidad para actualizar");
+            return;
         }
-      } catch (error) {
-        console.error("Error al actualizar unidad:", error);
-      }
+
+        const nombre = document.getElementById("nombre").value;
+
+        try {
+            const respuesta = await fetch(`/unidades/actualizar_unidad/${unidadIdSeleccionada}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre })
+            });
+
+            if (respuesta.ok) {
+                alert("Unidad actualizada");
+                limpiarFormulario();
+                cargarUnidades();
+            } else {
+                const error = await respuesta.json();
+                alert("Error: " + error.error);
+            }
+        } catch (error) {
+            console.error("Error al actualizar unidad:", error);
+        }
     }
 
     function limpiarFormulario() {
-      unidadIdSeleccionada = null;
-      document.getElementById("nombre").value = "";
+        unidadIdSeleccionada = null;
+        document.getElementById("nombre").value = "";
     }
 
     window.onload = () => {
-      cargarUnidades();
+        cargarUnidades();
     };
-  </script>
-</body>
-</html>
+</script>
+{% endblock %}

@@ -60,6 +60,16 @@ def create_app():
     @app.route('/usuarios')
     def usuarios_web():
         return render_con_cookie("usuarios.html")
+    @app.route('/about')
+    def about_web():
+        return render_con_cookie("about.html")
+    @app.route('/productos')
+    def productos_web():
+        return render_con_cookie("productos.html")
+    @app.route('/ventas')
+    def ventas_web():
+        return render_con_cookie("ventas.html")
+            
     return app
 
 if __name__ == "__main__":

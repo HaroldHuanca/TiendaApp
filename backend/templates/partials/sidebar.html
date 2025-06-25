@@ -1,0 +1,49 @@
+<div class="sidebar bg-dark text-white">
+    <div class="sidebar-header p-3">
+        <h4 class="text-center">Mi Tienda</h4>
+    </div>
+    
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link active" href="{{ url_for('index') }}">
+                <i class="fas fa-home me-2"></i> Inicio
+            </a>
+        </li>
+        
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('productos_web') }}">
+                <i class="fas fa-boxes me-2"></i> Productos
+            </a>
+        </li>
+        
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('ventas_web') }}">
+                <i class="fas fa-cash-register me-2"></i> Ventas
+            </a>
+        </li>
+        
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('clientes_web') }}">
+                <i class="fas fa-users me-2"></i> Clientes
+            </a>
+        </li>
+        
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('proveedores_web') }}">
+                <i class="fas fa-truck me-2"></i> Proveedores
+            </a>
+        </li>
+        
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('categorias_web') }}">
+                <i class="fas fa-tags me-2"></i> Categorías
+            </a>
+        </li>
+        
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('usuarios_web') }}">
+                <i class="fas fa-user-cog me-2"></i> Usuarios
+            </a>
+        </li>
+    </ul>
+</div>
