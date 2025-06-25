@@ -4,6 +4,12 @@
 venv/
 env/
 *.venv
+*venv
+*env
+*.venv
+*.env
+*env
+*.env
 
 # Ignorar carpetas de cache de Python
 __pycache__/
