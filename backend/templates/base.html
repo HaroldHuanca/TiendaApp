@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,20 +8,32 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- En el <head> o antes de cerrar el <body> en base.html -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YM2LKR6RNP"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-YM2LKR6RNP');
+    </script>
     {% block extra_css %}{% endblock %}
 </head>
+
 <body>
     <div class="wrapper">
         {% include 'partials/sidebar.html' %}
-        
+
         <div class="main">
             {% include 'partials/navbar.html' %}
-            
+
             <main class="content">
                 {% include 'partials/messages.html' %}
                 {% block content %}{% endblock %}
             </main>
-            
+
             {% include 'partials/footer.html' %}
         </div>
     </div>
@@ -29,4 +42,5 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>
