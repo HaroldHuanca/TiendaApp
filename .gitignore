@@ -1,0 +1,17 @@
+# Archivo .gitignore para un proyecto de Python
+
+# Ignorar la carpeta del Entorno Virtual
+venv/
+env/
+*.venv
+
+# Ignorar carpetas de cache de Python
+__pycache__/
+*.pyc
+
+# Ignorar archivos de entorno (que pueden contener contraseñas)
+.env
+
+#Ignorar carpeta de configuracion .vscode
+.vscode/
+!/.vscode/extensions.json

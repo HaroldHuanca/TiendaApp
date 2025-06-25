@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Botones Expandibles</title>
+    <link rel="stylesheet" href="../static/css/efectoBoton.css">
+</head>
+<body>
+    <div class="container">
+        <div class="section">
+            <h3>⬇️ Expansión hacia abajo</h3>
+            <div class="expandable-down">
+                <button class="main-btn" onclick="toggleSubButtons('down')">Menú Desplegable</button>
+                <div class="sub-buttons-down" id="subButtonsDown">
+                    <button class="sub-btn" onclick="alert('Configuración')">⚙️ Configuración</button>
+                    <button class="sub-btn" onclick="alert('Perfil')">👤 Perfil</button>
+                    <button class="sub-btn" onclick="alert('Ayuda')">❓ Ayuda</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let activeMenu = null;
+
+        function toggleSubButtons(direction) {
+            const elementId = direction === 'right' ? 'subButtonsRight' : 'subButtonsDown';
+            const element = document.getElementById(elementId);
+            
+            // Cerrar otros menús
+            closeAllMenus(elementId);
+            
+            if (element.classList.contains('show')) {
+                element.classList.remove('show');
+                activeMenu = null;
+            } else {
+                element.classList.add('show');
+                activeMenu = elementId;
+            }
+        }
+        function closeAllMenus(except) {
+            const menus = ['subButtonsRight', 'subButtonsDown', 'sidebar', 'circularButtons'];
+            menus.forEach(menuId => {
+                if (menuId !== except) {
+                    const element = document.getElementById(menuId);
+                    if (element) {
+                        element.classList.remove('show');
+                    }
+                }
+            });
+        }
+
+        // Cerrar menús al hacer clic fuera
+        document.addEventListener('click', function(event) {
+            const isClickInside = event.target.closest('.expandable-right, .expandable-down, .sidebar-container, .circular-menu');
+            
+            if (!isClickInside && activeMenu) {
+                closeAllMenus();
+                activeMenu = null;
+            }
+        });
+
+        // Agregar clase active a botones clickeados
+        document.querySelectorAll('.sub-btn, .sidebar-btn, .circular-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remover active de todos los botones
+                document.querySelectorAll('.sub-btn, .sidebar-btn, .circular-btn').forEach(b => {
+                    b.classList.remove('active');
+                });
+                // Agregar active al botón clickeado
+                this.classList.add('active');
+                
+                setTimeout(() => {
+                    this.classList.remove('active');
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>
