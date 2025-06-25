@@ -1,57 +1,49 @@
-<div class="sidebar bg-dark text-white d-flex flex-column flex-shrink-0 p-3" style="width: 280px; height: 100vh;">
-    <a href="{{ url_for('index') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-        <i class="bi bi-shop me-2"></i>
-        <span class="fs-4">Mi Abarrotes</span>
-    </a>
-    <hr>
-    <ul class="nav nav-pills flex-column mb-auto">
+<div class="sidebar bg-dark text-white">
+    <div class="sidebar-header p-3">
+        <h4 class="text-center">Mi Tienda</h4>
+    </div>
+    
+    <ul class="nav flex-column">
         <li class="nav-item">
-            <a href="{{ url_for('index') }}" class="nav-link {% if request.path == url_for('index') %}active{% endif %}">
-                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+            <a class="nav-link active" href="{{ url_for('index') }}">
+                <i class="fas fa-home me-2"></i> Inicio
             </a>
         </li>
-        <li>
-            <a href="{{ url_for('productos_web') }}" class="nav-link {% if request.path == url_for('productos_web') %}active{% endif %}">
-                <i class="bi bi-box-seam me-2"></i> Productos
+        
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('productos_web') }}">
+                <i class="fas fa-boxes me-2"></i> Productos
             </a>
         </li>
-        <li>
-            <a href="{{ url_for('clientes_web') }}" class="nav-link {% if request.path == url_for('clientes_web') %}active{% endif %}">
-                <i class="bi bi-people me-2"></i> Clientes
+        
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('ventas_web') }}">
+                <i class="fas fa-cash-register me-2"></i> Ventas
             </a>
         </li>
-        <li>
-            <a href="{{ url_for('proveedores_web') }}" class="nav-link {% if request.path == url_for('proveedores_web') %}active{% endif %}">
-                <i class="bi bi-truck me-2"></i> Proveedores
+        
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('clientes_web') }}">
+                <i class="fas fa-users me-2"></i> Clientes
             </a>
         </li>
-        <li>
-            <a href="{{ url_for('ventas_web') }}" class="nav-link {% if request.path == url_for('ventas_web') %}active{% endif %}">
-                <i class="bi bi-cash-stack me-2"></i> Ventas
+        
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('proveedores_web') }}">
+                <i class="fas fa-truck me-2"></i> Proveedores
             </a>
         </li>
-        <li>
-            <a href="{{ url_for('categorias_web') }}" class="nav-link {% if request.path == url_for('categorias_web') %}active{% endif %}">
-                <i class="bi bi-tags me-2"></i> Categorías
+        
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('categorias_web') }}">
+                <i class="fas fa-tags me-2"></i> Categorías
             </a>
         </li>
-        <li>
-            <a href="{{ url_for('unidades_web') }}" class="nav-link {% if request.path == url_for('unidades_web') %}active{% endif %}">
-                <i class="bi bi-rulers me-2"></i> Unidades
+        
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('usuarios_web') }}">
+                <i class="fas fa-user-cog me-2"></i> Usuarios
             </a>
         </li>
     </ul>
-    <hr>
-    <div class="dropdown">
-        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-            <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
-            <strong>{{ usuario }}</strong>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
-            <li><a class="dropdown-item" href="#">Perfil</a></li>
-            <li><a class="dropdown-item" href="#">Configuración</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="{{ url_for('usuarios_web') }}">Cerrar sesión</a></li>
-        </ul>
-    </div>
 </div>

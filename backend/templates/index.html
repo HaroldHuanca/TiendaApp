@@ -1,43 +1,125 @@
 {% extends "base.html" %}
 
-{% block title %}Acerca de - Mi Abarrotes{% endblock %}
+{% block title %}Inicio - Abarrotes Sarita{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 class="mb-4"><i class="bi bi-info-circle"></i> Acerca de</h1>
-    
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">¿Qué es Mi Abarrotes?</h5>
-            <p class="card-text">
-                <strong>Mi Abarrotes</strong> es un sistema de gestión diseñado para facilitar la administración de pequeñas y medianas tiendas de abarrotes. 
-                Permite controlar productos, ventas, proveedores, clientes, unidades y categorías desde un panel web sencillo e intuitivo.
-            </p>
+<div class="container-fluid mt-4">
+    <!-- Banner Principal -->
+    <div class="row banner-principal rounded-3 mb-4">
+        <div class="col-md-8 mx-auto text-center py-5 text-white">
+            <h1 class="display-4 fw-bold">Abarrotes Sarita</h1>
+            <p class="lead">Tu tienda de confianza desde 1995</p>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-bullseye"></i> Misión</h5>
-                    <p class="card-text">
-                        Brindar una herramienta digital eficiente y accesible que ayude a optimizar la gestión diaria de las tiendas de abarrotes.
-                    </p>
+    <!-- Sección de Bienvenida -->
+    <div class="row mb-5">
+        <div class="col-lg-6">
+            <h2 class="text-primary mb-4"><i class="fas fa-store me-2"></i>Nuestra Historia</h2>
+            <p class="lead">Fundada en el corazón del barrio, Abarrotes Sarita comenzó como un pequeño negocio familiar.</p>
+            <p>Hoy, después de más de 25 años, seguimos comprometidos con ofrecer los mejores productos a precios justos, manteniendo ese trato cálido que nos caracteriza.</p>
+        </div>
+        <div class="col-lg-6">
+            <img src="{{ url_for('static', filename='imagenes/local.png') }}" alt="Fachada de Abarrotes Sarita" class="img-fluid rounded shadow">
+        </div>
+    </div>
+
+    <!-- Tarjetas de Servicios -->
+    <div class="row mb-5">
+        <h2 class="text-center mb-4"><i class="fas fa-star text-warning me-2"></i>¿Por qué elegirnos?</h2>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-tags text-primary fa-3x mb-3"></i>
+                    <h3 class="card-title">Precios Competitivos</h3>
+                    <p class="card-text">Los mejores precios del mercado con ofertas semanales especiales para nuestros clientes frecuentes.</p>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-6 mb-3">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-eye"></i> Visión</h5>
-                    <p class="card-text">
-                        Ser el sistema de referencia en Latinoamérica para la gestión de tiendas de abarrotes, promoviendo la digitalización de los negocios tradicionales.
-                    </p>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-bread-slice text-success fa-3x mb-3"></i>
+                    <h3 class="card-title">Productos Frescos</h3>
+                    <p class="card-text">Recibimos mercancía diariamente para garantizar la máxima frescura en todos nuestros productos.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-smile-beam text-info fa-3x mb-3"></i>
+                    <h3 class="card-title">Atención Personalizada</h3>
+                    <p class="card-text">Nuestro equipo siempre está dispuesto a ayudarte y aconsejarte en lo que necesites.</p>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Horario y Contacto -->
+    <div class="row bg-light p-4 rounded-3 mb-4">
+        <div class="col-md-6">
+            <h3><i class="fas fa-clock text-primary me-2"></i>Horario de Atención</h3>
+            <ul class="list-unstyled">
+                <li><strong>Lunes a Viernes:</strong> 7:00 AM - 9:00 PM</li>
+                <li><strong>Sábados:</strong> 8:00 AM - 8:00 PM</li>
+                <li><strong>Domingos:</strong> 9:00 AM - 2:00 PM</li>
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h3><i class="fas fa-map-marker-alt text-danger me-2"></i>Visítanos</h3>
+            <address>
+                <strong>Abarrotes Sarita</strong><br>
+                Av. Principal #123<br>
+                Colonia Centro<br>
+                Tel: 555-123-4567
+            </address>
+            <a href="#" class="btn btn-primary"><i class="fas fa-directions me-1"></i> Cómo llegar</a>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .banner-principal {
+        background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
+                    url("{{ url_for('static', filename='imagenes/tienda-interior.jpg') }}");
+        background-size: cover;
+        background-position: center;
+        height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .card {
+        transition: transform 0.3s;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animación para las tarjetas al cargar
+        const cards = document.querySelectorAll('.card');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '1';
+            }, 200 * index);
+        });
+        
+        // Mostrar año actual en el footer
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+    });
+</script>
 {% endblock %}
