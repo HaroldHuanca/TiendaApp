@@ -73,7 +73,7 @@
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Opciones</a>
                         <div class="dropdown-menu rounded-0 m-0">
-                            <a href="#" class="dropdown-item">Politica</a>
+                            <a href="#" class="dropdown-item">Politicas</a>
                             <a href="#" class="dropdown-item">Inventario</a>
                             <a href="#" class="dropdown-item">Proveedores</a>
                         </div>
@@ -114,700 +114,448 @@
                 <div class="col-lg-8">
                     <!-- News Detail Start -->
                     <style>
-                        
+                        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
 
-                        .container {
-                            max-width: 1200px;
-                            margin: 0 auto;
-                            background: white;
-                            border-radius: 20px;
-                            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-                            overflow: hidden;
-                        }
-                
+        .shop-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            min-height: 600px;
+        }
+
+        .products-section {
+            flex: 2;
+            padding: 30px;
+            border-right: 2px solid #e0e0e0;
+        }
+
+        .cart-section {
+            flex: 1;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .product {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #fafafa;
+            transition: all 0.3s;
+        }
+
+        .product:hover {
+            border-color: #007bff;
+            box-shadow: 0 3px 10px rgba(0,123,255,0.1);
+        }
+
+        .product-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .product-price {
+            font-size: 1.1em;
+            color: #007bff;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .counter-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .counter {
+            display: flex;
+            align-items: center;
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .counter button {
+            width: 30px;
+            height: 30px;
+            border: none;
+            background: #007bff;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .counter button:hover:not(:disabled) {
+            background: #0056b3;
+        }
+
+        .counter button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .counter span {
+            padding: 0 15px;
+            font-size: 1em;
+            font-weight: bold;
+            color: #333;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .quantity-display {
+            background: #e9ecef;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            color: #495057;
+            font-size: 0.9em;
+        }
+
+        .add-to-cart {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 8px;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-to-cart:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .cart-items {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid #007bff;
+        }
+
+        .cart-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 3px;
+            font-size: 0.9em;
+        }
+
+        .item-details {
+            color: #666;
+            font-size: 0.8em;
+        }
+
+        .item-total {
+            font-weight: bold;
+            color: #007bff;
+            font-size: 0.9em;
+            margin-right: 10px;
+        }
+
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background 0.3s;
+        }
+
+        .remove-btn:hover {
+            background: #c82333;
+        }
+
+        .cart-total {
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .empty-cart {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 30px;
+        }
+
+        .cart-count {
+            background: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .shop-container {
+                flex-direction: column;
+            }
+            
+            .products-section {
+                border-right: none;
+                border-bottom: 2px solid #e0e0e0;
+            }
+            
+            .cart-section {
+                background: white;
+            }
+        }
                         
-                
-                        .header h1 {
-                            font-size: 2.5em;
-                            margin-bottom: 10px;
-                            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-                        }
-                
-                        .cart-icon {
-                            position: absolute;
-                            top: 30px;
-                            right: 30px;
-                            background: rgba(255,255,255,0.2);
-                            padding: 15px;
-                            border-radius: 50%;
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                            backdrop-filter: blur(10px);
-                        }
-                
-                        .cart-icon:hover {
-                            background: rgba(255,255,255,0.3);
-                            transform: scale(1.1);
-                        }
-                
-                        .cart-count {
-                            position: absolute;
-                            top: -5px;
-                            right: -5px;
-                            background: #ff4757;
-                            color: white;
-                            border-radius: 50%;
-                            width: 25px;
-                            height: 25px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 12px;
-                            font-weight: bold;
-                        }
-                
-                        .products-grid {
-                            display: grid;
-                            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                            gap: 30px;
-                            padding: 40px;
-                        }
-                
-                        .product-card {
-                            background: white;
-                            border-radius: 15px;
-                            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-                            overflow: hidden;
-                            transition: all 0.3s ease;
-                            border: 2px solid transparent;
-                        }
-                
-                        .product-card:hover {
-                            transform: translateY(-10px);
-                            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-                            border-color: #667eea;
-                        }
-                
-                        .product-image {
-                            height: 200px;
-                            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 4em;
-                            color: white;
-                        }
-                
-                        .product-info {
-                            padding: 25px;
-                        }
-                
-                        .product-name {
-                            font-size: 1.4em;
-                            font-weight: bold;
-                            color: #2c3e50;
-                            margin-bottom: 10px;
-                        }
-                
-                        .product-price {
-                            font-size: 1.8em;
-                            color: #667eea;
-                            font-weight: bold;
-                            margin-bottom: 20px;
-                        }
-                
-                        .counter-container {
-                            display: flex;
-                            align-items: center;
-                            justify-content: space-between;
-                            margin-bottom: 20px;
-                        }
-                
-                        .counter {
-                            display: flex;
-                            align-items: center;
-                            background: #f8f9fa;
-                            border-radius: 25px;
-                            padding: 5px;
-                        }
-                
-                        .counter button {
-                            width: 40px;
-                            height: 40px;
-                            border: none;
-                            border-radius: 50%;
-                            background: #667eea;
-                            color: white;
-                            font-size: 18px;
-                            font-weight: bold;
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                        }
-                
-                        .counter button:hover {
-                            background: #5a67d8;
-                            transform: scale(1.1);
-                        }
-                
-                        .counter button:disabled {
-                            background: #cbd5e0;
-                            cursor: not-allowed;
-                            transform: none;
-                        }
-                
-                        .counter span {
-                            margin: 0 20px;
-                            font-size: 1.2em;
-                            font-weight: bold;
-                            color: #2c3e50;
-                            min-width: 30px;
-                            text-align: center;
-                        }
-                
-                        .add-to-cart {
-                            width: 100%;
-                            padding: 15px;
-                            background: linear-gradient(45deg, #667eea, #764ba2);
-                            color: white;
-                            border: none;
-                            border-radius: 25px;
-                            font-size: 1.1em;
-                            font-weight: bold;
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                        }
-                
-                        .add-to-cart:hover {
-                            transform: translateY(-2px);
-                            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-                        }
-                
-                        .cart-modal {
-                            display: none;
-                            position: fixed;
-                            top: 0;
-                            left: 0;
-                            width: 100%;
-                            height: 100%;
-                            background: rgba(0,0,0,0.5);
-                            z-index: 1000;
-                            backdrop-filter: blur(5px);
-                        }
-                
-                        .cart-content {
-                            position: absolute;
-                            top: 50%;
-                            left: 50%;
-                            transform: translate(-50%, -50%);
-                            background: white;
-                            border-radius: 20px;
-                            width: 90%;
-                            max-width: 600px;
-                            max-height: 80vh;
-                            overflow-y: auto;
-                            animation: modalSlideIn 0.3s ease;
-                        }
-                
-                        @keyframes modalSlideIn {
-                            from {
-                                opacity: 0;
-                                transform: translate(-50%, -60%);
-                            }
-                            to {
-                                opacity: 1;
-                                transform: translate(-50%, -50%);
-                            }
-                        }
-                
-                        .cart-header {
-                            background: linear-gradient(45deg, #667eea, #764ba2);
-                            color: white;
-                            padding: 25px;
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                        }
-                
-                        .cart-header h2 {
-                            font-size: 1.5em;
-                        }
-                
-                        .close-cart {
-                            background: none;
-                            border: none;
-                            color: white;
-                            font-size: 2em;
-                            cursor: pointer;
-                            padding: 0;
-                            width: 40px;
-                            height: 40px;
-                            border-radius: 50%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            transition: all 0.3s ease;
-                        }
-                
-                        .close-cart:hover {
-                            background: rgba(255,255,255,0.2);
-                        }
-                
-                        .cart-items {
-                            padding: 25px;
-                        }
-                
-                        .cart-item {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            padding: 15px 0;
-                            border-bottom: 1px solid #eee;
-                        }
-                
-                        .cart-item:last-child {
-                            border-bottom: none;
-                        }
-                
-                        .item-info {
-                            flex: 1;
-                        }
-                
-                        .item-name {
-                            font-weight: bold;
-                            color: #2c3e50;
-                            margin-bottom: 5px;
-                        }
-                
-                        .item-price {
-                            color: #667eea;
-                            font-size: 0.9em;
-                        }
-                
-                        .item-quantity {
-                            margin: 0 20px;
-                            font-weight: bold;
-                            color: #2c3e50;
-                        }
-                
-                        .remove-item {
-                            background: #ff4757;
-                            color: white;
-                            border: none;
-                            border-radius: 50%;
-                            width: 30px;
-                            height: 30px;
-                            cursor: pointer;
-                            font-size: 16px;
-                            transition: all 0.3s ease;
-                        }
-                
-                        .remove-item:hover {
-                            background: #ff3838;
-                            transform: scale(1.1);
-                        }
-                
-                        .cart-total {
-                            background: #f8f9fa;
-                            padding: 20px;
-                            text-align: center;
-                            font-size: 1.3em;
-                            font-weight: bold;
-                            color: #2c3e50;
-                        }
-                
-                        .checkout-btn {
-                            width: 100%;
-                            padding: 20px;
-                            background: linear-gradient(45deg, #00d2ff, #3a7bd5);
-                            color: white;
-                            border: none;
-                            font-size: 1.2em;
-                            font-weight: bold;
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                        }
-                
-                        .checkout-btn:hover {
-                            background: linear-gradient(45deg, #00c4ff, #2e6bc7);
-                        }
-                
-                        .payment-modal {
-                            display: none;
-                            position: fixed;
-                            top: 0;
-                            left: 0;
-                            width: 100%;
-                            height: 100%;
-                            background: rgba(0,0,0,0.7);
-                            z-index: 1001;
-                            backdrop-filter: blur(5px);
-                        }
-                
-                        .payment-content {
-                            position: absolute;
-                            top: 50%;
-                            left: 50%;
-                            transform: translate(-50%, -50%);
-                            background: white;
-                            border-radius: 20px;
-                            padding: 40px;
-                            text-align: center;
-                            width: 90%;
-                            max-width: 400px;
-                            animation: modalSlideIn 0.3s ease;
-                        }
-                
-                        .yape-logo {
-                            font-size: 3em;
-                            color: #722ED1;
-                            margin-bottom: 20px;
-                        }
-                
-                        .qr-code {
-                            width: 200px;
-                            height: 200px;
-                            background: linear-gradient(45deg, #722ED1, #9254DE);
-                            margin: 20px auto;
-                            border-radius: 15px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            color: white;
-                            font-size: 1.2em;
-                            font-weight: bold;
-                        }
-                
-                        .payment-total {
-                            font-size: 1.5em;
-                            font-weight: bold;
-                            color: #2c3e50;
-                            margin: 20px 0;
-                        }
-                
-                        .payment-instructions {
-                            color: #666;
-                            margin-bottom: 30px;
-                            line-height: 1.5;
-                        }
-                
-                        .payment-buttons {
-                            display: flex;
-                            gap: 15px;
-                        }
-                
-                        .payment-buttons button {
-                            flex: 1;
-                            padding: 15px;
-                            border: none;
-                            border-radius: 25px;
-                            font-weight: bold;
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                        }
-                
-                        .confirm-payment {
-                            background: #28a745;
-                            color: white;
-                        }
-                
-                        .confirm-payment:hover {
-                            background: #218838;
-                        }
-                
-                        .cancel-payment {
-                            background: #6c757d;
-                            color: white;
-                        }
-                
-                        .cancel-payment:hover {
-                            background: #545b62;
-                        }
-                
-                        .empty-cart {
-                            text-align: center;
-                            padding: 40px;
-                            color: #666;
-                        }
-                
-                        .empty-cart-icon {
-                            font-size: 4em;
-                            margin-bottom: 20px;
-                            opacity: 0.5;
-                        }
-                
-                        @media (max-width: 768px) {
-                            .products-grid {
-                                grid-template-columns: 1fr;
-                                padding: 20px;
-                            }
-                            
-                            .header {
-                                padding: 20px;
-                            }
-                            
-                            .header h1 {
-                                font-size: 2em;
-                            }
-                            
-                            .cart-icon {
-                                top: 20px;
-                                right: 20px;
-                            }
-                        }
                     </style>
-                    <div class="container">
+                    <div class="products-section">
+                        <div class="section-title">🛍️ Productos</div>
                         
-                        <div class="products-grid">
-                            <div class="product-card">
-                                <div class="product-image">📱</div>
-                                <div class="product-info">
-                                    <div class="product-name">Smartphone Premium</div>
-                                    <div class="product-price">S/ 899</div>
-                                    <div class="counter-container">
-                                        <div class="counter">
-                                            <button onclick="decreaseCount(0)">−</button>
-                                            <span id="count-0">0</span>
-                                            <button onclick="increaseCount(0)">+</button>
-                                        </div>
-                                    </div>
-                                    <button class="add-to-cart" onclick="addToCart(0)">Agregar al Carrito</button>
+                        <!-- Producto 1 -->
+                        <div class="product">
+                            <div class="product-name">📱 Smartphone Premium</div>
+                            <div class="product-price">S/ 899</div>
+                            <div class="counter-section">
+                                <div class="counter">
+                                    <button onclick="decreaseCount(0)">−</button>
+                                    <span id="count-0">0</span>
+                                    <button onclick="increaseCount(0)">+</button>
                                 </div>
+                                <div class="quantity-display">Cant: <span id="display-0">0</span></div>
+                                <button class="add-to-cart" onclick="addToCart(0)" title="Agregar al carrito">🛒</button>
                             </div>
-                
-                            <div class="product-card">
-                                <div class="product-image">💻</div>
-                                <div class="product-info">
-                                    <div class="product-name">Laptop Gaming</div>
-                                    <div class="product-price">S/ 2,499</div>
-                                    <div class="counter-container">
-                                        <div class="counter">
-                                            <button onclick="decreaseCount(1)">−</button>
-                                            <span id="count-1">0</span>
-                                            <button onclick="increaseCount(1)">+</button>
-                                        </div>
-                                    </div>
-                                    <button class="add-to-cart" onclick="addToCart(1)">Agregar al Carrito</button>
+                        </div>
+            
+                        <!-- Producto 2 -->
+                        <div class="product">
+                            <div class="product-name">💻 Laptop Gaming</div>
+                            <div class="product-price">S/ 2,499</div>
+                            <div class="counter-section">
+                                <div class="counter">
+                                    <button onclick="decreaseCount(1)">−</button>
+                                    <span id="count-1">0</span>
+                                    <button onclick="increaseCount(1)">+</button>
                                 </div>
+                                <div class="quantity-display">Cant: <span id="display-1">0</span></div>
+                                <button class="add-to-cart" onclick="addToCart(1)" title="Agregar al carrito">🛒</button>
                             </div>
-                
-                            <div class="product-card">
-                                <div class="product-image">🎧</div>
-                                <div class="product-info">
-                                    <div class="product-name">Auriculares Inalámbricos</div>
-                                    <div class="product-price">S/ 199</div>
-                                    <div class="counter-container">
-                                        <div class="counter">
-                                            <button onclick="decreaseCount(2)">−</button>
-                                            <span id="count-2">0</span>
-                                            <button onclick="increaseCount(2)">+</button>
-                                        </div>
-                                    </div>
-                                    <button class="add-to-cart" onclick="addToCart(2)">Agregar al Carrito</button>
+                        </div>
+            
+                        <!-- Producto 3 -->
+                        <div class="product">
+                            <div class="product-name">🎧 Auriculares Inalámbricos</div>
+                            <div class="product-price">S/ 199</div>
+                            <div class="counter-section">
+                                <div class="counter">
+                                    <button onclick="decreaseCount(2)">−</button>
+                                    <span id="count-2">0</span>
+                                    <button onclick="increaseCount(2)">+</button>
                                 </div>
-                            </div>
-                
-                            <div class="product-card">
-                                <div class="product-image">⌚</div>
-                                <div class="product-info">
-                                    <div class="product-name">Smartwatch</div>
-                                    <div class="product-price">S/ 349</div>
-                                    <div class="counter-container">
-                                        <div class="counter">
-                                            <button onclick="decreaseCount(3)">−</button>
-                                            <span id="count-3">0</span>
-                                            <button onclick="increaseCount(3)">+</button>
-                                        </div>
-                                    </div>
-                                    <button class="add-to-cart" onclick="addToCart(3)">Agregar al Carrito</button>
-                                </div>
+                                <div class="quantity-display">Cant: <span id="display-2">0</span></div>
+                                <button class="add-to-cart" onclick="addToCart(2)" title="Agregar al carrito">🛒</button>
                             </div>
                         </div>
                     </div>
+
+                    <div class="cart-section">
+                        <div class="section-title">
+                            🛒 Mi Carrito 
+                            <span class="cart-count" id="cart-count">0</span>
+                        </div>
+                        <div class="cart-items" id="cart-items">
+                            <div class="empty-cart">El carrito está vacío</div>
+                        </div>
+                        <div class="cart-total" id="cart-total" style="display: none;">
+                            Total: S/ 0
+                        </div>
+                    </div>
+                    <script>
+                        const products = [
+            { id: 0, name: "Smartphone Premium", price: 899, emoji: "📱" },
+            { id: 1, name: "Laptop Gaming", price: 2499, emoji: "💻" },
+            { id: 2, name: "Auriculares Inalámbricos", price: 199, emoji: "🎧" }
+        ];
+
+        // Variables globales
+        let cart = [];
+        let counts = [0, 0, 0];
+
+        // Función para aumentar contador
+        function increaseCount(productId) {
+            counts[productId]++;
+            updateCountDisplay(productId);
+            updateButtons(productId);
+        }
+
+        // Función para disminuir contador
+        function decreaseCount(productId) {
+            if (counts[productId] > 0) {
+                counts[productId]--;
+                updateCountDisplay(productId);
+                updateButtons(productId);
+            }
+        }
+
+        // Actualizar display del contador
+        function updateCountDisplay(productId) {
+            document.getElementById(`count-${productId}`).textContent = counts[productId];
+            document.getElementById(`display-${productId}`).textContent = counts[productId];
+        }
+
+        // Actualizar estado de botones
+        function updateButtons(productId) {
+            const decreaseBtn = document.querySelector(`#count-${productId}`).previousElementSibling;
+            decreaseBtn.disabled = counts[productId] === 0;
+        }
+
+        // Función para agregar al carrito
+        function addToCart(productId) {
+            const quantity = counts[productId];
+            
+            if (quantity === 0) {
+                alert('Por favor selecciona una cantidad');
+                return;
+            }
+
+            const product = products[productId];
+            const existingItem = cart.find(item => item.id === productId);
+
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                cart.push({
+                    id: productId,
+                    name: product.name,
+                    price: product.price,
+                    emoji: product.emoji,
+                    quantity: quantity
+                });
+            }
+
+            // Resetear contador después de agregar
+            counts[productId] = 0;
+            updateCountDisplay(productId);
+            updateButtons(productId);
+
+            // Actualizar carrito
+            updateCartDisplay();
+        }
+
+        // Actualizar display del carrito
+        function updateCartDisplay() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartCountElement = document.getElementById('cart-count');
+            const cartTotalElement = document.getElementById('cart-total');
+
+            // Contar total de productos
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCountElement.textContent = totalItems;
+
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = '<div class="empty-cart">El carrito está vacío</div>';
+                cartTotalElement.style.display = 'none';
+                return;
+            }
+
+            // Mostrar items del carrito
+            let html = '';
+            let total = 0;
+
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                
+                html += `
+                    <div class="cart-item">
+                        <div class="item-info">
+                            <div class="item-name">${item.emoji} ${item.name}</div>
+                            <div class="item-details">S/ ${item.price} × ${item.quantity}</div>
+                        </div>
+                        <div class="item-total">S/ ${itemTotal.toLocaleString()}</div>
+                        <button class="remove-btn" onclick="removeFromCart(${item.id})">×</button>
+                    </div>
+                `;
+            });
+
+            cartItemsContainer.innerHTML = html;
+            cartTotalElement.innerHTML = `Total: S/ ${total.toLocaleString()}`;
+            cartTotalElement.style.display = 'block';
+        }
+
+        // Eliminar producto del carrito
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCartDisplay();
+        }
+
+        // Inicializar al cargar la página
+        window.onload = function() {
+            for (let i = 0; i < products.length; i++) {
+                updateButtons(i);
+            }
+        }
+                    </script>
+                    
+                        
+                        
+                        
+                </div>
                 
                     <!-- Modal del Carrito -->
                 
-                    <script>
-                        // Array de productos
-                        const products = [
-                            { id: 0, name: "Smartphone Premium", price: 899, emoji: "📱" },
-                            { id: 1, name: "Laptop Gaming", price: 2499, emoji: "💻" },
-                            { id: 2, name: "Auriculares Inalámbricos", price: 199, emoji: "🎧" },
-                            { id: 3, name: "Smartwatch", price: 349, emoji: "⌚" }
-                        ];
-                
-                        // Carrito de compras
-                        let cart = [];
-                        let counts = [0, 0, 0, 0];
-                
-                        // Funciones para el contador
-                        function increaseCount(productId) {
-                            counts[productId]++;
-                            document.getElementById(`count-${productId}`).textContent = counts[productId];
-                            updateCounterButtons(productId);
-                        }
-                
-                        function decreaseCount(productId) {
-                            if (counts[productId] > 0) {
-                                counts[productId]--;
-                                document.getElementById(`count-${productId}`).textContent = counts[productId];
-                                updateCounterButtons(productId);
-                            }
-                        }
-                
-                        function updateCounterButtons(productId) {
-                            const decreaseBtn = document.querySelector(`#count-${productId}`).previousElementSibling;
-                            decreaseBtn.disabled = counts[productId] === 0;
-                        }
-                
-                        // Función para agregar al carrito
-                        function addToCart(productId) {
-                            const quantity = counts[productId];
-                            if (quantity === 0) {
-                                alert('Selecciona la cantidad del producto');
-                                return;
-                            }
-                
-                            const product = products[productId];
-                            const existingItem = cart.find(item => item.id === productId);
-                
-                            if (existingItem) {
-                                existingItem.quantity += quantity;
-                            } else {
-                                cart.push({
-                                    id: productId,
-                                    name: product.name,
-                                    price: product.price,
-                                    emoji: product.emoji,
-                                    quantity: quantity
-                                });
-                            }
-                
-                            // Resetear contador
-                            counts[productId] = 0;
-                            document.getElementById(`count-${productId}`).textContent = 0;
-                            updateCounterButtons(productId);
-                
-                            updateCartCount();
-                            showAddedToCartAnimation();
-                        }
-                
-                        // Función para mostrar animación de agregado
-                        function showAddedToCartAnimation() {
-                            const cartIcon = document.querySelector('.cart-icon');
-                            cartIcon.style.transform = 'scale(1.2)';
-                            setTimeout(() => {
-                                cartIcon.style.transform = 'scale(1)';
-                            }, 200);
-                        }
-                
-                        // Función para actualizar contador del carrito
-                        function updateCartCount() {
-                            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-                            document.getElementById('cartCount').textContent = totalItems;
-                        }
-                
-                        // Función para abrir el carrito
-                        function openCart() {
-                            renderCartItems();
-                            document.getElementById('cartModal').style.display = 'block';
-                        }
-                
-                        // Función para cerrar el carrito
-                        function closeCart() {
-                            document.getElementById('cartModal').style.display = 'none';
-                        }
-                
-                        // Función para renderizar items del carrito
-                        function renderCartItems() {
-                            const cartItemsContainer = document.getElementById('cartItems');
-                            
-                            if (cart.length === 0) {
-                                cartItemsContainer.innerHTML = `
-                                    <div class="empty-cart">
-                                        <div class="empty-cart-icon">🛒</div>
-                                        <p>Tu carrito está vacío</p>
-                                    </div>
-                                `;
-                                document.getElementById('cartTotal').textContent = 'Total: S/ 0';
-                                return;
-                            }
-                
-                            let html = '';
-                            let total = 0;
-                
-                            cart.forEach(item => {
-                                const itemTotal = item.price * item.quantity;
-                                total += itemTotal;
-                                
-                                html += `
-                                    <div class="cart-item">
-                                        <div class="item-info">
-                                            <div class="item-name">${item.emoji} ${item.name}</div>
-                                            <div class="item-price">S/ ${item.price} c/u</div>
-                                        </div>
-                                        <div class="item-quantity">x${item.quantity}</div>
-                                        <button class="remove-item" onclick="removeFromCart(${item.id})">×</button>
-                                    </div>
-                                `;
-                            });
-                
-                            cartItemsContainer.innerHTML = html;
-                            document.getElementById('cartTotal').textContent = `Total: S/ ${total.toLocaleString()}`;
-                        }
-                
-                        // Función para remover del carrito
-                        function removeFromCart(productId) {
-                            cart = cart.filter(item => item.id !== productId);
-                            updateCartCount();
-                            renderCartItems();
-                        }
-                
-                        // Función para mostrar pantalla de pago
-                        function showPayment() {
-                            if (cart.length === 0) {
-                                alert('Tu carrito está vacío');
-                                return;
-                            }
-                
-                            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                            document.getElementById('paymentTotal').textContent = `Total: S/ ${total.toLocaleString()}`;
-                            document.getElementById('paymentModal').style.display = 'block';
-                        }
-                
-                        // Función para confirmar pago
-                        function confirmPayment() {
-                            alert('¡Pago realizado con éxito! 🎉\nGracias por tu compra.');
-                            cart = [];
-                            updateCartCount();
-                            cancelPayment();
-                            closeCart();
-                        }
-                
-                        // Función para cancelar pago
-                        function cancelPayment() {
-                            document.getElementById('paymentModal').style.display = 'none';
-                        }
-                
-                        // Cerrar modales al hacer clic fuera
-                        window.onclick = function(event) {
-                            const cartModal = document.getElementById('cartModal');
-                            const paymentModal = document.getElementById('paymentModal');
-                            
-                            if (event.target === cartModal) {
-                                closeCart();
-                            }
-                            if (event.target === paymentModal) {
-                                cancelPayment();
-                            }
-                        }
-                
-                        // Inicializar botones deshabilitados
-                        window.onload = function() {
-                            for (let i = 0; i < products.length; i++) {
-                                updateCounterButtons(i);
-                            }
-                        }
-                    </script>
                     <!-- News Detail End -->
 
                     <!-- Comment List Start -->
@@ -817,44 +565,11 @@
                     <!-- Comment Form Start -->
                     
                     <!-- Comment Form End -->
-                </div>
+            </div>
 
                 <div class="col-lg-4 pt-3 pt-lg-0">
                     <!-- Social Follow Start -->
-                    <div class="cart-modal" id="cartModal">
-                        <div class="cart-content">
-                            <div class="cart-header">
-                                <h2>🛒 Mi Carrito</h2>
-                                <button class="close-cart" onclick="closeCart()">×</button>
-                            </div>
-                            <div class="cart-items" id="cartItems">
-                                <!-- Los items del carrito se cargarán aquí -->
-                            </div>
-                            <div class="cart-total" id="cartTotal">
-                                Total: S/ 0
-                            </div>
-                            <button class="checkout-btn" onclick="showPayment()">Pagar con Yape</button>
-                        </div>
-                    </div>
-                
-                    <!-- Modal de Pago -->
-                    <div class="payment-modal" id="paymentModal">
-                        <div class="payment-content">
-                            <div class="yape-logo">💜</div>
-                            <h2>Pagar con Yape</h2>
-                            <div class="qr-code">
-                                <div>Código QR<br>Yape</div>
-                            </div>
-                            <div class="payment-total" id="paymentTotal">Total: S/ 0</div>
-                            <div class="payment-instructions">
-                                Escanea el código QR con tu app Yape para completar el pago de forma segura
-                            </div>
-                            <div class="payment-buttons">
-                                <button class="confirm-payment" onclick="confirmPayment()">Confirmar Pago</button>
-                                <button class="cancel-payment" onclick="cancelPayment()">Cancelar</button>
-                            </div>
-                        </div>
-                    </div>
+                    
                     <!-- Social Follow End -->
 
                     <!-- Newsletter Start -->
@@ -866,17 +581,17 @@
 
                     <!-- Popular News Start -->
                     
-                    </div>
+                
                     <!-- Popular News End -->
 
                     <!-- Tags Start -->
                     
                     <!-- Tags End -->
                 </div>
-            </div>
+            
         </div>
     </div>
-    </div>
+</div>
     <!-- News With Sidebar End -->
 
 
