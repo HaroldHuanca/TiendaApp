@@ -1,44 +1,63 @@
 {% extends "base.html" %}
 
-{% block title %}Unidades - Mi Abarrotes{% endblock %}
+{% block title %}Unidades - Abarrotes Sarita{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <h1 class="mb-4"><i class="bi bi-rulers"></i> Gestión de Unidades</h1>
+<div class="container-fluid px-4">
+    <h1 class="mt-4"><i class="fas fa-balance-scale me-2"></i> Gestión de Unidades</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+        <li class="breadcrumb-item active">Unidades</li>
+    </ol>
 
     <div class="row">
         <!-- Formulario -->
-        <div class="col-md-4">
-            <div class="card shadow-sm p-3">
-                <h5 class="card-title">Formulario de Unidad</h5>
-
-                <div class="mb-3">
-                    <label for="nombre" class="form-label">Nombre</label>
-                    <input type="text" id="nombre" class="form-control" placeholder="Ingrese el nombre de la unidad">
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-plus-circle me-1"></i>
+                    Formulario de Unidad
                 </div>
+                <div class="card-body">
+                    <form id="formUnidad">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" id="nombre" class="form-control" placeholder="Ej: Kilogramo, Litro, Unidad" required>
+                        </div>
 
-                <div class="d-grid gap-2">
-                    <button class="btn btn-primary" onclick="crearUnidad()">Crear</button>
-                    <button class="btn btn-success" onclick="actualizarUnidad()">Actualizar</button>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-danger me-md-2" onclick="limpiarFormulario()">
+                                <i class="fas fa-times me-1"></i> Limpiar
+                            </button>
+                            <button type="button" class="btn btn-success" onclick="guardarUnidad()">
+                                <i class="fas fa-save me-1"></i> Guardar
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
 
-        <!-- Tabla -->
-        <div class="col-md-8">
-            <div class="card shadow-sm p-3">
-                <h5 class="card-title">Lista de Unidades</h5>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="unidadesBody"></tbody>
-                    </table>
+        <!-- Tabla de Unidades -->
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-table me-1"></i>
+                    Listado de Unidades
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-striped" id="tablaUnidades" width="100%" cellspacing="0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="unidadesBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -46,102 +65,135 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_js %}
 <script>
+    // Variables globales
     let unidadIdSeleccionada = null;
+    const apiUnidades = {
+        listar: "/unidades/mostrar_unidades",
+        crear: "/unidades/insertar_unidad",
+        actualizar: "/unidades/actualizar_unidad"
+    };
 
+    // DOM Ready
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarUnidades();
+        
+        // Configurar tooltips
+        $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    });
+
+    // Funciones CRUD
     async function cargarUnidades() {
         try {
-            const respuesta = await fetch("/unidades/mostrar_unidades");
-            const unidades = await respuesta.json();
-            const tbody = document.getElementById("unidadesBody");
-            tbody.innerHTML = "";
-
+            const response = await fetch(apiUnidades.listar);
+            if (!response.ok) throw new Error('Error al cargar unidades');
+            const unidades = await response.json();
+            
+            const tbody = document.getElementById('unidadesBody');
+            tbody.innerHTML = '';
+            
             unidades.forEach(unidad => {
-                const fila = document.createElement("tr");
-                fila.innerHTML = `
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
                     <td>${unidad.id}</td>
                     <td>${unidad.nombre}</td>
                     <td>
-                        <button class="btn btn-outline-primary btn-sm" onclick='editarUnidad(${JSON.stringify(unidad)})'>
-                            <i class="bi bi-pencil"></i>
+                        <button class="btn btn-sm btn-warning" onclick="editarUnidadDesdeTabla(this)" 
+                                data-id="${unidad.id}" 
+                                data-nombre="${unidad.nombre}"
+                                data-toggle="tooltip" title="Editar">
+                            <i class="fas fa-edit"></i>
                         </button>
                     </td>
                 `;
-                tbody.appendChild(fila);
+                tbody.appendChild(tr);
             });
         } catch (error) {
-            console.error("Error cargando unidades:", error);
+            console.error('Error:', error);
+            mostrarAlerta('Error al cargar unidades', 'danger');
         }
     }
 
-    function editarUnidad(unidad) {
-        unidadIdSeleccionada = unidad.id;
-        document.getElementById("nombre").value = unidad.nombre;
+    function editarUnidadDesdeTabla(boton) {
+        // Obtener datos de los atributos data-* del botón
+        const id = boton.getAttribute('data-id');
+        const nombre = boton.getAttribute('data-nombre');
+        
+        unidadIdSeleccionada = id;
+        document.getElementById('nombre').value = nombre;
+        
+        // Scroll al formulario
+        document.querySelector('.col-xl-4').scrollIntoView({
+            behavior: 'smooth'
+        });
+        
+        mostrarAlerta('Modo edición activado', 'info');
     }
 
-    async function crearUnidad() {
-        const nombre = document.getElementById("nombre").value;
+    async function guardarUnidad() {
+        const nombre = document.getElementById('nombre').value.trim();
+        
         if (!nombre) {
-            alert("El nombre no puede estar vacío");
+            mostrarAlerta('El nombre no puede estar vacío', 'warning');
             return;
         }
-
+        
+        const unidadData = { nombre };
+        
         try {
-            const respuesta = await fetch("/unidades/insertar_unidad", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nombre })
+            const url = unidadIdSeleccionada 
+                ? `${apiUnidades.actualizar}/${unidadIdSeleccionada}`
+                : apiUnidades.crear;
+                
+            const method = unidadIdSeleccionada ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(unidadData)
             });
-
-            if (respuesta.ok) {
-                alert("Unidad creada exitosamente");
-                limpiarFormulario();
-                cargarUnidades();
-            } else {
-                const error = await respuesta.json();
-                alert("Error: " + error.error);
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Error en la operación');
             }
+            
+            const accion = unidadIdSeleccionada ? 'actualizada' : 'creada';
+            mostrarAlerta(`Unidad ${accion} correctamente`, 'success');
+            
+            limpiarFormulario();
+            cargarUnidades();
         } catch (error) {
-            console.error("Error al crear unidad:", error);
-        }
-    }
-
-    async function actualizarUnidad() {
-        if (!unidadIdSeleccionada) {
-            alert("Selecciona una unidad para actualizar");
-            return;
-        }
-
-        const nombre = document.getElementById("nombre").value;
-
-        try {
-            const respuesta = await fetch(`/unidades/actualizar_unidad/${unidadIdSeleccionada}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nombre })
-            });
-
-            if (respuesta.ok) {
-                alert("Unidad actualizada");
-                limpiarFormulario();
-                cargarUnidades();
-            } else {
-                const error = await respuesta.json();
-                alert("Error: " + error.error);
-            }
-        } catch (error) {
-            console.error("Error al actualizar unidad:", error);
+            console.error('Error:', error);
+            mostrarAlerta(error.message || 'Error al guardar la unidad', 'danger');
         }
     }
 
     function limpiarFormulario() {
         unidadIdSeleccionada = null;
-        document.getElementById("nombre").value = "";
+        document.getElementById('formUnidad').reset();
     }
 
-    window.onload = () => {
-        cargarUnidades();
-    };
+    function mostrarAlerta(mensaje, tipo) {
+        const alerta = document.createElement('div');
+        alerta.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alerta.role = 'alert';
+        alerta.innerHTML = `
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        const container = document.querySelector('.container-fluid');
+        container.prepend(alerta);
+        
+        setTimeout(() => {
+            alerta.remove();
+        }, 5000);
+    }
 </script>
 {% endblock %}

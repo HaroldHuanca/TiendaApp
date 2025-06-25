@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # Configuración de la conexión
-DATABASE_URL = "mariadb+mariadbconnector://root:@localhost:3306/tiendadb"
+DATABASE_URL = "mariadb+mariadbconnector://root:mishina123@localhost:3306/tiendadb"
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

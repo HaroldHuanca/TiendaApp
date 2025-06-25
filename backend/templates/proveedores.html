@@ -22,12 +22,14 @@
                     <form id="formProveedor">
                         <div class="mb-3">
                             <label for="ruc" class="form-label">RUC</label>
-                            <input type="text" id="ruc" class="form-control" placeholder="Ingrese RUC del proveedor" required>
+                            <input type="text" id="ruc" class="form-control" placeholder="Ingrese RUC del proveedor"
+                                required>
                         </div>
 
                         <div class="mb-3">
                             <label for="nombre" class="form-label">Nombre</label>
-                            <input type="text" id="nombre" class="form-control" placeholder="Nombre del proveedor" required>
+                            <input type="text" id="nombre" class="form-control" placeholder="Nombre del proveedor"
+                                required>
                         </div>
 
                         <div class="mb-3">
@@ -59,7 +61,8 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover table-striped" id="tablaProveedores" width="100%" cellspacing="0">
+                        <table class="table table-bordered table-hover table-striped" id="tablaProveedores" width="100%"
+                            cellspacing="0">
                             <thead class="table-dark">
                                 <tr>
                                     <th>ID</th>
@@ -92,12 +95,12 @@
     };
 
     // DOM Ready
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         cargarEstados();
         cargarProveedores();
-        
+
         // Configurar tooltips
-        $(document).ready(function(){
+        $(document).ready(function () {
             $('[data-toggle="tooltip"]').tooltip();
         });
     });
@@ -108,10 +111,10 @@
             const response = await fetch(apiProveedores.estados);
             if (!response.ok) throw new Error('Error al cargar estados');
             const estados = await response.json();
-            
+
             const selectEstado = document.getElementById('estado');
             selectEstado.innerHTML = '<option value="" disabled selected>Seleccione un estado</option>';
-            
+
             estados.forEach(estado => {
                 const option = document.createElement('option');
                 option.value = estado.descripcion;
@@ -129,10 +132,10 @@
             const response = await fetch(apiProveedores.listar);
             if (!response.ok) throw new Error('Error al cargar proveedores');
             const proveedores = await response.json();
-            
+
             const tbody = document.getElementById('proveedoresBody');
             tbody.innerHTML = '';
-            
+
             proveedores.forEach(proveedor => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -141,10 +144,10 @@
                     <td>${proveedor.Nombre}</td>
                     <td><span class="badge ${proveedor.Estado === 'Activo' ? 'bg-success' : 'bg-secondary'}">${proveedor.Estado}</span></td>
                     <td>
-                        <button class="btn btn-sm btn-warning me-1" onclick="editarProveedor(${proveedor.Id})" data-toggle="tooltip" title="Editar">
+                        <button class="btn btn-sm btn-warning me-1" onclick="editarProveedor(${proveedor.Id}, '${proveedor.RUC}', '${proveedor.Nombre}', '${proveedor.Estado}')" data-toggle="tooltip" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-danger" onclick="confirmarEliminar(${proveedor.Id})" data-toggle="tooltip" title="Eliminar">
+                        <button class="btn btn-sm btn-danger" onclick="eliminarProveedor(${proveedor.Id})">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </td>
@@ -161,25 +164,25 @@
         const ruc = document.getElementById('ruc').value.trim();
         const nombre = document.getElementById('nombre').value.trim();
         const estado = document.getElementById('estado').value;
-        
+
         if (!ruc || !nombre || !estado) {
             mostrarAlerta('Todos los campos son obligatorios', 'warning');
             return;
         }
-        
+
         const proveedorData = {
             ruc,
             nombre,
             descripcion_estado: estado
         };
-        
+
         try {
-            const url = proveedorIdSeleccionado 
+            const url = proveedorIdSeleccionado
                 ? `${apiProveedores.actualizar}/${proveedorIdSeleccionado}`
                 : apiProveedores.crear;
-                
+
             const method = proveedorIdSeleccionado ? 'PUT' : 'POST';
-            
+
             const response = await fetch(url, {
                 method,
                 headers: {
@@ -187,15 +190,15 @@
                 },
                 body: JSON.stringify(proveedorData)
             });
-            
+
             if (!response.ok) {
                 const error = await response.json();
                 throw new Error(error.message || 'Error en la operación');
             }
-            
+
             const accion = proveedorIdSeleccionado ? 'actualizado' : 'creado';
             mostrarAlerta(`Proveedor ${accion} correctamente`, 'success');
-            
+
             limpiarFormulario();
             cargarProveedores();
         } catch (error) {
@@ -204,30 +207,24 @@
         }
     }
 
-    async function editarProveedor(id) {
-        try {
-            const response = await fetch(`${apiProveedores.listar}/${id}`);
-            if (!response.ok) throw new Error('Error al obtener proveedor');
-            
-            const proveedor = await response.json();
-            if (!proveedor) throw new Error('Proveedor no encontrado');
-            
-            proveedorIdSeleccionado = proveedor.Id;
-            document.getElementById('ruc').value = proveedor.RUC;
-            document.getElementById('nombre').value = proveedor.Nombre;
-            document.getElementById('estado').value = proveedor.Estado;
-            
-            // Scroll al formulario
-            document.querySelector('.col-xl-4').scrollIntoView({
-                behavior: 'smooth'
-            });
-            
-            mostrarAlerta('Modo edición activado', 'info');
-        } catch (error) {
-            console.error('Error:', error);
-            mostrarAlerta(error.message, 'danger');
+    function editarProveedor(id, ruc, nombre, estado) {
+        proveedorIdSeleccionado = id;
+
+        document.getElementById('ruc').value = ruc;
+        document.getElementById('nombre').value = nombre;
+
+        const estadoSelect = document.getElementById('estado');
+        for (const option of estadoSelect.options) {
+            if (option.value === estado || option.text === estado) {
+                estadoSelect.value = option.value;
+                break;
+            }
         }
+
+        mostrarAlerta('Modo edición activado', 'info');
+        document.querySelector('.col-xl-4').scrollIntoView({ behavior: 'smooth' });
     }
+
 
     function confirmarEliminar(id) {
         Swal.fire({
@@ -248,20 +245,41 @@
 
     async function eliminarProveedor(id) {
         try {
-            const response = await fetch(`${apiProveedores.eliminar}/${id}`, {
+            const confirmacion = await Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¡Esta acción no se puede deshacer!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!confirmacion.isConfirmed) return;
+
+            const response = await fetch(`/proveedores/eliminar_proveedor/${id}`, {
                 method: 'DELETE'
             });
-            
+
             if (!response.ok) {
                 const error = await response.json();
                 throw new Error(error.message || 'Error al eliminar');
             }
-            
-            mostrarAlerta('Proveedor eliminado correctamente', 'success');
+
+            await Swal.fire(
+                '¡Eliminado!',
+                'El proveedor ha sido eliminado.',
+                'success'
+            );
             cargarProveedores();
         } catch (error) {
             console.error('Error:', error);
-            mostrarAlerta(error.message, 'danger');
+            Swal.fire(
+                'Error',
+                error.message || 'Ocurrió un error al eliminar el proveedor',
+                'error'
+            );
         }
     }
 
@@ -279,10 +297,10 @@
             ${mensaje}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         `;
-        
+
         const container = document.querySelector('.container-fluid');
         container.prepend(alerta);
-        
+
         setTimeout(() => {
             alerta.remove();
         }, 5000);

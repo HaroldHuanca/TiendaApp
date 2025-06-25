@@ -22,12 +22,14 @@
                     <form id="formCliente">
                         <div class="mb-3">
                             <label for="documento" class="form-label">Documento</label>
-                            <input type="text" id="documento" class="form-control" placeholder="Número de documento" required>
+                            <input type="text" id="documento" class="form-control" placeholder="Número de documento"
+                                required>
                         </div>
 
                         <div class="mb-3">
                             <label for="nombre" class="form-label">Nombre completo</label>
-                            <input type="text" id="nombre" class="form-control" placeholder="Nombre del cliente" required>
+                            <input type="text" id="nombre" class="form-control" placeholder="Nombre del cliente"
+                                required>
                         </div>
 
                         <div class="mb-3">
@@ -59,7 +61,8 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover table-striped" id="tablaClientes" width="100%" cellspacing="0">
+                        <table class="table table-bordered table-hover table-striped" id="tablaClientes" width="100%"
+                            cellspacing="0">
                             <thead class="table-dark">
                                 <tr>
                                     <th>ID</th>
@@ -92,12 +95,12 @@
     };
 
     // DOM Ready
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         cargarEstados();
         cargarClientes();
-        
+
         // Configurar tooltips
-        $(document).ready(function(){
+        $(document).ready(function () {
             $('[data-toggle="tooltip"]').tooltip();
         });
     });
@@ -108,10 +111,10 @@
             const response = await fetch(apiClientes.estados);
             if (!response.ok) throw new Error('Error al cargar estados');
             const estados = await response.json();
-            
+
             const selectEstado = document.getElementById('estado');
             selectEstado.innerHTML = '<option value="" disabled selected>Seleccione un estado</option>';
-            
+
             estados.forEach(estado => {
                 const option = document.createElement('option');
                 option.value = estado.descripcion;
@@ -129,10 +132,10 @@
             const response = await fetch(apiClientes.listar);
             if (!response.ok) throw new Error('Error al cargar clientes');
             const clientes = await response.json();
-            
+
             const tbody = document.getElementById('clientesBody');
             tbody.innerHTML = '';
-            
+
             clientes.forEach(cliente => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -141,10 +144,10 @@
                     <td>${cliente.Nombre}</td>
                     <td><span class="badge ${cliente.Estado === 'Activo' ? 'bg-success' : 'bg-secondary'}">${cliente.Estado}</span></td>
                     <td>
-                        <button class="btn btn-sm btn-warning me-1" onclick="editarCliente(${cliente.Id})" data-toggle="tooltip" title="Editar">
+                       <button class="btn btn-sm btn-warning me-1"onclick="editarCliente(${cliente.Id}, '${cliente.Documento}', '${cliente.Nombre}', '${cliente.Estado}')" data-toggle="tooltip" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-danger" onclick="confirmarEliminar(${cliente.Id})" data-toggle="tooltip" title="Eliminar">
+                        <button class="btn btn-sm btn-danger" onclick="eliminarCliente(${cliente.Id})" data-toggle="tooltip" title="Eliminar">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </td>
@@ -161,41 +164,39 @@
         const documento = document.getElementById('documento').value.trim();
         const nombre = document.getElementById('nombre').value.trim();
         const estado = document.getElementById('estado').value;
-        
+
         if (!documento || !nombre || !estado) {
             mostrarAlerta('Todos los campos son obligatorios', 'warning');
             return;
         }
-        
+
         const clienteData = {
             documento,
             nombre,
             descripcion_estado: estado
         };
-        
+
         try {
-            const url = clienteIdSeleccionado 
+            const url = clienteIdSeleccionado
                 ? `${apiClientes.actualizar}/${clienteIdSeleccionado}`
                 : apiClientes.crear;
-                
+
             const method = clienteIdSeleccionado ? 'PUT' : 'POST';
-            
+
             const response = await fetch(url, {
-                method,
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(clienteData)
             });
-            
+
             if (!response.ok) {
                 const error = await response.json();
                 throw new Error(error.message || 'Error en la operación');
             }
-            
-            const accion = clienteIdSeleccionado ? 'actualizado' : 'creado';
-            mostrarAlerta(`Cliente ${accion} correctamente`, 'success');
-            
+
+            mostrarAlerta(`Cliente ${clienteIdSeleccionado ? 'actualizado' : 'creado'} correctamente`, 'success');
             limpiarFormulario();
             cargarClientes();
         } catch (error) {
@@ -204,30 +205,24 @@
         }
     }
 
-    async function editarCliente(id) {
-        try {
-            const response = await fetch(`${apiClientes.listar}/${id}`);
-            if (!response.ok) throw new Error('Error al obtener cliente');
-            
-            const cliente = await response.json();
-            if (!cliente) throw new Error('Cliente no encontrado');
-            
-            clienteIdSeleccionado = cliente.Id;
-            document.getElementById('documento').value = cliente.Documento;
-            document.getElementById('nombre').value = cliente.Nombre;
-            document.getElementById('estado').value = cliente.Estado;
-            
-            // Scroll al formulario
-            document.querySelector('.col-xl-4').scrollIntoView({
-                behavior: 'smooth'
-            });
-            
-            mostrarAlerta('Modo edición activado', 'info');
-        } catch (error) {
-            console.error('Error:', error);
-            mostrarAlerta(error.message, 'danger');
+    function editarCliente(id, documento, nombre, estado) {
+        clienteIdSeleccionado = id;
+
+        document.getElementById('documento').value = documento;
+        document.getElementById('nombre').value = nombre;
+
+        const estadoSelect = document.getElementById('estado');
+        for (const option of estadoSelect.options) {
+            if (option.value === estado || option.text === estado) {
+                estadoSelect.value = option.value;
+                break;
+            }
         }
+
+        mostrarAlerta('Modo edición activado', 'info');
+        document.querySelector('.col-xl-4').scrollIntoView({ behavior: 'smooth' });
     }
+
 
     function confirmarEliminar(id) {
         Swal.fire({
@@ -248,23 +243,65 @@
 
     async function eliminarCliente(id) {
         try {
+            // Verificación adicional por si acaso
+            if (!id) {
+                console.error("ID no válido");
+                return;
+            }
+
+            // Confirmación visual
+            const result = await Swal.fire({
+                title: '¿Eliminar cliente?',
+                text: "Esta acción no se puede deshacer",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!result.isConfirmed) return;
+
+            // Mostrar carga
+            Swal.fire({
+                title: 'Eliminando...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Llamada API
             const response = await fetch(`${apiClientes.eliminar}/${id}`, {
                 method: 'DELETE'
             });
-            
+
+            // Verificar respuesta
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Error al eliminar');
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Error en la respuesta del servidor');
             }
-            
-            mostrarAlerta('Cliente eliminado correctamente', 'success');
+
+            // Éxito
+            await Swal.fire(
+                '¡Eliminado!',
+                'El cliente ha sido eliminado correctamente.',
+                'success'
+            );
+
+            // Recargar datos
             cargarClientes();
+
         } catch (error) {
-            console.error('Error:', error);
-            mostrarAlerta(error.message, 'danger');
+            console.error("Error al eliminar:", error);
+            Swal.fire(
+                'Error',
+                error.message || 'Ocurrió un error al eliminar el cliente',
+                'error'
+            );
         }
     }
-
     function limpiarFormulario() {
         clienteIdSeleccionado = null;
         document.getElementById('formCliente').reset();
@@ -279,10 +316,10 @@
             ${mensaje}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         `;
-        
+
         const container = document.querySelector('.container-fluid');
         container.prepend(alerta);
-        
+
         setTimeout(() => {
             alerta.remove();
         }, 5000);

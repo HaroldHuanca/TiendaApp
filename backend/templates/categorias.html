@@ -1,44 +1,65 @@
 {% extends "base.html" %}
 
-{% block title %}Categorías - Mi Abarrotes{% endblock %}
+{% block title %}Categorías - Abarrotes Sarita{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <h1 class="mb-4"><i class="bi bi-tags"></i> Gestión de Categorías</h1>
+<div class="container-fluid px-4">
+    <h1 class="mt-4"><i class="fas fa-tags me-2"></i> Gestión de Categorías</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+        <li class="breadcrumb-item active">Categorías</li>
+    </ol>
 
     <div class="row">
-        <!-- Columna del formulario -->
-        <div class="col-md-4">
-            <div class="card shadow-sm p-3">
-                <h5 class="card-title">Formulario de Categoría</h5>
-
-                <div class="mb-3">
-                    <label for="nombre" class="form-label">Nombre</label>
-                    <input type="text" id="nombre" class="form-control" placeholder="Ingrese el nombre">
+        <!-- Formulario -->
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-edit me-1"></i>
+                    Formulario de Categoría
                 </div>
+                <div class="card-body">
+                    <form id="formCategoria">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" id="nombre" class="form-control" placeholder="Nombre de la categoría"
+                                required>
+                        </div>
 
-                <div class="d-grid gap-2">
-                    <button class="btn btn-primary" onclick="crearCategoria()">Crear</button>
-                    <button class="btn btn-success" onclick="actualizarCategoria()">Actualizar</button>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-danger me-md-2" onclick="limpiarFormulario()">
+                                <i class="fas fa-times me-1"></i> Limpiar
+                            </button>
+                            <button type="button" class="btn btn-success" onclick="guardarCategoria()">
+                                <i class="fas fa-save me-1"></i> Guardar
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
 
-        <!-- Columna de la tabla -->
-        <div class="col-md-8">
-            <div class="card shadow-sm p-3">
-                <h5 class="card-title">Lista de Categorías</h5>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="categoriasBody"></tbody>
-                    </table>
+        <!-- Tabla de Categorías -->
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-table me-1"></i>
+                    Listado de Categorías
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-striped" id="tablaCategorias" width="100%"
+                            cellspacing="0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoriasBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -46,99 +67,136 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_js %}
 <script>
+    // Variables globales
     let categoriaIdSeleccionada = null;
+    const apiCategorias = {
+        listar: "/categorias/mostrar_categorias",
+        crear: "/categorias/insertar_categoria",
+        actualizar: "/categorias/actualizar_categoria"
+    };
 
+    // DOM Ready
+    document.addEventListener('DOMContentLoaded', function () {
+        cargarCategorias();
+
+        // Configurar tooltips
+        $(document).ready(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    });
+
+    // Funciones CRUD
     async function cargarCategorias() {
         try {
-            const respuesta = await fetch("/categorias/mostrar_categorias");
-            const categorias = await respuesta.json();
-            const tbody = document.getElementById("categoriasBody");
-            tbody.innerHTML = "";
+            const response = await fetch(apiCategorias.listar);
+            if (!response.ok) throw new Error('Error al cargar categorías');
+            const categorias = await response.json();
+
+            const tbody = document.getElementById('categoriasBody');
+            tbody.innerHTML = '';
+
             categorias.forEach(categoria => {
-                const fila = document.createElement("tr");
-                fila.innerHTML = `
-                    <td>${categoria.id}</td>
-                    <td>${categoria.nombre}</td>
-                    <td>
-                        <button class="btn btn-outline-primary btn-sm" onclick='editarCategoria(${JSON.stringify(categoria)})'>
-                            <i class="bi bi-pencil-square"></i> Editar
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(fila);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                <td>${categoria.id}</td>
+                <td>${categoria.nombre}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning me-1" 
+                            onclick="editarCategoria(this)" 
+                            data-id="${categoria.id}" 
+                            data-nombre="${categoria.nombre}"
+                            data-toggle="tooltip" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+            `;
+                tbody.appendChild(tr);
             });
         } catch (error) {
-            console.error("Error cargando categorías:", error);
+            console.error('Error:', error);
+            mostrarAlerta('Error al cargar categorías', 'danger');
         }
     }
 
-    function editarCategoria(categoria) {
-        categoriaIdSeleccionada = categoria.id;
-        document.getElementById("nombre").value = categoria.nombre;
+    function editarCategoria(boton) {
+        // Obtener datos de los atributos data-* del botón
+        const id = boton.getAttribute('data-id');
+        const nombre = boton.getAttribute('data-nombre');
+
+        categoriaIdSeleccionada = id;
+        document.getElementById("nombre").value = nombre;
+
+        // Scroll al formulario
+        document.querySelector('.col-xl-4').scrollIntoView({
+            behavior: 'smooth'
+        });
+
+        mostrarAlerta('Modo edición activado', 'info');
     }
 
-    async function crearCategoria() {
-        const nombre = document.getElementById("nombre").value;
+    async function guardarCategoria() {
+        const nombre = document.getElementById('nombre').value.trim();
+
         if (!nombre) {
-            alert("El nombre no puede estar vacío");
+            mostrarAlerta('El nombre no puede estar vacío', 'warning');
             return;
         }
 
-        try {
-            const respuesta = await fetch("/categorias/insertar_categoria", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nombre })
-            });
-
-            if (respuesta.ok) {
-                alert("Categoría creada exitosamente");
-                limpiarFormulario();
-                cargarCategorias();
-            } else {
-                const error = await respuesta.json();
-                alert("Error: " + error.error);
-            }
-        } catch (error) {
-            console.error("Error al crear categoría:", error);
-        }
-    }
-
-    async function actualizarCategoria() {
-        if (!categoriaIdSeleccionada) {
-            alert("Selecciona una categoría para actualizar");
-            return;
-        }
-
-        const nombre = document.getElementById("nombre").value;
+        const categoriaData = { nombre };
 
         try {
-            const respuesta = await fetch(`/categorias/actualizar_categoria/${categoriaIdSeleccionada}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nombre })
+            const url = categoriaIdSeleccionada
+                ? `${apiCategorias.actualizar}/${categoriaIdSeleccionada}`
+                : apiCategorias.crear;
+
+            const method = categoriaIdSeleccionada ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(categoriaData)
             });
 
-            if (respuesta.ok) {
-                alert("Categoría actualizada");
-                limpiarFormulario();
-                cargarCategorias();
-            } else {
-                const error = await respuesta.json();
-                alert("Error: " + error.error);
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Error en la operación');
             }
+
+            const accion = categoriaIdSeleccionada ? 'actualizada' : 'creada';
+            mostrarAlerta(`Categoría ${accion} correctamente`, 'success');
+
+            limpiarFormulario();
+            cargarCategorias();
         } catch (error) {
-            console.error("Error al actualizar categoría:", error);
+            console.error('Error:', error);
+            mostrarAlerta(error.message || 'Error al guardar la categoría', 'danger');
         }
     }
 
     function limpiarFormulario() {
         categoriaIdSeleccionada = null;
-        document.getElementById("nombre").value = "";
+        document.getElementById('formCategoria').reset();
     }
 
-    window.onload = cargarCategorias;
+    function mostrarAlerta(mensaje, tipo) {
+        const alerta = document.createElement('div');
+        alerta.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alerta.role = 'alert';
+        alerta.innerHTML = `
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+
+        const container = document.querySelector('.container-fluid');
+        container.prepend(alerta);
+
+        setTimeout(() => {
+            alerta.remove();
+        }, 5000);
+    }
 </script>
 {% endblock %}
