@@ -150,6 +150,21 @@ sub {
 sup {
   top: -.5em;
 }
+.add-to-cart {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 8px;
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: right;
+  justify-content: center;
+}
 
 a {
   color: #ED1C24;

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/stylesBotonesCarrito.css">
+</head>
+<body>
+    <div class="cart-modal" id="cartModal">
+        <div class="cart-content">
+            <div class="cart-header">
+                <h2>🛒 Mi Carrito</h2>
+                <button class="close-cart" onclick="closeCart()">×</button>
+            </div>
+            <div class="cart-items" id="cartItems">
+                <!-- Los items del carrito se cargarán aquí -->
+            </div>
+            <div class="cart-total" id="cartTotal">
+                Total: S/ 0
+            </div>
+            <button class="checkout-btn" onclick="showPayment()">Pagar con Yape</button>
+        </div>
+    </div>
+
+    <!-- Modal de Pago -->
+    <div class="payment-modal" id="paymentModal">
+        <div class="payment-content">
+            <div class="yape-logo">💜</div>
+            <h2>Pagar con Yape</h2>
+            <div class="qr-code">
+                <div>Código QR<br>Yape</div>
+            </div>
+            <div class="payment-total" id="paymentTotal">Total: S/ 0</div>
+            <div class="payment-instructions">
+                Escanea el código QR con tu app Yape para completar el pago de forma segura
+            </div>
+            <div class="payment-buttons">
+                <button class="confirm-payment" onclick="confirmPayment()">Confirmar Pago</button>
+                <button class="cancel-payment" onclick="cancelPayment()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Array de productos
+        const products = [
+            { id: 0, name: "Smartphone Premium", price: 899, emoji: "📱" },
+            { id: 1, name: "Laptop Gaming", price: 2499, emoji: "💻" },
+            { id: 2, name: "Auriculares Inalámbricos", price: 199, emoji: "🎧" },
+            { id: 3, name: "Smartwatch", price: 349, emoji: "⌚" }
+        ];
+
+        // Carrito de compras
+        let cart = [];
+        let counts = [0, 0, 0, 0];
+
+        // Funciones para el contador
+        function increaseCount(productId) {
+            counts[productId]++;
+            document.getElementById(`count-${productId}`).textContent = counts[productId];
+            updateCounterButtons(productId);
+        }
+
+        function decreaseCount(productId) {
+            if (counts[productId] > 0) {
+                counts[productId]--;
+                document.getElementById(`count-${productId}`).textContent = counts[productId];
+                updateCounterButtons(productId);
+            }
+        }
+
+        function updateCounterButtons(productId) {
+            const decreaseBtn = document.querySelector(`#count-${productId}`).previousElementSibling;
+            decreaseBtn.disabled = counts[productId] === 0;
+        }
+
+        // Función para agregar al carrito
+        function addToCart(productId) {
+            const quantity = counts[productId];
+            if (quantity === 0) {
+                alert('Selecciona la cantidad del producto');
+                return;
+            }
+
+            const product = products[productId];
+            const existingItem = cart.find(item => item.id === productId);
+
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                cart.push({
+                    id: productId,
+                    name: product.name,
+                    price: product.price,
+                    emoji: product.emoji,
+                    quantity: quantity
+                });
+            }
+
+            // Resetear contador
+            counts[productId] = 0;
+            document.getElementById(`count-${productId}`).textContent = 0;
+            updateCounterButtons(productId);
+
+            updateCartCount();
+            showAddedToCartAnimation();
+        }
+
+        // Función para mostrar animación de agregado
+        function showAddedToCartAnimation() {
+            const cartIcon = document.querySelector('.cart-icon');
+            cartIcon.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                cartIcon.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        // Función para actualizar contador del carrito
+        function updateCartCount() {
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartCount').textContent = totalItems;
+        }
+
+        // Función para abrir el carrito
+        function openCart() {
+            renderCartItems();
+            document.getElementById('cartModal').style.display = 'block';
+        }
+
+        // Función para cerrar el carrito
+        function closeCart() {
+            document.getElementById('cartModal').style.display = 'none';
+        }
+
+        // Función para renderizar items del carrito
+        function renderCartItems() {
+            const cartItemsContainer = document.getElementById('cartItems');
+            
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = `
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">🛒</div>
+                        <p>Tu carrito está vacío</p>
+                    </div>
+                `;
+                document.getElementById('cartTotal').textContent = 'Total: S/ 0';
+                return;
+            }
+
+            let html = '';
+            let total = 0;
+
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                
+                html += `
+                    <div class="cart-item">
+                        <div class="item-info">
+                            <div class="item-name">${item.emoji} ${item.name}</div>
+                            <div class="item-price">S/ ${item.price} c/u</div>
+                        </div>
+                        <div class="item-quantity">x${item.quantity}</div>
+                        <button class="remove-item" onclick="removeFromCart(${item.id})">×</button>
+                    </div>
+                `;
+            });
+
+            cartItemsContainer.innerHTML = html;
+            document.getElementById('cartTotal').textContent = `Total: S/ ${total.toLocaleString()}`;
+        }
+
+        // Función para remover del carrito
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCartCount();
+            renderCartItems();
+        }
+
+        // Función para mostrar pantalla de pago
+        function showPayment() {
+            if (cart.length === 0) {
+                alert('Tu carrito está vacío');
+                return;
+            }
+
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            document.getElementById('paymentTotal').textContent = `Total: S/ ${total.toLocaleString()}`;
+            document.getElementById('paymentModal').style.display = 'block';
+        }
+
+        // Función para confirmar pago
+        function confirmPayment() {
+            alert('¡Pago realizado con éxito! 🎉\nGracias por tu compra.');
+            cart = [];
+            updateCartCount();
+            cancelPayment();
+            closeCart();
+        }
+
+        // Función para cancelar pago
+        function cancelPayment() {
+            document.getElementById('paymentModal').style.display = 'none';
+        }
+
+        // Cerrar modales al hacer clic fuera
+        window.onclick = function(event) {
+            const cartModal = document.getElementById('cartModal');
+            const paymentModal = document.getElementById('paymentModal');
+            
+            if (event.target === cartModal) {
+                closeCart();
+            }
+            if (event.target === paymentModal) {
+                cancelPayment();
+            }
+        }
+
+        // Inicializar botones deshabilitados
+        window.onload = function() {
+            for (let i = 0; i < products.length; i++) {
+                updateCounterButtons(i);
+            }
+        }
+    </script>
+</body>
+</html>
