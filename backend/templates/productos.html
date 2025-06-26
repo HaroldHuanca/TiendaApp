@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+
+{% block title %}Productos - Abarrotes Sarita{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4"><i class="fas fa-boxes me-2"></i> Gestión de Productos</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+        <li class="breadcrumb-item active">Productos</li>
+    </ol>
+
+    <div class="row">
+        <!-- Formulario -->
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-box-open me-1"></i>
+                    Formulario de Producto
+                </div>
+                <div class="card-body">
+                    <form id="formProducto">
+                        <div class="mb-3">
+                            <label for="codigo_barras" class="form-label">Código de Barras</label>
+                            <input type="text" id="codigo_barras" class="form-control" placeholder="Ingrese código" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" id="nombre" class="form-control" placeholder="Nombre del producto" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <textarea id="descripcion" class="form-control" rows="2"></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="precio_compra" class="form-label">Precio Compra</label>
+                                <input type="number" step="0.01" id="precio_compra" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="precio_venta" class="form-label">Precio Venta</label>
+                                <input type="number" step="0.01" id="precio_venta" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="stock" class="form-label">Stock Actual</label>
+                                <input type="number" id="stock" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="stock_minimo" class="form-label">Stock Mínimo</label>
+                                <input type="number" id="stock_minimo" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="unidad" class="form-label">Unidad</label>
+                            <input type="text" id="unidad" class="form-control" placeholder="Ej: kg, litro, unidad" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="categoria" class="form-label">Categoría</label>
+                            <input type="text" id="categoria" class="form-control" placeholder="Ej: Lácteos, Bebidas" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select id="estado" class="form-select" required>
+                                <option value="" disabled selected>Seleccione un estado</option>
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-danger me-md-2" onclick="limpiarFormulario()">
+                                <i class="fas fa-times me-1"></i> Limpiar
+                            </button>
+                            <button type="button" class="btn btn-success" onclick="guardarProducto()">
+                                <i class="fas fa-save me-1"></i> Guardar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Productos -->
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-table me-1"></i>
+                    Inventario de Productos
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-striped" id="tablaProductos" width="100%" cellspacing="0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Nombre</th>
+                                    <th>P. Compra</th>
+                                    <th>P. Venta</th>
+                                    <th>Stock</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productosBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Variables globales
+    let productoIdSeleccionado = null;
+    const apiProductos = {
+        listar: "/productos_actualizados/0",
+        crear: "/insertar_producto",
+        actualizar: "/actualizar_producto",
+        eliminar: "/eliminar_producto",
+        buscar: "/buscar_id_producto",
+        estados: "/estados/mostrar_estados/tblproductos"
+    };
+
+    // DOM Ready
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarEstados();
+        cargarProductos();
+        
+        // Configurar tooltips
+        $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    });
+
+    // Funciones CRUD
+    async function cargarEstados() {
+        try {
+            const response = await fetch(apiProductos.estados);
+            if (!response.ok) throw new Error('Error al cargar estados');
+            const estados = await response.json();
+            
+            const selectEstado = document.getElementById('estado');
+            selectEstado.innerHTML = '<option value="" disabled selected>Seleccione un estado</option>';
+            
+            estados.forEach(estado => {
+                const option = document.createElement('option');
+                option.value = estado.descripcion;
+                option.textContent = estado.descripcion;
+                selectEstado.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarAlerta('Error al cargar estados', 'danger');
+        }
+    }
+
+    async function cargarProductos() {
+        try {
+            const response = await fetch(apiProductos.listar);
+            if (!response.ok) throw new Error('Error al cargar productos');
+            const productos = await response.json();
+            
+            const tbody = document.getElementById('productosBody');
+            tbody.innerHTML = '';
+            
+            productos.forEach(producto => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${producto.codigo_barras}</td>
+                    <td>${producto.descripcion}</td>
+                    <td>$${producto.precio_compra.toFixed(2)}</td>
+                    <td>$${producto.precio_venta.toFixed(2)}</td>
+                    <td class="${producto.stock < producto.stock_minimo ? 'text-danger fw-bold' : ''}">
+                        ${producto.stock} ${producto.stock < producto.stock_minimo ? '⚠️' : ''}
+                    </td>
+                    <td><span class="badge ${producto.descripcion_estado === 'Activo' ? 'bg-success' : 'bg-secondary'}">${producto.descripcion_estado}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1" onclick="editarProducto('${producto.codigo_barras}')" data-toggle="tooltip" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="confirmarEliminar('${producto.codigo_barras}')" data-toggle="tooltip" title="Eliminar">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarAlerta('Error al cargar productos', 'danger');
+        }
+    }
+
+    async function guardarProducto() {
+        const codigo_barras = document.getElementById('codigo_barras').value.trim();
+        const nombre = document.getElementById('nombre').value.trim();
+        const descripcion = document.getElementById('descripcion').value.trim();
+        const precio_compra = parseFloat(document.getElementById('precio_compra').value);
+        const precio_venta = parseFloat(document.getElementById('precio_venta').value);
+        const stock = parseInt(document.getElementById('stock').value);
+        const stock_minimo = parseInt(document.getElementById('stock_minimo').value);
+        const unidad = document.getElementById('unidad').value.trim();
+        const categoria = document.getElementById('categoria').value.trim();
+        const estado = document.getElementById('estado').value;
+        
+        // Validaciones básicas
+        if (!codigo_barras || !nombre || !precio_compra || !precio_venta || isNaN(stock) || isNaN(stock_minimo) || !unidad || !categoria || !estado) {
+            mostrarAlerta('Todos los campos son obligatorios', 'warning');
+            return;
+        }
+        
+        if (precio_venta <= precio_compra) {
+            mostrarAlerta('El precio de venta debe ser mayor al de compra', 'warning');
+            return;
+        }
+        
+        const productoData = {
+            codigo_barras,
+            nombre_unidad: unidad,
+            nombre_categoria: categoria,
+            descripcion: nombre + (descripcion ? ` - ${descripcion}` : ''),
+            precio_compra,
+            precio_venta,
+            stock,
+            stock_minimo,
+            descripcion_estado: estado
+        };
+        
+        try {
+            let url, method;
+            
+            if (productoIdSeleccionado) {
+                url = `${apiProductos.actualizar}/${productoIdSeleccionado}`;
+                method = 'PUT';
+            } else {
+                url = apiProductos.crear;
+                method = 'POST';
+            }
+            
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(productoData)
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Error en la operación');
+            }
+            
+            const accion = productoIdSeleccionado ? 'actualizado' : 'creado';
+            mostrarAlerta(`Producto ${accion} correctamente`, 'success');
+            
+            limpiarFormulario();
+            cargarProductos();
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarAlerta(error.message || 'Error al guardar el producto', 'danger');
+        }
+    }
+
+    async function editarProducto(codigo_barras) {
+        try {
+            // Primero obtener el ID del producto
+            const responseId = await fetch(`${apiProductos.buscar}/${codigo_barras}`);
+            if (!responseId.ok) throw new Error('Error al obtener ID del producto');
+            const { id_producto } = await responseId.json();
+            
+            if (!id_producto) throw new Error('Producto no encontrado');
+            
+            // Ahora obtener los datos completos del producto
+            const responseProducto = await fetch(`${apiProductos.listar}/0`);
+            if (!responseProducto.ok) throw new Error('Error al obtener datos del producto');
+            const productos = await responseProducto.json();
+            
+            const producto = productos.find(p => p.codigo_barras === codigo_barras);
+            if (!producto) throw new Error('Producto no encontrado');
+            
+            // Llenar el formulario
+            productoIdSeleccionado = id_producto;
+            document.getElementById('codigo_barras').value = producto.codigo_barras;
+            document.getElementById('nombre').value = producto.descripcion.split(' - ')[0];
+            document.getElementById('descripcion').value = producto.descripcion.includes(' - ') 
+                ? producto.descripcion.split(' - ')[1] 
+                : '';
+            document.getElementById('precio_compra').value = producto.precio_compra;
+            document.getElementById('precio_venta').value = producto.precio_venta;
+            document.getElementById('stock').value = producto.stock;
+            document.getElementById('stock_minimo').value = producto.stock_minimo;
+            document.getElementById('unidad').value = producto.nombre_unidad;
+            document.getElementById('categoria').value = producto.nombre_categoria;
+            document.getElementById('estado').value = producto.descripcion_estado;
+            
+            // Scroll al formulario
+            document.querySelector('.col-xl-4').scrollIntoView({
+                behavior: 'smooth'
+            });
+            
+            mostrarAlerta('Modo edición activado', 'info');
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarAlerta(error.message, 'danger');
+        }
+    }
+
+    function confirmarEliminar(codigo_barras) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¡No podrás revertir esta acción!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    // Primero obtener el ID del producto
+                    const responseId = await fetch(`${apiProductos.buscar}/${codigo_barras}`);
+                    if (!responseId.ok) throw new Error('Error al obtener ID del producto');
+                    const { id_producto } = await responseId.json();
+                    
+                    if (!id_producto) throw new Error('Producto no encontrado');
+                    
+                    // Ahora eliminar el producto
+                    const response = await fetch(`${apiProductos.eliminar}/${id_producto}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Error al eliminar');
+                    }
+                    
+                    mostrarAlerta('Producto eliminado correctamente', 'success');
+                    cargarProductos();
+                } catch (error) {
+                    console.error('Error:', error);
+                    mostrarAlerta(error.message, 'danger');
+                }
+            }
+        });
+    }
+
+    function limpiarFormulario() {
+        productoIdSeleccionado = null;
+        document.getElementById('formProducto').reset();
+        document.getElementById('estado').selectedIndex = 0;
+    }
+
+    function mostrarAlerta(mensaje, tipo) {
+        const alerta = document.createElement('div');
+        alerta.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alerta.role = 'alert';
+        alerta.innerHTML = `
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        const container = document.querySelector('.container-fluid');
+        container.prepend(alerta);
+        
+        setTimeout(() => {
+            alerta.remove();
+        }, 5000);
+    }
+</script>
+{% endblock %}
