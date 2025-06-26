@@ -11,71 +11,71 @@
     </ol>
 
     <div class="row">
-        <!-- Formulario -->
+        <!-- Formulario de Producto -->
         <div class="col-xl-4">
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white">
-                    <i class="fas fa-box-open me-1"></i>
+                    <i class="fas fa-edit me-1"></i>
                     Formulario de Producto
                 </div>
                 <div class="card-body">
                     <form id="formProducto">
+                        <input type="hidden" id="id_producto">
+                        
                         <div class="mb-3">
                             <label for="codigo_barras" class="form-label">Código de Barras</label>
-                            <input type="text" id="codigo_barras" class="form-control" placeholder="Ingrese código" required>
+                            <input type="text" class="form-control" id="codigo_barras" required>
                         </div>
-
+                        
                         <div class="mb-3">
                             <label for="nombre" class="form-label">Nombre</label>
-                            <input type="text" id="nombre" class="form-control" placeholder="Nombre del producto" required>
+                            <input type="text" class="form-control" id="nombre" required>
                         </div>
-
+                        
                         <div class="mb-3">
                             <label for="descripcion" class="form-label">Descripción</label>
-                            <textarea id="descripcion" class="form-control" rows="2"></textarea>
+                            <textarea class="form-control" id="descripcion" rows="2"></textarea>
                         </div>
-
+                        
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="precio_compra" class="form-label">Precio Compra</label>
-                                <input type="number" step="0.01" id="precio_compra" class="form-control" required>
+                                <input type="number" step="0.01" class="form-control" id="precio_compra" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="precio_venta" class="form-label">Precio Venta</label>
-                                <input type="number" step="0.01" id="precio_venta" class="form-control" required>
+                                <input type="number" step="0.01" class="form-control" id="precio_venta" required>
                             </div>
                         </div>
-
+                        
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="stock" class="form-label">Stock Actual</label>
-                                <input type="number" id="stock" class="form-control" required>
+                                <label for="stock" class="form-label">Stock</label>
+                                <input type="number" class="form-control" id="stock" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="stock_minimo" class="form-label">Stock Mínimo</label>
-                                <input type="number" id="stock_minimo" class="form-control" required>
+                                <input type="number" class="form-control" id="stock_minimo" required>
                             </div>
                         </div>
-
+                        
                         <div class="mb-3">
                             <label for="unidad" class="form-label">Unidad</label>
-                            <input type="text" id="unidad" class="form-control" placeholder="Ej: kg, litro, unidad" required>
+                            <select class="form-select" id="unidad" required></select>
                         </div>
-
+                        
                         <div class="mb-3">
                             <label for="categoria" class="form-label">Categoría</label>
-                            <input type="text" id="categoria" class="form-control" placeholder="Ej: Lácteos, Bebidas" required>
+                            <select class="form-select" id="categoria" required></select>
                         </div>
-
+                        
                         <div class="mb-3">
                             <label for="estado" class="form-label">Estado</label>
-                            <select id="estado" class="form-select" required>
-                                <option value="" disabled selected>Seleccione un estado</option>
-                            </select>
+                            <select class="form-select" id="estado" required></select>
                         </div>
-
+                        
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="button" class="btn btn-danger me-md-2" onclick="limpiarFormulario()">
+                            <button type="button" class="btn btn-secondary me-md-2" onclick="limpiarFormulario()">
                                 <i class="fas fa-times me-1"></i> Limpiar
                             </button>
                             <button type="button" class="btn btn-success" onclick="guardarProducto()">
@@ -90,19 +90,32 @@
         <!-- Tabla de Productos -->
         <div class="col-xl-8">
             <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <i class="fas fa-table me-1"></i>
-                    Inventario de Productos
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-table me-1"></i>
+                        Listado de Productos
+                    </div>
+                    <div class="d-flex">
+                        <select class="form-select form-select-sm me-2" id="filasPorPagina" style="width: 80px;">
+                            <option value="10">10</option>
+                            <option value="20" selected>20</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <input type="text" class="form-control form-control-sm me-2" id="buscarProducto" placeholder="Buscar..." style="width: 200px;">
+                        <button class="btn btn-sm btn-light" onclick="cargarProductos()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover table-striped" id="tablaProductos" width="100%" cellspacing="0">
+                        <table class="table table-bordered table-hover table-striped" id="tablaProductos">
                             <thead class="table-dark">
                                 <tr>
                                     <th>Código</th>
                                     <th>Nombre</th>
-                                    <th>P. Compra</th>
-                                    <th>P. Venta</th>
+                                    <th>Precio Venta</th>
                                     <th>Stock</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
@@ -111,6 +124,21 @@
                             <tbody id="productosBody"></tbody>
                         </table>
                     </div>
+                    
+                    <!-- Paginación -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center mt-3" id="paginacion">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Anterior</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Siguiente</a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>
@@ -122,130 +150,220 @@
 <script>
     // Variables globales
     let productoIdSeleccionado = null;
+    let paginaActual = 1;
+    let filasPorPagina = 20;
+    let totalProductos = 0;
+    
+    // API Endpoints
     const apiProductos = {
-        listar: "/productos_actualizados/0",
-        crear: "/insertar_producto",
-        actualizar: "/actualizar_producto",
-        eliminar: "/eliminar_producto",
-        buscar: "/buscar_id_producto",
-        estados: "/estados/mostrar_estados/tblproductos"
+        listar: "/productos/mostrar_productos_paginado",
+        crear: "/productos/insertar_producto",
+        actualizar: "/productos/actualizar_producto",
+        eliminar: "/productos/eliminar_producto",
+        conteo: "/productos/conteo",
+        buscar: "/productos/buscar_id_producto",
+        estados: "/estados/mostrar_estados/tbl_productos",
+        unidades: "/unidades/mostrar_unidades",  // Asegúrate de tener esta ruta
+        categorias: "/categorias/mostrar_categorias"  // Asegúrate de tener esta ruta
     };
 
-    // DOM Ready
+    // Inicialización cuando el DOM está listo
     document.addEventListener('DOMContentLoaded', function() {
-        cargarEstados();
+        cargarCombos();
+        cargarConteoProductos();
         cargarProductos();
         
-        // Configurar tooltips
-        $(document).ready(function(){
-            $('[data-toggle="tooltip"]').tooltip();
+        // Event listeners
+        document.getElementById('filasPorPagina').addEventListener('change', function() {
+            filasPorPagina = parseInt(this.value);
+            paginaActual = 1;
+            cargarProductos();
+        });
+        
+        document.getElementById('buscarProducto').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                cargarProductos();
+            }
         });
     });
 
-    // Funciones CRUD
-    async function cargarEstados() {
+    // Cargar combos de selección
+    async function cargarCombos() {
         try {
-            const response = await fetch(apiProductos.estados);
-            if (!response.ok) throw new Error('Error al cargar estados');
-            const estados = await response.json();
+            // Cargar estados
+            const resEstados = await fetch(apiProductos.estados);
+            const estados = await resEstados.json();
+            const comboEstado = document.getElementById('estado');
+            comboEstado.innerHTML = '<option value="" disabled selected>Seleccione estado</option>';
+            estados.forEach(e => {
+                comboEstado.innerHTML += `<option value="${e.descripcion}">${e.descripcion}</option>`;
+            });
             
-            const selectEstado = document.getElementById('estado');
-            selectEstado.innerHTML = '<option value="" disabled selected>Seleccione un estado</option>';
+            // Cargar unidades (asumiendo que tienes esta ruta)
+            const resUnidades = await fetch(apiProductos.unidades);
+            const unidades = await resUnidades.json();
+            const comboUnidad = document.getElementById('unidad');
+            comboUnidad.innerHTML = '<option value="" disabled selected>Seleccione unidad</option>';
+            unidades.forEach(u => {
+                comboUnidad.innerHTML += `<option value="${u.nombre}">${u.nombre}</option>`;
+            });
             
-            estados.forEach(estado => {
-                const option = document.createElement('option');
-                option.value = estado.descripcion;
-                option.textContent = estado.descripcion;
-                selectEstado.appendChild(option);
+            // Cargar categorías (asumiendo que tienes esta ruta)
+            const resCategorias = await fetch(apiProductos.categorias);
+            const categorias = await resCategorias.json();
+            const comboCategoria = document.getElementById('categoria');
+            comboCategoria.innerHTML = '<option value="" disabled selected>Seleccione categoría</option>';
+            categorias.forEach(c => {
+                comboCategoria.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
             });
         } catch (error) {
-            console.error('Error:', error);
-            mostrarAlerta('Error al cargar estados', 'danger');
+            console.error('Error cargando combos:', error);
+            mostrarAlerta('Error al cargar datos de referencia', 'danger');
         }
     }
 
-    async function cargarProductos() {
+    // Cargar conteo total de productos
+    async function cargarConteoProductos() {
         try {
-            const response = await fetch(apiProductos.listar);
+            const response = await fetch(apiProductos.conteo);
+            if (!response.ok) throw new Error('Error al obtener conteo');
+            const data = await response.json();
+            totalProductos = data.total;
+            actualizarPaginacion();
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarAlerta('Error al cargar conteo de productos', 'danger');
+        }
+    }
+
+    // Cargar productos paginados
+    async function cargarProductos() {
+        const busqueda = document.getElementById('buscarProducto').value.trim();
+        const offset = (paginaActual - 1) * filasPorPagina;
+        
+        try {
+            let url = `${apiProductos.listar}?limit=${filasPorPagina}&offset=${offset}`;
+            if (busqueda) {
+                url += `&busqueda=${encodeURIComponent(busqueda)}`;
+            }
+            
+            const response = await fetch(url);
             if (!response.ok) throw new Error('Error al cargar productos');
             const productos = await response.json();
             
             const tbody = document.getElementById('productosBody');
             tbody.innerHTML = '';
             
-            productos.forEach(producto => {
+            productos.forEach(p => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${producto.codigo_barras}</td>
-                    <td>${producto.descripcion}</td>
-                    <td>$${producto.precio_compra.toFixed(2)}</td>
-                    <td>$${producto.precio_venta.toFixed(2)}</td>
-                    <td class="${producto.stock < producto.stock_minimo ? 'text-danger fw-bold' : ''}">
-                        ${producto.stock} ${producto.stock < producto.stock_minimo ? '⚠️' : ''}
-                    </td>
-                    <td><span class="badge ${producto.descripcion_estado === 'Activo' ? 'bg-success' : 'bg-secondary'}">${producto.descripcion_estado}</span></td>
+                    <td>${p.codigo_barras || 'N/A'}</td>
+                    <td>${p.nombre}</td>
+                    <td>${formatCurrency(p.precio_venta)}</td>
                     <td>
-                        <button class="btn btn-sm btn-warning me-1" onclick="editarProducto('${producto.codigo_barras}')" data-toggle="tooltip" title="Editar">
+                        <span class="${p.stock <= p.stock_minimo ? 'text-danger fw-bold' : ''}">
+                            ${p.stock}
+                        </span>
+                        ${p.stock <= p.stock_minimo ? '<i class="fas fa-exclamation-triangle text-danger ms-1"></i>' : ''}
+                    </td>
+                    <td><span class="badge ${p.estado === 'Activo' ? 'bg-success' : 'bg-secondary'}">${p.estado}</span></td>
+                    <td class="text-nowrap">
+                        <button class="btn btn-sm btn-warning me-1" onclick="editarProducto(${p.id_producto})" data-toggle="tooltip" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-danger" onclick="confirmarEliminar('${producto.codigo_barras}')" data-toggle="tooltip" title="Eliminar">
+                        <button class="btn btn-sm btn-danger" onclick="confirmarEliminar(${p.id_producto})" data-toggle="tooltip" title="Eliminar">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
+            
+            // Actualizar paginación si hubo búsqueda
+            if (busqueda) {
+                document.getElementById('paginacion').classList.add('d-none');
+            } else {
+                document.getElementById('paginacion').classList.remove('d-none');
+                cargarConteoProductos();
+            }
         } catch (error) {
             console.error('Error:', error);
             mostrarAlerta('Error al cargar productos', 'danger');
         }
     }
 
-    async function guardarProducto() {
-        const codigo_barras = document.getElementById('codigo_barras').value.trim();
-        const nombre = document.getElementById('nombre').value.trim();
-        const descripcion = document.getElementById('descripcion').value.trim();
-        const precio_compra = parseFloat(document.getElementById('precio_compra').value);
-        const precio_venta = parseFloat(document.getElementById('precio_venta').value);
-        const stock = parseInt(document.getElementById('stock').value);
-        const stock_minimo = parseInt(document.getElementById('stock_minimo').value);
-        const unidad = document.getElementById('unidad').value.trim();
-        const categoria = document.getElementById('categoria').value.trim();
-        const estado = document.getElementById('estado').value;
+    // Formatear moneda
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('es-PE', {
+            style: 'currency',
+            currency: 'PEN'
+        }).format(amount);
+    }
+
+    // Actualizar controles de paginación
+    function actualizarPaginacion() {
+        const totalPaginas = Math.ceil(totalProductos / filasPorPagina);
+        const paginacion = document.getElementById('paginacion');
+        paginacion.innerHTML = '';
         
-        // Validaciones básicas
-        if (!codigo_barras || !nombre || !precio_compra || !precio_venta || isNaN(stock) || isNaN(stock_minimo) || !unidad || !categoria || !estado) {
-            mostrarAlerta('Todos los campos son obligatorios', 'warning');
-            return;
+        // Botón Anterior
+        const liAnterior = document.createElement('li');
+        liAnterior.className = `page-item ${paginaActual === 1 ? 'disabled' : ''}`;
+        liAnterior.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${paginaActual - 1})">Anterior</a>`;
+        paginacion.appendChild(liAnterior);
+        
+        // Números de página
+        const inicio = Math.max(1, paginaActual - 2);
+        const fin = Math.min(totalPaginas, paginaActual + 2);
+        
+        for (let i = inicio; i <= fin; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === paginaActual ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${i})">${i}</a>`;
+            paginacion.appendChild(li);
         }
         
-        if (precio_venta <= precio_compra) {
-            mostrarAlerta('El precio de venta debe ser mayor al de compra', 'warning');
+        // Botón Siguiente
+        const liSiguiente = document.createElement('li');
+        liSiguiente.className = `page-item ${paginaActual === totalPaginas ? 'disabled' : ''}`;
+        liSiguiente.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${paginaActual + 1})">Siguiente</a>`;
+        paginacion.appendChild(liSiguiente);
+    }
+
+    // Cambiar página
+    function cambiarPagina(nuevaPagina) {
+        if (nuevaPagina < 1 || nuevaPagina > Math.ceil(totalProductos / filasPorPagina)) return;
+        paginaActual = nuevaPagina;
+        cargarProductos();
+    }
+
+    // Guardar producto (crear o actualizar)
+    async function guardarProducto() {
+        const form = document.getElementById('formProducto');
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
             return;
         }
         
         const productoData = {
-            codigo_barras,
-            nombre_unidad: unidad,
-            nombre_categoria: categoria,
-            descripcion: nombre + (descripcion ? ` - ${descripcion}` : ''),
-            precio_compra,
-            precio_venta,
-            stock,
-            stock_minimo,
-            descripcion_estado: estado
+            codigo_barras: document.getElementById('codigo_barras').value.trim(),
+            nombre: document.getElementById('nombre').value.trim(),
+            descripcion: document.getElementById('descripcion').value.trim(),
+            precio_compra: parseFloat(document.getElementById('precio_compra').value),
+            precio_venta: parseFloat(document.getElementById('precio_venta').value),
+            stock: parseInt(document.getElementById('stock').value),
+            stock_minimo: parseInt(document.getElementById('stock_minimo').value),
+            nombre_unidad: document.getElementById('unidad').value,
+            nombre_categoria: document.getElementById('categoria').value,
+            descripcion_estado: document.getElementById('estado').value
         };
         
         try {
-            let url, method;
-            
-            if (productoIdSeleccionado) {
-                url = `${apiProductos.actualizar}/${productoIdSeleccionado}`;
-                method = 'PUT';
-            } else {
-                url = apiProductos.crear;
-                method = 'POST';
-            }
+            const url = productoIdSeleccionado 
+                ? `${apiProductos.actualizar}/${productoIdSeleccionado}`
+                : apiProductos.crear;
+                
+            const method = productoIdSeleccionado ? 'PUT' : 'POST';
             
             const response = await fetch(url, {
                 method,
@@ -265,43 +383,45 @@
             
             limpiarFormulario();
             cargarProductos();
+            cargarConteoProductos();
         } catch (error) {
             console.error('Error:', error);
             mostrarAlerta(error.message || 'Error al guardar el producto', 'danger');
         }
     }
 
-    async function editarProducto(codigo_barras) {
+    // Editar producto
+    async function editarProducto(id) {
         try {
-            // Primero obtener el ID del producto
-            const responseId = await fetch(`${apiProductos.buscar}/${codigo_barras}`);
-            if (!responseId.ok) throw new Error('Error al obtener ID del producto');
-            const { id_producto } = await responseId.json();
+            const response = await fetch(`${apiProductos.listar}?limit=1&offset=0&id=${id}`);
+            if (!response.ok) throw new Error('Error al obtener producto');
             
-            if (!id_producto) throw new Error('Producto no encontrado');
+            const productos = await response.json();
+            if (!productos || productos.length === 0) throw new Error('Producto no encontrado');
             
-            // Ahora obtener los datos completos del producto
-            const responseProducto = await fetch(`${apiProductos.listar}/0`);
-            if (!responseProducto.ok) throw new Error('Error al obtener datos del producto');
-            const productos = await responseProducto.json();
+            const producto = productos[0];
+            productoIdSeleccionado = producto.id_producto;
             
-            const producto = productos.find(p => p.codigo_barras === codigo_barras);
-            if (!producto) throw new Error('Producto no encontrado');
+            // Llenar formulario
+            document.getElementById('id_producto').value = producto.id_producto;
+            document.getElementById('codigo_barras').value = producto.codigo_barras || '';
+            document.getElementById('nombre').value = producto.nombre || '';
+            document.getElementById('descripcion').value = producto.descripcion || '';
+            document.getElementById('precio_compra').value = producto.precio_compra || '';
+            document.getElementById('precio_venta').value = producto.precio_venta || '';
+            document.getElementById('stock').value = producto.stock || '';
+            document.getElementById('stock_minimo').value = producto.stock_minimo || '';
             
-            // Llenar el formulario
-            productoIdSeleccionado = id_producto;
-            document.getElementById('codigo_barras').value = producto.codigo_barras;
-            document.getElementById('nombre').value = producto.descripcion.split(' - ')[0];
-            document.getElementById('descripcion').value = producto.descripcion.includes(' - ') 
-                ? producto.descripcion.split(' - ')[1] 
-                : '';
-            document.getElementById('precio_compra').value = producto.precio_compra;
-            document.getElementById('precio_venta').value = producto.precio_venta;
-            document.getElementById('stock').value = producto.stock;
-            document.getElementById('stock_minimo').value = producto.stock_minimo;
-            document.getElementById('unidad').value = producto.nombre_unidad;
-            document.getElementById('categoria').value = producto.nombre_categoria;
-            document.getElementById('estado').value = producto.descripcion_estado;
+            // Seleccionar valores en combos
+            if (producto.nombre_unidad) {
+                document.getElementById('unidad').value = producto.nombre_unidad;
+            }
+            if (producto.nombre_categoria) {
+                document.getElementById('categoria').value = producto.nombre_categoria;
+            }
+            if (producto.estado) {
+                document.getElementById('estado').value = producto.estado;
+            }
             
             // Scroll al formulario
             document.querySelector('.col-xl-4').scrollIntoView({
@@ -315,7 +435,8 @@
         }
     }
 
-    function confirmarEliminar(codigo_barras) {
+    // Confirmar eliminación
+    function confirmarEliminar(id) {
         Swal.fire({
             title: '¿Estás seguro?',
             text: "¡No podrás revertir esta acción!",
@@ -325,42 +446,46 @@
             cancelButtonColor: '#3085d6',
             confirmButtonText: 'Sí, eliminar',
             cancelButtonText: 'Cancelar'
-        }).then(async (result) => {
+        }).then((result) => {
             if (result.isConfirmed) {
-                try {
-                    // Primero obtener el ID del producto
-                    const responseId = await fetch(`${apiProductos.buscar}/${codigo_barras}`);
-                    if (!responseId.ok) throw new Error('Error al obtener ID del producto');
-                    const { id_producto } = await responseId.json();
-                    
-                    if (!id_producto) throw new Error('Producto no encontrado');
-                    
-                    // Ahora eliminar el producto
-                    const response = await fetch(`${apiProductos.eliminar}/${id_producto}`, {
-                        method: 'DELETE'
-                    });
-                    
-                    if (!response.ok) {
-                        const error = await response.json();
-                        throw new Error(error.error || 'Error al eliminar');
-                    }
-                    
-                    mostrarAlerta('Producto eliminado correctamente', 'success');
-                    cargarProductos();
-                } catch (error) {
-                    console.error('Error:', error);
-                    mostrarAlerta(error.message, 'danger');
-                }
+                eliminarProducto(id);
             }
         });
     }
 
+    // Eliminar producto
+    async function eliminarProducto(id) {
+        try {
+            const response = await fetch(`${apiProductos.eliminar}/${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Error al eliminar');
+            }
+            
+            mostrarAlerta('Producto eliminado correctamente', 'success');
+            cargarProductos();
+            cargarConteoProductos();
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarAlerta(error.message, 'danger');
+        }
+    }
+
+    // Limpiar formulario
     function limpiarFormulario() {
         productoIdSeleccionado = null;
         document.getElementById('formProducto').reset();
+        document.getElementById('id_producto').value = '';
         document.getElementById('estado').selectedIndex = 0;
+        document.getElementById('unidad').selectedIndex = 0;
+        document.getElementById('categoria').selectedIndex = 0;
+        document.getElementById('formProducto').classList.remove('was-validated');
     }
 
+    // Mostrar alerta
     function mostrarAlerta(mensaje, tipo) {
         const alerta = document.createElement('div');
         alerta.className = `alert alert-${tipo} alert-dismissible fade show`;

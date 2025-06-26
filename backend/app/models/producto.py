@@ -116,3 +116,20 @@ def buscar_id_por_codigo_barras(codigo_barras: str) -> int:
         result = db.execute(text("SELECT @p_id"))
         id_encontrado = result.scalar()
         return id_encontrado if id_encontrado is not None else 0
+
+def mostrar_productos_paginado(limit: int, offset: int) -> List[Dict[str, Any]]:
+    with DatabaseManager() as db:
+        result = db.execute(
+            text("CALL proc_mostrar_productos_paginado(:p_limit, :p_offset)"),
+            {"p_limit": limit, "p_offset": offset}
+        )
+        return [dict(row._mapping) for row in result.fetchall()]
+
+def obtener_conteo_productos() -> int:
+    with DatabaseManager() as db:
+        result = db.execute(text("CALL proc_productos_conteo"))
+        row = result.fetchone()
+        _ = result.fetchall()
+        return int(row[0]) if row else 0
+
+

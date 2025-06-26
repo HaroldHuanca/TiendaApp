@@ -65,3 +65,23 @@ def buscar_id_producto(codigo_barras):
         return jsonify({"id_producto": id_producto}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+@producto_bp.route('/mostrar_productos_paginado', methods=['GET'])
+def obtener_productos_paginado():
+    try:
+        # Obtener parámetros de consulta (ej. /obtener_productos_paginados?limit=20&offset=40)
+        limit = int(request.args.get('limit', 20))
+        offset = int(request.args.get('offset', 0))
+        
+        productos = producto_service.mostrar_productos_paginado(limit, offset)
+        return jsonify(productos), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@producto_bp.route('/conteo', methods=['GET'])
+def obtener_conteo_productos():
+    try:
+        conteo = producto_service.obtener_conteo_productos()
+        return jsonify({"total": conteo}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400

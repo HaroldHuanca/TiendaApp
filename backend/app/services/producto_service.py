@@ -89,3 +89,9 @@ def eliminar_producto(id_producto: int) -> None:
 def buscar_id_por_codigo_barras(codigo_barras: str) -> int:
     validar_codigo_barras(codigo_barras)
     return producto_model.buscar_id_por_codigo_barras(codigo_barras)
+
+def mostrar_productos_paginado(limit: int, offset: int) -> List[Dict[str, Any]]:
+    return producto_model.mostrar_productos_paginado(limit, offset)
+
+def obtener_conteo_productos() -> int:
+    return producto_model.obtener_conteo_productos()

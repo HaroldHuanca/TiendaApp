@@ -218,6 +218,41 @@ ORDER BY
 
 END;
 
+CREATE PROCEDURE proc_mostrar_productos_paginado (
+    IN p_limit INT,
+    IN p_offset INT
+)
+BEGIN
+    SELECT
+        p.id AS Id,
+        p.codigo_Barras AS CodigoBarras,
+        u.nombre AS Unidad,
+        c.nombre AS Categoria,
+        p.descripcion AS Descripcion,
+        p.precio_compra AS "Precio Compra",
+        p.precio_venta AS "Precio Venta",
+        p.stock AS Stock,
+        p.stock_minimo AS "Stock Minimo",
+        e.descripcion AS Estado
+    FROM
+        tbl_productos p
+        INNER JOIN tbl_unidades u ON u.id = p.id_unidad
+        INNER JOIN tbl_categorias c ON c.id = p.id_categoria
+        INNER JOIN tbl_estados e ON e.estado = p.estado
+            AND e.nombre_tabla = 'tbl_productos'
+    ORDER BY
+        p.id DESC
+    LIMIT p_limit OFFSET p_offset;
+END;
+
+create procedure proc_productos_conteo()
+BEGIN
+    SELECT
+        COUNT(*) AS Conteo
+    FROM
+        tbl_productos;
+END;
+
 CREATE PROCEDURE proc_Insertar_producto (
     IN p_Codigo_Barras varchar(13),
     p_Nombre_Unidad VARCHAR(100),
