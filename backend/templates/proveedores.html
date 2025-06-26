@@ -173,7 +173,7 @@
         const proveedorData = {
             ruc,
             nombre,
-            descripcion_estado: estado
+            descripcion_estado:estado
         };
 
         try {
@@ -182,7 +182,7 @@
                 : apiProveedores.crear;
 
             const method = proveedorIdSeleccionado ? 'PUT' : 'POST';
-
+            
             const response = await fetch(url, {
                 method,
                 headers: {
@@ -190,7 +190,7 @@
                 },
                 body: JSON.stringify(proveedorData)
             });
-
+       
             if (!response.ok) {
                 const error = await response.json();
                 throw new Error(error.message || 'Error en la operación');

@@ -32,7 +32,9 @@ def insertar_proveedor(ruc: str, nombre: str, descripcion_estado: str) -> None:
 
 def actualizar_proveedor(id_proveedor: int, ruc: str, nombre: str, descripcion_estado: str) -> None:
     validar_id_smallint(id_proveedor, "ID del proveedor")
-    insertar_proveedor(ruc, nombre, descripcion_estado)  # Reutiliza validaciones
+    validar_ruc(ruc)
+    validar_nombre(nombre)
+    validar_descripcion(descripcion_estado)
     proveedor_model.actualizar_proveedor(id_proveedor, ruc, nombre, descripcion_estado)
 
 def eliminar_proveedor(id_proveedor: int) -> None:
