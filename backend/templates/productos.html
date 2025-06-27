@@ -27,14 +27,20 @@
                             <input type="text" class="form-control" id="codigo_barras" required>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="nombre" class="form-label">Nombre</label>
-                            <input type="text" class="form-control" id="nombre" required>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="unidad" class="form-label">Unidad</label>
+                                <select class="form-select" id="unidad" required></select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="categoria" class="form-label">Categoría</label>
+                                <select class="form-select" id="categoria" required></select>
+                            </div>
                         </div>
 
                         <div class="mb-3">
                             <label for="descripcion" class="form-label">Descripción</label>
-                            <textarea class="form-control" id="descripcion" rows="2"></textarea>
+                            <textarea class="form-control" id="descripcion" rows="2" required></textarea>
                         </div>
 
                         <div class="row">
@@ -57,16 +63,6 @@
                                 <label for="stock_minimo" class="form-label">Stock Mínimo</label>
                                 <input type="number" class="form-control" id="stock_minimo" required>
                             </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="unidad" class="form-label">Unidad</label>
-                            <select class="form-select" id="unidad" required></select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="categoria" class="form-label">Categoría</label>
-                            <select class="form-select" id="categoria" required></select>
                         </div>
 
                         <div class="mb-3">
@@ -115,7 +111,7 @@
                             <thead class="table-dark">
                                 <tr>
                                     <th>Código</th>
-                                    <th>Nombre</th>
+                                    <th>Descripción</th>
                                     <th>Precio Venta</th>
                                     <th>Stock</th>
                                     <th>Estado</th>
@@ -164,8 +160,8 @@
         conteo: "/productos/conteo",
         buscar: "/productos/buscar_id_producto",
         estados: "/estados/mostrar_estados/tbl_productos",
-        unidades: "/unidades/mostrar_unidades",  // Asegúrate de tener esta ruta
-        categorias: "/categorias/mostrar_categorias"  // Asegúrate de tener esta ruta
+        unidades: "/unidades/mostrar_unidades",
+        categorias: "/categorias/mostrar_categorias"
     };
 
     // Inicialización cuando el DOM está listo
@@ -200,7 +196,7 @@
                 comboEstado.innerHTML += `<option value="${e.descripcion}">${e.descripcion}</option>`;
             });
 
-            // Cargar unidades (asumiendo que tienes esta ruta)
+            // Cargar unidades
             const resUnidades = await fetch(apiProductos.unidades);
             const unidades = await resUnidades.json();
             const comboUnidad = document.getElementById('unidad');
@@ -209,7 +205,7 @@
                 comboUnidad.innerHTML += `<option value="${u.nombre}">${u.nombre}</option>`;
             });
 
-            // Cargar categorías (asumiendo que tienes esta ruta)
+            // Cargar categorías
             const resCategorias = await fetch(apiProductos.categorias);
             const categorias = await resCategorias.json();
             const comboCategoria = document.getElementById('categoria');
@@ -237,7 +233,7 @@
         }
     }
 
-    // Cargar productos paginados - Versión corregida
+    // Cargar productos paginados
     async function cargarProductos() {
         const busqueda = document.getElementById('buscarProducto').value.trim();
         const offset = (paginaActual - 1) * filasPorPagina;
@@ -255,39 +251,36 @@
             const tbody = document.getElementById('productosBody');
             tbody.innerHTML = '';
 
-            // Procesar cada producto según la estructura de tu JSON
             productos.forEach(p => {
                 const tr = document.createElement('tr');
 
-                // Mostrar alerta visual si el stock está bajo el mínimo
                 const stock = parseFloat(p.Stock);
                 const stockMinimo = parseFloat(p['Stock Minimo'] || 0);
                 const bajoStock = stock <= stockMinimo;
 
                 tr.innerHTML = `
-                <td>${p.CodigoBarras || 'N/A'}</td>
-                <td>${p.Descripcion}</td>
-                <td>${formatCurrency(parseFloat(p['Precio Venta']))}</td>
-                <td>
-                    <span class="${bajoStock ? 'text-danger fw-bold' : ''}">
-                        ${stock} ${p.Unidad}
-                    </span>
-                    ${bajoStock ? '<i class="fas fa-exclamation-triangle text-danger ms-1"></i>' : ''}
-                </td>
-                <td><span class="badge ${p.Estado === 'GRAVADO' ? 'bg-success' : 'bg-secondary'}">${p.Estado}</span></td>
-                <td class="text-nowrap">
-                    <button class="btn btn-sm btn-warning me-1" onclick="editarProducto(${p.Id})" data-toggle="tooltip" title="Editar">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="confirmarEliminar(${p.Id})" data-toggle="tooltip" title="Eliminar">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </td>
-            `;
+                    <td>${p.CodigoBarras || 'N/A'}</td>
+                    <td>${p.Descripcion}</td>
+                    <td>${formatCurrency(parseFloat(p['Precio Venta']))}</td>
+                    <td>
+                        <span class="${bajoStock ? 'text-danger fw-bold' : ''}">
+                            ${stock} ${p.Unidad}
+                        </span>
+                        ${bajoStock ? '<i class="fas fa-exclamation-triangle text-danger ms-1"></i>' : ''}
+                    </td>
+                    <td><span class="badge ${p.Estado === 'GRAVADO' ? 'bg-success' : 'bg-secondary'}">${p.Estado}</span></td>
+                    <td class="text-nowrap">
+                        <button class="btn btn-sm btn-warning me-1" onclick="editarProducto(${p.Id})" data-toggle="tooltip" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="confirmarEliminar(${p.Id})" data-toggle="tooltip" title="Eliminar">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                `;
                 tbody.appendChild(tr);
             });
 
-            // Actualizar paginación si no hay búsqueda
             if (!busqueda) {
                 actualizarPaginacion();
             }
@@ -298,12 +291,7 @@
         }
     }
 
-    // Función para formatear moneda
-    function formatCurrency(amount) {
-        return 'S/ ' + amount.toFixed(2);
-    }
-
-    // Función para editar producto - Versión corregida
+    // Función para editar producto
     async function editarProducto(id) {
         try {
             const response = await fetch(`${apiProductos.listar}?limit=1&offset=0&id=${id}`);
@@ -315,10 +303,9 @@
             const p = productos[0];
             productoIdSeleccionado = p.Id;
 
-            // Llenar formulario con los datos del JSON
+            // Llenar formulario
             document.getElementById('id_producto').value = p.Id;
             document.getElementById('codigo_barras').value = p.CodigoBarras || '';
-            document.getElementById('nombre').value = p.Descripcion || '';
             document.getElementById('descripcion').value = p.Descripcion || '';
             document.getElementById('precio_compra').value = parseFloat(p['Precio Compra'] || 0).toFixed(2);
             document.getElementById('precio_venta').value = parseFloat(p['Precio Venta'] || 0).toFixed(2);
@@ -367,13 +354,14 @@
             mostrarAlerta(error.message, 'danger');
         }
     }
+
     // Formatear moneda
-    /*function formatCurrency(amount) {
+    function formatCurrency(amount) {
         return new Intl.NumberFormat('es-PE', {
             style: 'currency',
             currency: 'PEN'
         }).format(amount);
-    }*/
+    }
 
     // Actualizar controles de paginación
     function actualizarPaginacion() {
@@ -422,7 +410,6 @@
 
         const productoData = {
             codigo_barras: document.getElementById('codigo_barras').value.trim(),
-            nombre: document.getElementById('nombre').value.trim(),
             descripcion: document.getElementById('descripcion').value.trim(),
             precio_compra: parseFloat(document.getElementById('precio_compra').value),
             precio_venta: parseFloat(document.getElementById('precio_venta').value),

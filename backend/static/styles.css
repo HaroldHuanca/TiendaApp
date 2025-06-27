@@ -1,7 +1,8 @@
 :root {
     --sidebar-width: 280px;
-    --footer-height: 60px;
+    --footer-height: 40px;
     --transition-speed: 0.3s;
+    --navbar-height: 56px;
 }
 
 /* Layout principal */
@@ -13,16 +14,18 @@
 
 /* Sidebar */
 .sidebar {
-    width: var(--sidebar-width);
+    width: 250px;
     height: 100vh;
     position: fixed;
     left: 0;
     top: 0;
-    transition: transform var(--transition-speed) ease;
     z-index: 1000;
-    overflow-y: auto;
-    background: #343a40;
+    background-color: #343a40; /* Color de fondo */
     color: white;
+    transition: transform 0.3s ease;
+    transform: translateX(0);
+    display: flex;
+    flex-direction: column;
 }
 
 /* Contenido principal */
@@ -30,9 +33,11 @@
     margin-left: var(--sidebar-width);
     width: calc(100% - var(--sidebar-width));
     min-height: 100vh;
-    transition: margin-left var(--transition-speed) ease;
+    transition: all var(--transition-speed) ease; /* Cambiado a 'all' */
     position: relative;
-    padding-bottom: var(--footer-height);
+    display: flex; /* Añadido */
+    flex-direction: column; /* Añadido */
+    padding-bottom: 0; /* Eliminado o ajustado */
 }
 
 /* Footer */
@@ -40,12 +45,13 @@
     position: fixed;
     bottom: 0;
     left: var(--sidebar-width);
-    width: calc(100% - var(--sidebar-width));
+    right: 0; /* Nueva línea clave */
     height: var(--footer-height);
     transition: all var(--transition-speed) ease;
-    z-index: 900;
+    z-index: 800;
     background: #343a40;
     color: white;
+    /* Elimina width: calc(100% - var(--sidebar-width)); */
 }
 
 /* Estado colapsado */
@@ -57,10 +63,12 @@
     margin-left: 0;
     width: 100%;
 }
-
+.sidebar-collapsed + .main .footer {
+    margin-left: 0;
+    width: 100%;
+}
 .sidebar-collapsed ~ .footer {
     left: 0;
-    width: 100%;
 }
 
 /* Overlay para móviles */
@@ -76,10 +84,12 @@
 }
 
 /* Estilos para móviles */
+/* Mantén este bloque existente para móviles (<= 768px) */
 @media (max-width: 768px) {
     .sidebar {
         transform: translateX(-100%);
         z-index: 1001;
+        width: 280px; /* Ancho explícito para móvil */
     }
     
     .sidebar:not(.sidebar-collapsed) {
@@ -94,10 +104,96 @@
     
     .footer {
         left: 0;
-        width: 100%;
+        width: 100%; /* Asegura que el footer ocupe todo el ancho */
     }
     
     .sidebar:not(.sidebar-collapsed) + .sidebar-overlay {
         display: block;
     }
+    
+    /* Nuevo: Oculta sidebar automáticamente al seleccionar enlaces SOLO en móviles */
+    .sidebar .nav-link {
+        pointer-events: auto; /* Permite cerrar al tocar enlaces */
+    }
+}
+
+/* Añade este nuevo bloque para desktop (> 768px) */
+@media (min-width: 769px) {
+    .sidebar {
+        transform: translateX(0) !important; /* Fuerza visibilidad */
+        width: var(--sidebar-width); /* Usa el ancho definido */
+    }
+    
+    .sidebar-collapsed {
+        transform: translateX(-100%) !important; /* Solo si se colapsa manualmente */
+    }
+    
+    .sidebar .nav-link {
+        pointer-events: auto; /* Comportamiento normal en desktop */
+    }
+    
+    .sidebar-overlay {
+        display: none !important; /* Desactiva overlay en desktop */
+    }
+}
+/* Añade esta nueva regla */
+.sidebar-collapsed ~ .main .footer {
+    margin-left: 0;
+    width: 100%;
+}
+
+
+.content {
+    flex: 1; /* Hace que el contenido ocupe todo el espacio disponible */
+    padding: 20px; /* Ajusta según necesites */
+}
+
+.sidebar-content {
+    padding: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.sidebar-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.sidebar-header {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.sidebar-menu {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 0.5rem;
+}
+.sidebar-collapsed .sidebar {
+    transform: translateX(-100%);
+}
+.sidebar .nav-link {
+    color: rgba(255,255,255,0.8);
+    padding: 0.75rem 1rem;
+    margin: 0.25rem 0;
+    border-radius: 0.25rem;
+    transition: all 0.2s;
+}
+
+.sidebar .nav-link:hover {
+    color: white;
+    background-color: rgba(255,255,255,0.1);
+}
+.sidebar .nav-link.active {
+    color: white;
+    background-color: rgba(255,255,255,0.2);
+}
+
+.sidebar .nav-item i {
+    width: 1.5rem;
+    text-align: center;
+}
+
+.sidebar .nav-link:hover:not(.active) {
+    background-color: rgba(255, 255, 255, 0.05);
 }
