@@ -1,218 +1,418 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Gestión de Usuarios</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <meta charset="utf-8">
+    <title>Abarrotes Sarita</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Free HTML Templates" name="keywords">
+    <meta content="Free HTML Templates" name="description">
+
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">   
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-{% include 'header2.html' with context %} 
+
 <body>
-  <div class="container">
-    <h1>Gestión de Usuarios</h1>
-
-    <div class="row">
-      <!-- Formulario -->
-      <div class="col" style="flex: 1;">
-        <div class="card">
-          <h2>Formulario de Usuario</h2>
-
-          <label for="nombre_usuario">Nombre de Usuario</label>
-          <input type="text" id="nombre_usuario" placeholder="Ingrese el nombre de usuario">
-
-          <label for="contrasena">Contraseña</label>
-          <input type="password" id="contrasena" placeholder="Ingrese la contraseña">
-
-          <label for="correo">Correo</label>
-          <input type="email" id="correo" placeholder="Ingrese el correo (opcional)">
-
-          <label for="direccion_mac">Dirección MAC</label>
-          <input type="text" id="direccion_mac" placeholder="Ingrese la MAC (opcional)">
-
-          <label for="descripcion_estado">Estado</label>
-          <select id="descripcion_estado"></select>
-
-          <button class="primary" onclick="crearUsuario()">Crear</button>
-          <button class="success" onclick="actualizarUsuario()">Actualizar</button>
+    <!-- Topbar Start -->
+    <div class="container-fluid">
+        <div class="row align-items-center bg-light px-lg-5">
+            <div class="col-12 col-md-8">
+                <div class="d-flex justify-content-between">
+                    <div class="bg-primary text-white text-center py-2" style="width: 100px;">Tranding</div>
+                    <div class="owl-carousel owl-carousel-1 tranding-carousel position-relative d-inline-flex align-items-center ml-3" style="width: calc(100% - 100px); padding-left: 90px;">
+                        <div class="text-truncate"><a class="text-secondary" href="">Por el dia del padre, se hace desucento en tus segunda compra de hasta del 30% en precios no mas de 20$</a></div>
+                        <div class="text-truncate"><a class="text-secondary" href="">precio de hasta del 10% en categorias de lacteos y bebidas energeticas. Super Promocion</a></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-right d-none d-md-block">
+                Monday, January 01, 2045
+            </div>
         </div>
-      </div>
-
-      <!-- Tabla -->
-      <div class="col" style="flex: 2;">
-        <div class="card">
-          <h2>Lista de Usuarios</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="usuariosBody"></tbody>
-          </table>
+        <div class="row align-items-center py-2 px-lg-5">
+            <div class="col-lg-4">
+                <a href="" class="navbar-brand d-none d-lg-block">
+                    <h1 class="m-0 display-5 text-uppercase"><span class="text-primary">Abarrotes</span>Sarita</h1>
+                </a>
+            </div>
+            <div class="col-lg-8 text-center text-lg-right">
+                <img class="img-fluid-img" src="img/logo.png" alt="">
+            </div>
         </div>
-      </div>
     </div>
-  </div>
+    <!-- Topbar End -->
 
-  <script>
-    let usuarioSeleccionadoId = null;
 
-    async function cargarEstados() {
-      try {
-        const res = await fetch("/estados/mostrar_estados/tbl_usuarios");
-        const estados = await res.json();
-        console.log(estados);
-        const select = document.getElementById("descripcion_estado");
-        select.innerHTML = "";
+    <!-- Navbar Start -->
+    <div class="container-fluid p-0 mb-3">
+        <nav class="navbar navbar-expand-lg bg-light navbar-light py-2 py-lg-0 px-lg-5">
+            <a href="" class="navbar-brand d-block d-lg-none">
+                <h1 class="m-0 display-5 text-uppercase"><span class="text-primary">News</span>Room</h1>
+            </a>
+            <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-between px-0 px-lg-3" id="navbarCollapse">
+                <div class="navbar-nav mr-auto py-0">
+                    <a href="index.html" class="nav-item nav-link">Hogar</a>
+                    <a href="category.html" class="nav-item nav-link">Productos</a>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Proveedores</a>
+                        <div class="dropdown-menu rounded-0 m-0">
+                            
+                        </div>
+                    </div>
+                    <a href="clientes.html" class="nav-item nav-link">Clientes</a>
+                    <a href="proveedores.html" class="nav-item nav-link">Proveedores</a>
+                    <a href="productos.html" class="nav-item nav-link">Productos</a>
+                    <a href="usuarios.html" class="nav-item nav-link">Usuarios</a>
+                    <a href="unidades.html" class="nav-item nav-link">Unidades</a>
+                    <a href="contact.html" class="nav-item nav-link">Contactos</a>
+                </div>
+                <div class="input-group ml-auto" style="width: 100%; max-width: 300px;">
+                    <input type="text" class="form-control" placeholder="Keyword">
+                    <div class="input-group-append">
+                        <button class="input-group-text text-secondary"><i
+                                class="fa fa-search"></i></button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <!-- Navbar End -->
 
-        estados.forEach(estado => {
-          const option = document.createElement("option");
-          option.value = estado.descripcion;
-          option.textContent = estado.descripcion;
-          select.appendChild(option);
-        });
-      } catch (error) {
-        console.error("Error cargando estados:", error);
-      }
-    }
 
-    async function cargarUsuarios() {
-      try {
-        const res = await fetch("/usuarios/mostrar_usuarios");
-        const usuarios = await res.json();
-        const tbody = document.getElementById("usuariosBody");
-        tbody.innerHTML = "";
+    <!-- Breadcrumb Start -->
+    <div class="container-fluid">
+        <div class="container">
+            <nav class="breadcrumb bg-transparent m-0 p-0">
+                <a class="breadcrumb-item" href="#">Home</a>
+                <span class="breadcrumb-item active">Contact</span>
+            </nav>
+        </div>
+    </div>
+    <!-- Breadcrumb End -->
 
-        usuarios.forEach(usuario => {
-          const fila = document.createElement("tr");
-          fila.innerHTML = `
-            <td>${usuario["Id"]}</td>
-            <td>${usuario["Nombre Usuario"]}</td>
-            <td>${usuario["Descripcion"]}</td>
-            <td>
-              <button onclick='editarUsuario(${JSON.stringify(usuario)})'>Editar</button>
-              <button onclick='eliminarUsuario(${usuario["Id"]})'>Eliminar</button>
-            </td>
-          `;
-          tbody.appendChild(fila);
-        });
-      } catch (error) {
-        console.error("Error cargando usuarios:", error);
-      }
-    }
 
-    function editarUsuario(usuario) {
-      usuarioSeleccionadoId = usuario["Id"];
-      document.getElementById("nombre_usuario").value = usuario["Nombre Usuario"];
-      document.getElementById("contrasena").value = "";
-      document.getElementById("correo").value = "";
-      document.getElementById("direccion_mac").value = "";
-      document.getElementById("descripcion_estado").value = usuario["Descripcion"];
-    }
+    <!-- Contact Start -->
+    <div class="container-fluid py-3">
+        <div class="container">
+            <!--aqui ira los proveedores-->
 
-    async function crearUsuario() {
-      const nombre_usuario = document.getElementById("nombre_usuario").value;
-      const contrasena = document.getElementById("contrasena").value;
-      const correo = document.getElementById("correo").value;
-      const direccion_mac = document.getElementById("direccion_mac").value;
-      const descripcion_estado = document.getElementById("descripcion_estado").value;
+            <div class="container">
+                <h1>Gestión de Usuarios</h1>
+            
+                <div class="row">
+                <!-- Formulario -->
+                <div class="col" style="flex: 1;">
+                    <div class="card">
+                    <h2>Formulario de Usuario</h2>
+            
+                    <label for="nombre_usuario">Nombre de Usuario</label>
+                    <input type="text" id="nombre_usuario" placeholder="Ingrese el nombre de usuario">
+            
+                    <label for="contrasena">Contraseña</label>
+                    <input type="password" id="contrasena" placeholder="Ingrese la contraseña">
+            
+                    <label for="correo">Correo</label>
+                    <input type="email" id="correo" placeholder="Ingrese el correo (opcional)">
+            
+                    <label for="direccion_mac">Dirección MAC</label>
+                    <input type="text" id="direccion_mac" placeholder="Ingrese la MAC (opcional)">
+            
+                    <label for="descripcion_estado">Estado</label>
+                    <select id="descripcion_estado"></select>
+            
+                    <button class="primary" onclick="crearUsuario()">Crear</button>
+                    <button class="success" onclick="actualizarUsuario()">Actualizar</button>
+                    </div>
+                </div>
+            
+                <!-- Tabla -->
+                <div class="col" style="flex: 2;">
+                    <div class="card">
+                    <h2>Lista de Usuarios</h2>
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody id="usuariosBody"></tbody>
+                    </table>
+                    </div>
+                </div>
+                </div>
+            </div>
+            
+            <script>
+                let usuarioSeleccionadoId = null;
+            
+                async function cargarEstados() {
+                try {
+                    const res = await fetch("/estados/mostrar_estados/tbl_usuarios");
+                    const estados = await res.json();
+                    console.log(estados);
+                    const select = document.getElementById("descripcion_estado");
+                    select.innerHTML = "";
+            
+                    estados.forEach(estado => {
+                    const option = document.createElement("option");
+                    option.value = estado.descripcion;
+                    option.textContent = estado.descripcion;
+                    select.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error("Error cargando estados:", error);
+                }
+                }
+            
+                async function cargarUsuarios() {
+                try {
+                    const res = await fetch("/usuarios/mostrar_usuarios");
+                    const usuarios = await res.json();
+                    const tbody = document.getElementById("usuariosBody");
+                    tbody.innerHTML = "";
+            
+                    usuarios.forEach(usuario => {
+                    const fila = document.createElement("tr");
+                    fila.innerHTML = `
+                        <td>${usuario["Id"]}</td>
+                        <td>${usuario["Nombre Usuario"]}</td>
+                        <td>${usuario["Descripcion"]}</td>
+                        <td>
+                        <button onclick='editarUsuario(${JSON.stringify(usuario)})'>Editar</button>
+                        <button onclick='eliminarUsuario(${usuario["Id"]})'>Eliminar</button>
+                        </td>
+                    `;
+                    tbody.appendChild(fila);
+                    });
+                } catch (error) {
+                    console.error("Error cargando usuarios:", error);
+                }
+                }
+            
+                function editarUsuario(usuario) {
+                usuarioSeleccionadoId = usuario["Id"];
+                document.getElementById("nombre_usuario").value = usuario["Nombre Usuario"];
+                document.getElementById("contrasena").value = "";
+                document.getElementById("correo").value = "";
+                document.getElementById("direccion_mac").value = "";
+                document.getElementById("descripcion_estado").value = usuario["Descripcion"];
+                }
+            
+                async function crearUsuario() {
+                const nombre_usuario = document.getElementById("nombre_usuario").value;
+                const contrasena = document.getElementById("contrasena").value;
+                const correo = document.getElementById("correo").value;
+                const direccion_mac = document.getElementById("direccion_mac").value;
+                const descripcion_estado = document.getElementById("descripcion_estado").value;
+            
+                if (!nombre_usuario || !contrasena || !descripcion_estado) {
+                    alert("Por favor, completa los campos obligatorios.");
+                    return;
+                }
+            
+                try {
+                    const res = await fetch("/usuarios/insetar_usuario", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        nombre_usuario,
+                        contrasena,
+                        correo,
+                        direccion_mac,
+                        descripcion_estado
+                    })
+                    });
+            
+                    const data = await res.json();
+                    if (res.ok) {
+                    alert(data.mensaje);
+                    limpiarFormulario();
+                    cargarUsuarios();
+                    } else {
+                    alert("Error: " + data.error);
+                    }
+                } catch (error) {
+                    console.error("Error al crear usuario:", error);
+                }
+                }
+            
+                async function actualizarUsuario() {
+                if (!usuarioSeleccionadoId) {
+                    alert("Selecciona un usuario para actualizar.");
+                    return;
+                }
+            
+                const nombre_usuario = document.getElementById("nombre_usuario").value;
+                const contrasena = document.getElementById("contrasena").value;
+                const descripcion_estado = document.getElementById("descripcion_estado").value;
+            
+                try {
+                    const res = await fetch(`/usuarios/actualizar_usuario/${usuarioSeleccionadoId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ nombre_usuario, contrasena, descripcion_estado })
+                    });
+            
+                    const data = await res.json();
+                    if (res.ok) {
+                    alert(data.mensaje);
+                    limpiarFormulario();
+                    cargarUsuarios();
+                    } else {
+                    alert("Error: " + data.error);
+                    }
+                } catch (error) {
+                    console.error("Error al actualizar usuario:", error);
+                }
+                }
+            
+                async function eliminarUsuario(id) {
+                if (!confirm("¿Estás seguro de que deseas eliminar este usuario?")) return;
+            
+                try {
+                    const res = await fetch(`/usuarios/eliminar_usuario/${id}`, {
+                    method: "DELETE"
+                    });
+            
+                    const data = await res.json();
+                    if (res.ok) {
+                    alert(data.mensaje);
+                    cargarUsuarios();
+                    } else {
+                    alert("Error: " + data.error);
+                    }
+                } catch (error) {
+                    console.error("Error al eliminar usuario:", error);
+                }
+                }
+            
+                function limpiarFormulario() {
+                usuarioSeleccionadoId = null;
+                document.getElementById("nombre_usuario").value = "";
+                document.getElementById("contrasena").value = "";
+                document.getElementById("correo").value = "";
+                document.getElementById("direccion_mac").value = "";
+                document.getElementById("descripcion_estado").selectedIndex = 0;
+                }
+            
+                window.onload = () => {
+                cargarEstados();
+                cargarUsuarios();
+                };
+            </script>
+        </div>
+    </div>
+    <!-- Contact End -->
 
-      if (!nombre_usuario || !contrasena || !descripcion_estado) {
-        alert("Por favor, completa los campos obligatorios.");
-        return;
-      }
+    <!-- Footer Start -->
+    <div class="container-fluid bg-light pt-5 px-sm-3 px-md-5">
+        <div class="row">
+            <div class="col-lg-3 col-md-6 mb-5">
+                <a href="index.html" class="navbar-brand">
+                    <h1 class="mb-2 mt-n2 display-5 text-uppercase"><span class="text-primary">News</span>Room</h1>
+                </a>
+                <p>Volup amet magna clita tempor. Tempor sea eos vero ipsum. Lorem lorem sit sed elitr sed kasd et</p>
+                <div class="d-flex justify-content-start mt-4">
+                    <a class="btn btn-outline-secondary text-center mr-2 px-0" style="width: 38px; height: 38px;" href="#"><i class="fab fa-twitter"></i></a>
+                    <a class="btn btn-outline-secondary text-center mr-2 px-0" style="width: 38px; height: 38px;" href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a class="btn btn-outline-secondary text-center mr-2 px-0" style="width: 38px; height: 38px;" href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a class="btn btn-outline-secondary text-center mr-2 px-0" style="width: 38px; height: 38px;" href="#"><i class="fab fa-instagram"></i></a>
+                    <a class="btn btn-outline-secondary text-center mr-2 px-0" style="width: 38px; height: 38px;" href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-5">
+                <h4 class="font-weight-bold mb-4">Categories</h4>
+                <div class="d-flex flex-wrap m-n1">
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Politics</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Business</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Corporate</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Sports</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Health</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Education</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Science</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Technology</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Foods</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Entertainment</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Travel</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Lifestyle</a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-5">
+                <h4 class="font-weight-bold mb-4">Tags</h4>
+                <div class="d-flex flex-wrap m-n1">
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Politics</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Business</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Corporate</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Sports</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Health</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Education</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Science</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Technology</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Foods</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Entertainment</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Travel</a>
+                    <a href="" class="btn btn-sm btn-outline-secondary m-1">Lifestyle</a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-5">
+                <h4 class="font-weight-bold mb-4">Quick Links</h4>
+                <div class="d-flex flex-column justify-content-start">
+                    <a class="text-secondary mb-2" href="#"><i class="fa fa-angle-right text-dark mr-2"></i>About</a>
+                    <a class="text-secondary mb-2" href="#"><i class="fa fa-angle-right text-dark mr-2"></i>Advertise</a>
+                    <a class="text-secondary mb-2" href="#"><i class="fa fa-angle-right text-dark mr-2"></i>Privacy & policy</a>
+                    <a class="text-secondary mb-2" href="#"><i class="fa fa-angle-right text-dark mr-2"></i>Terms & conditions</a>
+                    <a class="text-secondary" href="#"><i class="fa fa-angle-right text-dark mr-2"></i>Contact</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid py-4 px-sm-3 px-md-5">
+        <p class="m-0 text-center">
+            &copy; <a class="font-weight-bold" href="#">Your Site Name</a>. All Rights Reserved. 
+			
+			<!--/*** This template is free as long as you keep the footer author’s credit link/attribution link/backlink. If you'd like to use the template without the footer author’s credit link/attribution link/backlink, you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". Thank you for your support. ***/-->
+			Designed by <a class="font-weight-bold" href="https://htmlcodex.com">HTML Codex</a>
+        </p>
+    </div>
+    <!-- Footer End -->
 
-      try {
-        const res = await fetch("/usuarios/insetar_usuario", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            nombre_usuario,
-            contrasena,
-            correo,
-            direccion_mac,
-            descripcion_estado
-          })
-        });
 
-        const data = await res.json();
-        if (res.ok) {
-          alert(data.mensaje);
-          limpiarFormulario();
-          cargarUsuarios();
-        } else {
-          alert("Error: " + data.error);
-        }
-      } catch (error) {
-        console.error("Error al crear usuario:", error);
-      }
-    }
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-dark back-to-top"><i class="fa fa-angle-up"></i></a>
 
-    async function actualizarUsuario() {
-      if (!usuarioSeleccionadoId) {
-        alert("Selecciona un usuario para actualizar.");
-        return;
-      }
 
-      const nombre_usuario = document.getElementById("nombre_usuario").value;
-      const contrasena = document.getElementById("contrasena").value;
-      const descripcion_estado = document.getElementById("descripcion_estado").value;
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
 
-      try {
-        const res = await fetch(`/usuarios/actualizar_usuario/${usuarioSeleccionadoId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nombre_usuario, contrasena, descripcion_estado })
-        });
+    <!-- Contact Javascript File -->
+    <script src="mail/jqBootstrapValidation.min.js"></script>
+    <script src="mail/contact.js"></script>
 
-        const data = await res.json();
-        if (res.ok) {
-          alert(data.mensaje);
-          limpiarFormulario();
-          cargarUsuarios();
-        } else {
-          alert("Error: " + data.error);
-        }
-      } catch (error) {
-        console.error("Error al actualizar usuario:", error);
-      }
-    }
-
-    async function eliminarUsuario(id) {
-      if (!confirm("¿Estás seguro de que deseas eliminar este usuario?")) return;
-
-      try {
-        const res = await fetch(`/usuarios/eliminar_usuario/${id}`, {
-          method: "DELETE"
-        });
-
-        const data = await res.json();
-        if (res.ok) {
-          alert(data.mensaje);
-          cargarUsuarios();
-        } else {
-          alert("Error: " + data.error);
-        }
-      } catch (error) {
-        console.error("Error al eliminar usuario:", error);
-      }
-    }
-
-    function limpiarFormulario() {
-      usuarioSeleccionadoId = null;
-      document.getElementById("nombre_usuario").value = "";
-      document.getElementById("contrasena").value = "";
-      document.getElementById("correo").value = "";
-      document.getElementById("direccion_mac").value = "";
-      document.getElementById("descripcion_estado").selectedIndex = 0;
-    }
-
-    window.onload = () => {
-      cargarEstados();
-      cargarUsuarios();
-    };
-  </script>
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
 </body>
+
 </html>
