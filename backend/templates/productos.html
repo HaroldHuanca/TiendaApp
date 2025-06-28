@@ -171,6 +171,11 @@
 
         // Inicialización cuando el DOM está listo
         document.addEventListener('DOMContentLoaded', function () {
+            // Inicializar valores
+            filasPorPagina = parseInt(document.getElementById('filasPorPagina').value);
+            paginaActual = 1;
+
+            // Cargar datos iniciales
             cargarCombos();
             cargarConteoProductos();
             cargarProductos();
@@ -182,11 +187,14 @@
                 cargarProductos();
             });
 
-            document.getElementById('buscarProducto').addEventListener('keyup', function (e) {
-                if (e.key === 'Enter' || this.value.length === 0 || this.value.length > 2) {
+            // Búsqueda con debounce
+            let searchTimeout;
+            document.getElementById('buscarProducto').addEventListener('input', function () {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
                     paginaActual = 1;
                     cargarProductos();
-                }
+                }, 500);
             });
         });
 
@@ -242,44 +250,61 @@
         // Cargar productos paginados
         async function cargarProductos() {
             try {
-                const response = await fetch(apiProductos.listar);
+                const buscar = document.getElementById('buscarProducto').value;
+                const offset = (paginaActual - 1) * filasPorPagina;
+
+                let url = `${apiProductos.listar}?limit=${filasPorPagina}&offset=${offset}`;
+
+                if (buscar && buscar.length > 0) {
+                    // Si necesitas búsqueda, deberías implementar un endpoint específico
+                    // Por ahora usaremos el listado paginado normal
+                    mostrarAlerta("La búsqueda no está implementada en el backend", "warning");
+                }
+
+                const response = await fetch(url);
                 if (!response.ok) throw new Error('Error al cargar productos');
+
                 const productos = await response.json();
 
                 const tbody = document.getElementById('productosBody');
                 tbody.innerHTML = '';
 
+                if (productos.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="11" class="text-center">No se encontraron productos</td></tr>`;
+                    return;
+                }
+
                 productos.forEach(p => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                <td>${p.Id}</td>
-                <td>${p.CodigoBarras || 'N/A'}</td>
-                <td>${p.Descripcion}</td>
-                <td>${p.Unidad || 'N/A'}</td>
-                <td>${p.Categoria || 'N/A'}</td>
-                <td>${formatCurrency(parseFloat(p['Precio Compra']))}</td>
-                <td>${formatCurrency(parseFloat(p['Precio Venta']))}</td>
-                <td>${p.Stock}</td>
-                <td>${p['Stock Minimo'] || '0'}</td>
-                <td><span class="badge ${p.Estado === 'GRAVADO' ? 'bg-success' : 'bg-secondary'}">${p.Estado}</span></td>
+                <td>${p.Id || p.id_producto}</td>
+                <td>${p.CodigoBarras || p.codigo_barras || 'N/A'}</td>
+                <td>${p.Descripcion || p.descripcion}</td>
+                <td>${p.Unidad || p.nombre_unidad || 'N/A'}</td>
+                <td>${p.Categoria || p.nombre_categoria || 'N/A'}</td>
+                <td>${formatCurrency(parseFloat(p['Precio Compra'] || p.precio_compra || 0))}</td>
+                <td>${formatCurrency(parseFloat(p['Precio Venta'] || p.precio_venta || 0))}</td>
+                <td>${p.Stock || p.stock || 0}</td>
+                <td>${p['Stock Minimo'] || p.stock_minimo || 0}</td>
+                <td><span class="badge ${(p.Estado || p.descripcion_estado) === 'GRAVADO' ? 'bg-success' : 'bg-secondary'}">${p.Estado || p.descripcion_estado || 'N/A'}</span></td>
                 <td class="text-nowrap">
                     <button class="btn btn-sm btn-warning me-1" 
                         onclick="editarProducto(
-                            ${p.Id}, 
-                            '${p.CodigoBarras || ''}', 
-                            '${p.Descripcion.replace(/'/g, "\\'")}', 
-                            '${p.Unidad || ''}', 
-                            '${p.Categoria || ''}', 
-                            '${p['Precio Compra'] || ''}', 
-                            '${p['Precio Venta'] || ''}', 
-                            '${p.Stock || ''}', 
-                            '${p['Stock Minimo'] || ''}', 
-                            '${p.Estado || ''}'
+                            ${p.Id || p.id_producto}, 
+                            '${(p.CodigoBarras || p.codigo_barras || '').replace(/'/g, "\\'")}', 
+                            '${(p.Descripcion || p.descripcion || '').replace(/'/g, "\\'")}', 
+                            '${p.Unidad || p.nombre_unidad || ''}', 
+                            '${p.Categoria || p.nombre_categoria || ''}', 
+                            '${p['Precio Compra'] || p.precio_compra || ''}', 
+                            '${p['Precio Venta'] || p.precio_venta || ''}', 
+                            '${p.Stock || p.stock || ''}', 
+                            '${p['Stock Minimo'] || p.stock_minimo || ''}', 
+                            '${p.Estado || p.descripcion_estado || ''}'
                         )" 
                         data-toggle="tooltip" title="Editar">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-sm btn-danger" onclick="confirmarEliminar(${p.Id})" data-toggle="tooltip" title="Eliminar">
+                    <button class="btn btn-sm btn-danger" onclick="confirmarEliminar(${p.Id || p.id_producto})" data-toggle="tooltip" title="Eliminar">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </td>
@@ -292,7 +317,6 @@
                 mostrarAlerta('Error al cargar productos: ' + error.message, 'danger');
             }
         }
-
         // Función para editar producto
         // Función para editar producto (versión mejorada)
         function editarProducto(id, codigoBarras, descripcion, unidad, categoria, precioCompra, precioVenta, stock, stockMinimo, estado) {
@@ -356,16 +380,40 @@
             const paginacion = document.getElementById('paginacion');
             paginacion.innerHTML = '';
 
+            if (totalPaginas <= 1) return;
+
             // Botón Anterior
             const liAnterior = document.createElement('li');
             liAnterior.className = `page-item ${paginaActual === 1 ? 'disabled' : ''}`;
-            liAnterior.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${paginaActual - 1})">Anterior</a>`;
+            liAnterior.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${paginaActual - 1})">&laquo; Anterior</a>`;
             paginacion.appendChild(liAnterior);
 
-            // Números de página
-            const inicio = Math.max(1, paginaActual - 2);
-            const fin = Math.min(totalPaginas, paginaActual + 2);
+            // Mostrar páginas cercanas a la actual
+            const paginasMostradas = 5;
+            let inicio = Math.max(1, paginaActual - Math.floor(paginasMostradas / 2));
+            let fin = Math.min(totalPaginas, inicio + paginasMostradas - 1);
 
+            // Ajustar si estamos cerca del final
+            if (fin - inicio + 1 < paginasMostradas) {
+                inicio = Math.max(1, fin - paginasMostradas + 1);
+            }
+
+            // Primera página + elipsis si es necesario
+            if (inicio > 1) {
+                const li = document.createElement('li');
+                li.className = 'page-item';
+                li.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(1)">1</a>`;
+                paginacion.appendChild(li);
+
+                if (inicio > 2) {
+                    const liEllipsis = document.createElement('li');
+                    liEllipsis.className = 'page-item disabled';
+                    liEllipsis.innerHTML = `<span class="page-link">...</span>`;
+                    paginacion.appendChild(liEllipsis);
+                }
+            }
+
+            // Páginas centrales
             for (let i = inicio; i <= fin; i++) {
                 const li = document.createElement('li');
                 li.className = `page-item ${i === paginaActual ? 'active' : ''}`;
@@ -373,13 +421,27 @@
                 paginacion.appendChild(li);
             }
 
+            // Última página + elipsis si es necesario
+            if (fin < totalPaginas) {
+                if (fin < totalPaginas - 1) {
+                    const liEllipsis = document.createElement('li');
+                    liEllipsis.className = 'page-item disabled';
+                    liEllipsis.innerHTML = `<span class="page-link">...</span>`;
+                    paginacion.appendChild(liEllipsis);
+                }
+
+                const li = document.createElement('li');
+                li.className = 'page-item';
+                li.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${totalPaginas})">${totalPaginas}</a>`;
+                paginacion.appendChild(li);
+            }
+
             // Botón Siguiente
             const liSiguiente = document.createElement('li');
             liSiguiente.className = `page-item ${paginaActual === totalPaginas ? 'disabled' : ''}`;
-            liSiguiente.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${paginaActual + 1})">Siguiente</a>`;
+            liSiguiente.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${paginaActual + 1})">Siguiente &raquo;</a>`;
             paginacion.appendChild(liSiguiente);
         }
-
         // Cambiar página
         function cambiarPagina(nuevaPagina) {
             if (nuevaPagina < 1 || nuevaPagina > Math.ceil(totalProductos / filasPorPagina)) return;
@@ -397,13 +459,13 @@
 
             const productoData = {
                 codigo_barras: document.getElementById('codigo_barras').value.trim(),
+                nombre_unidad: document.getElementById('unidad').value,
+                nombre_categoria: document.getElementById('categoria').value,
                 descripcion: document.getElementById('descripcion').value.trim(),
                 precio_compra: parseFloat(document.getElementById('precio_compra').value),
                 precio_venta: parseFloat(document.getElementById('precio_venta').value),
                 stock: parseInt(document.getElementById('stock').value),
                 stock_minimo: parseInt(document.getElementById('stock_minimo').value),
-                nombre_unidad: document.getElementById('unidad').value,
-                nombre_categoria: document.getElementById('categoria').value,
                 descripcion_estado: document.getElementById('estado').value
             };
 
@@ -438,7 +500,6 @@
                 mostrarAlerta(error.message || 'Error al guardar el producto', 'danger');
             }
         }
-
         // Confirmar eliminación
         function confirmarEliminar(id) {
             Swal.fire({
@@ -470,6 +531,13 @@
                 }
 
                 mostrarAlerta('Producto eliminado correctamente', 'success');
+
+                // Verificar si la última página quedó vacía
+                const productosEnPagina = document.querySelectorAll('#productosBody tr').length;
+                if (productosEnPagina === 1 && paginaActual > 1) {
+                    paginaActual--;
+                }
+
                 cargarProductos();
                 cargarConteoProductos();
             } catch (error) {
