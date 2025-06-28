@@ -107,13 +107,19 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover table-striped" id="tablaProductos">
+                        <table class="table table-bordered table-hover table-striped" id="tablaProductos" width="100%"
+                            cellspacing="0">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>Código</th>
+                                    <th>ID</th>
+                                    <th>Código Barras</th>
                                     <th>Descripción</th>
-                                    <th>Precio Venta</th>
+                                    <th>Unidad</th>
+                                    <th>Categoría</th>
+                                    <th>P. Compra</th>
+                                    <th>P. Venta</th>
                                     <th>Stock</th>
+                                    <th>Mínimo</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -140,384 +146,365 @@
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+    {% endblock %}
 
-{% block extra_js %}
-<script>
-    // Variables globales
-    let productoIdSeleccionado = null;
-    let paginaActual = 1;
-    let filasPorPagina = 20;
-    let totalProductos = 0;
+    {% block extra_js %}
+    <script>
+        // Variables globales
+        let productoIdSeleccionado = null;
+        let paginaActual = 1;
+        let filasPorPagina = 20;
+        let totalProductos = 0;
 
-    // API Endpoints
-    const apiProductos = {
-        listar: "/productos/mostrar_productos_paginado",
-        crear: "/productos/insertar_producto",
-        actualizar: "/productos/actualizar_producto",
-        eliminar: "/productos/eliminar_producto",
-        conteo: "/productos/conteo",
-        buscar: "/productos/buscar_id_producto",
-        estados: "/estados/mostrar_estados/tbl_productos",
-        unidades: "/unidades/mostrar_unidades",
-        categorias: "/categorias/mostrar_categorias"
-    };
-
-    // Inicialización cuando el DOM está listo
-    document.addEventListener('DOMContentLoaded', function () {
-        cargarCombos();
-        cargarConteoProductos();
-        cargarProductos();
-
-        // Event listeners
-        document.getElementById('filasPorPagina').addEventListener('change', function () {
-            filasPorPagina = parseInt(this.value);
-            paginaActual = 1;
-            cargarProductos();
-        });
-
-        document.getElementById('buscarProducto').addEventListener('keyup', function (e) {
-            if (e.key === 'Enter') {
-                cargarProductos();
-            }
-        });
-    });
-
-    // Cargar combos de selección
-    async function cargarCombos() {
-        try {
-            // Cargar estados
-            const resEstados = await fetch(apiProductos.estados);
-            const estados = await resEstados.json();
-            const comboEstado = document.getElementById('estado');
-            comboEstado.innerHTML = '<option value="" disabled selected>Seleccione estado</option>';
-            estados.forEach(e => {
-                comboEstado.innerHTML += `<option value="${e.descripcion}">${e.descripcion}</option>`;
-            });
-
-            // Cargar unidades
-            const resUnidades = await fetch(apiProductos.unidades);
-            const unidades = await resUnidades.json();
-            const comboUnidad = document.getElementById('unidad');
-            comboUnidad.innerHTML = '<option value="" disabled selected>Seleccione unidad</option>';
-            unidades.forEach(u => {
-                comboUnidad.innerHTML += `<option value="${u.nombre}">${u.nombre}</option>`;
-            });
-
-            // Cargar categorías
-            const resCategorias = await fetch(apiProductos.categorias);
-            const categorias = await resCategorias.json();
-            const comboCategoria = document.getElementById('categoria');
-            comboCategoria.innerHTML = '<option value="" disabled selected>Seleccione categoría</option>';
-            categorias.forEach(c => {
-                comboCategoria.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
-            });
-        } catch (error) {
-            console.error('Error cargando combos:', error);
-            mostrarAlerta('Error al cargar datos de referencia', 'danger');
-        }
-    }
-
-    // Cargar conteo total de productos
-    async function cargarConteoProductos() {
-        try {
-            const response = await fetch(apiProductos.conteo);
-            if (!response.ok) throw new Error('Error al obtener conteo');
-            const data = await response.json();
-            totalProductos = data.total;
-            actualizarPaginacion();
-        } catch (error) {
-            console.error('Error:', error);
-            mostrarAlerta('Error al cargar conteo de productos', 'danger');
-        }
-    }
-
-    // Cargar productos paginados
-    async function cargarProductos() {
-        const busqueda = document.getElementById('buscarProducto').value.trim();
-        const offset = (paginaActual - 1) * filasPorPagina;
-
-        try {
-            let url = `${apiProductos.listar}?limit=${filasPorPagina}&offset=${offset}`;
-            if (busqueda) {
-                url += `&busqueda=${encodeURIComponent(busqueda)}`;
-            }
-
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Error al cargar productos');
-
-            const productos = await response.json();
-            const tbody = document.getElementById('productosBody');
-            tbody.innerHTML = '';
-
-            productos.forEach(p => {
-                const tr = document.createElement('tr');
-
-                const stock = parseFloat(p.Stock);
-                const stockMinimo = parseFloat(p['Stock Minimo'] || 0);
-                const bajoStock = stock <= stockMinimo;
-
-                tr.innerHTML = `
-                    <td>${p.CodigoBarras || 'N/A'}</td>
-                    <td>${p.Descripcion}</td>
-                    <td>${formatCurrency(parseFloat(p['Precio Venta']))}</td>
-                    <td>
-                        <span class="${bajoStock ? 'text-danger fw-bold' : ''}">
-                            ${stock} ${p.Unidad}
-                        </span>
-                        ${bajoStock ? '<i class="fas fa-exclamation-triangle text-danger ms-1"></i>' : ''}
-                    </td>
-                    <td><span class="badge ${p.Estado === 'GRAVADO' ? 'bg-success' : 'bg-secondary'}">${p.Estado}</span></td>
-                    <td class="text-nowrap">
-                        <button class="btn btn-sm btn-warning me-1" onclick="editarProducto(${p.Id})" data-toggle="tooltip" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="confirmarEliminar(${p.Id})" data-toggle="tooltip" title="Eliminar">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            if (!busqueda) {
-                actualizarPaginacion();
-            }
-
-        } catch (error) {
-            console.error('Error:', error);
-            mostrarAlerta('Error al cargar productos: ' + error.message, 'danger');
-        }
-    }
-
-    // Función para editar producto
-    async function editarProducto(id) {
-        try {
-            const response = await fetch(`${apiProductos.listar}?limit=1&offset=0&id=${id}`);
-            if (!response.ok) throw new Error('Error al obtener producto');
-
-            const productos = await response.json();
-            if (!productos || productos.length === 0) throw new Error('Producto no encontrado');
-
-            const p = productos[0];
-            productoIdSeleccionado = p.Id;
-
-            // Llenar formulario
-            document.getElementById('id_producto').value = p.Id;
-            document.getElementById('codigo_barras').value = p.CodigoBarras || '';
-            document.getElementById('descripcion').value = p.Descripcion || '';
-            document.getElementById('precio_compra').value = parseFloat(p['Precio Compra'] || 0).toFixed(2);
-            document.getElementById('precio_venta').value = parseFloat(p['Precio Venta'] || 0).toFixed(2);
-            document.getElementById('stock').value = parseFloat(p.Stock || 0);
-            document.getElementById('stock_minimo').value = parseFloat(p['Stock Minimo'] || 0);
-
-            // Seleccionar valores en los combos
-            if (p.Unidad) {
-                const unidadSelect = document.getElementById('unidad');
-                for (let i = 0; i < unidadSelect.options.length; i++) {
-                    if (unidadSelect.options[i].text === p.Unidad) {
-                        unidadSelect.selectedIndex = i;
-                        break;
-                    }
-                }
-            }
-
-            if (p.Categoria) {
-                const categoriaSelect = document.getElementById('categoria');
-                for (let i = 0; i < categoriaSelect.options.length; i++) {
-                    if (categoriaSelect.options[i].text === p.Categoria) {
-                        categoriaSelect.selectedIndex = i;
-                        break;
-                    }
-                }
-            }
-
-            if (p.Estado) {
-                const estadoSelect = document.getElementById('estado');
-                for (let i = 0; i < estadoSelect.options.length; i++) {
-                    if (estadoSelect.options[i].text === p.Estado) {
-                        estadoSelect.selectedIndex = i;
-                        break;
-                    }
-                }
-            }
-
-            // Scroll al formulario
-            document.querySelector('.col-xl-4').scrollIntoView({
-                behavior: 'smooth'
-            });
-
-            mostrarAlerta('Modo edición activado', 'info');
-        } catch (error) {
-            console.error('Error:', error);
-            mostrarAlerta(error.message, 'danger');
-        }
-    }
-
-    // Formatear moneda
-    function formatCurrency(amount) {
-        return new Intl.NumberFormat('es-PE', {
-            style: 'currency',
-            currency: 'PEN'
-        }).format(amount);
-    }
-
-    // Actualizar controles de paginación
-    function actualizarPaginacion() {
-        const totalPaginas = Math.ceil(totalProductos / filasPorPagina);
-        const paginacion = document.getElementById('paginacion');
-        paginacion.innerHTML = '';
-
-        // Botón Anterior
-        const liAnterior = document.createElement('li');
-        liAnterior.className = `page-item ${paginaActual === 1 ? 'disabled' : ''}`;
-        liAnterior.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${paginaActual - 1})">Anterior</a>`;
-        paginacion.appendChild(liAnterior);
-
-        // Números de página
-        const inicio = Math.max(1, paginaActual - 2);
-        const fin = Math.min(totalPaginas, paginaActual + 2);
-
-        for (let i = inicio; i <= fin; i++) {
-            const li = document.createElement('li');
-            li.className = `page-item ${i === paginaActual ? 'active' : ''}`;
-            li.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${i})">${i}</a>`;
-            paginacion.appendChild(li);
-        }
-
-        // Botón Siguiente
-        const liSiguiente = document.createElement('li');
-        liSiguiente.className = `page-item ${paginaActual === totalPaginas ? 'disabled' : ''}`;
-        liSiguiente.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${paginaActual + 1})">Siguiente</a>`;
-        paginacion.appendChild(liSiguiente);
-    }
-
-    // Cambiar página
-    function cambiarPagina(nuevaPagina) {
-        if (nuevaPagina < 1 || nuevaPagina > Math.ceil(totalProductos / filasPorPagina)) return;
-        paginaActual = nuevaPagina;
-        cargarProductos();
-    }
-
-    // Guardar producto (crear o actualizar)
-    async function guardarProducto() {
-        const form = document.getElementById('formProducto');
-        if (!form.checkValidity()) {
-            form.classList.add('was-validated');
-            return;
-        }
-
-        const productoData = {
-            codigo_barras: document.getElementById('codigo_barras').value.trim(),
-            descripcion: document.getElementById('descripcion').value.trim(),
-            precio_compra: parseFloat(document.getElementById('precio_compra').value),
-            precio_venta: parseFloat(document.getElementById('precio_venta').value),
-            stock: parseInt(document.getElementById('stock').value),
-            stock_minimo: parseInt(document.getElementById('stock_minimo').value),
-            nombre_unidad: document.getElementById('unidad').value,
-            nombre_categoria: document.getElementById('categoria').value,
-            descripcion_estado: document.getElementById('estado').value
+        // API Endpoints
+        const apiProductos = {
+            listar: "/productos/mostrar_productos_paginado",
+            crear: "/productos/insertar_producto",
+            actualizar: "/productos/actualizar_producto",
+            eliminar: "/productos/eliminar_producto",
+            conteo: "/productos/conteo",
+            buscar: "/productos/buscar_id_producto",
+            estados: "/estados/mostrar_estados/tbl_productos",
+            unidades: "/unidades/mostrar_unidades",
+            categorias: "/categorias/mostrar_categorias"
         };
 
-        try {
-            const url = productoIdSeleccionado
-                ? `${apiProductos.actualizar}/${productoIdSeleccionado}`
-                : apiProductos.crear;
+        // Inicialización cuando el DOM está listo
+        document.addEventListener('DOMContentLoaded', function () {
+            cargarCombos();
+            cargarConteoProductos();
+            cargarProductos();
 
-            const method = productoIdSeleccionado ? 'PUT' : 'POST';
-
-            const response = await fetch(url, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(productoData)
+            // Event listeners
+            document.getElementById('filasPorPagina').addEventListener('change', function () {
+                filasPorPagina = parseInt(this.value);
+                paginaActual = 1;
+                cargarProductos();
             });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Error en la operación');
-            }
-
-            const accion = productoIdSeleccionado ? 'actualizado' : 'creado';
-            mostrarAlerta(`Producto ${accion} correctamente`, 'success');
-
-            limpiarFormulario();
-            cargarProductos();
-            cargarConteoProductos();
-        } catch (error) {
-            console.error('Error:', error);
-            mostrarAlerta(error.message || 'Error al guardar el producto', 'danger');
-        }
-    }
-
-    // Confirmar eliminación
-    function confirmarEliminar(id) {
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: "¡No podrás revertir esta acción!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                eliminarProducto(id);
-            }
+            document.getElementById('buscarProducto').addEventListener('keyup', function (e) {
+                if (e.key === 'Enter' || this.value.length === 0 || this.value.length > 2) {
+                    paginaActual = 1;
+                    cargarProductos();
+                }
+            });
         });
-    }
 
-    // Eliminar producto
-    async function eliminarProducto(id) {
-        try {
-            const response = await fetch(`${apiProductos.eliminar}/${id}`, {
-                method: 'DELETE'
-            });
+        // Cargar combos de selección
+        async function cargarCombos() {
+            try {
+                // Cargar estados
+                const resEstados = await fetch(apiProductos.estados);
+                const estados = await resEstados.json();
+                const comboEstado = document.getElementById('estado');
+                comboEstado.innerHTML = '<option value="" disabled selected>Seleccione estado</option>';
+                estados.forEach(e => {
+                    comboEstado.innerHTML += `<option value="${e.descripcion}">${e.descripcion}</option>`;
+                });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Error al eliminar');
+                // Cargar unidades
+                const resUnidades = await fetch(apiProductos.unidades);
+                const unidades = await resUnidades.json();
+                const comboUnidad = document.getElementById('unidad');
+                comboUnidad.innerHTML = '<option value="" disabled selected>Seleccione unidad</option>';
+                unidades.forEach(u => {
+                    comboUnidad.innerHTML += `<option value="${u.nombre}">${u.nombre}</option>`;
+                });
+
+                // Cargar categorías
+                const resCategorias = await fetch(apiProductos.categorias);
+                const categorias = await resCategorias.json();
+                const comboCategoria = document.getElementById('categoria');
+                comboCategoria.innerHTML = '<option value="" disabled selected>Seleccione categoría</option>';
+                categorias.forEach(c => {
+                    comboCategoria.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
+                });
+            } catch (error) {
+                console.error('Error cargando combos:', error);
+                mostrarAlerta('Error al cargar datos de referencia', 'danger');
+            }
+        }
+
+        // Cargar conteo total de productos
+        async function cargarConteoProductos() {
+            try {
+                const response = await fetch(apiProductos.conteo);
+                if (!response.ok) throw new Error('Error al obtener conteo');
+                const data = await response.json();
+                totalProductos = data.total;
+                actualizarPaginacion();
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarAlerta('Error al cargar conteo de productos', 'danger');
+            }
+        }
+
+        // Cargar productos paginados
+        async function cargarProductos() {
+            try {
+                const response = await fetch(apiProductos.listar);
+                if (!response.ok) throw new Error('Error al cargar productos');
+                const productos = await response.json();
+
+                const tbody = document.getElementById('productosBody');
+                tbody.innerHTML = '';
+
+                productos.forEach(p => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                <td>${p.Id}</td>
+                <td>${p.CodigoBarras || 'N/A'}</td>
+                <td>${p.Descripcion}</td>
+                <td>${p.Unidad || 'N/A'}</td>
+                <td>${p.Categoria || 'N/A'}</td>
+                <td>${formatCurrency(parseFloat(p['Precio Compra']))}</td>
+                <td>${formatCurrency(parseFloat(p['Precio Venta']))}</td>
+                <td>${p.Stock}</td>
+                <td>${p['Stock Minimo'] || '0'}</td>
+                <td><span class="badge ${p.Estado === 'GRAVADO' ? 'bg-success' : 'bg-secondary'}">${p.Estado}</span></td>
+                <td class="text-nowrap">
+                    <button class="btn btn-sm btn-warning me-1" 
+                        onclick="editarProducto(
+                            ${p.Id}, 
+                            '${p.CodigoBarras || ''}', 
+                            '${p.Descripcion.replace(/'/g, "\\'")}', 
+                            '${p.Unidad || ''}', 
+                            '${p.Categoria || ''}', 
+                            '${p['Precio Compra'] || ''}', 
+                            '${p['Precio Venta'] || ''}', 
+                            '${p.Stock || ''}', 
+                            '${p['Stock Minimo'] || ''}', 
+                            '${p.Estado || ''}'
+                        )" 
+                        data-toggle="tooltip" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="confirmarEliminar(${p.Id})" data-toggle="tooltip" title="Eliminar">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarAlerta('Error al cargar productos: ' + error.message, 'danger');
+            }
+        }
+
+        // Función para editar producto
+        // Función para editar producto (versión mejorada)
+        function editarProducto(id, codigoBarras, descripcion, unidad, categoria, precioCompra, precioVenta, stock, stockMinimo, estado) {
+            productoIdSeleccionado = id;
+
+            // Llenar campos del formulario
+            document.getElementById('id_producto').value = id;
+            document.getElementById('codigo_barras').value = codigoBarras || '';
+            document.getElementById('descripcion').value = descripcion || '';
+            document.getElementById('precio_compra').value = precioCompra ? parseFloat(precioCompra).toFixed(2) : '';
+            document.getElementById('precio_venta').value = precioVenta ? parseFloat(precioVenta).toFixed(2) : '';
+            document.getElementById('stock').value = stock || '';
+            document.getElementById('stock_minimo').value = stockMinimo || '';
+
+            // Seleccionar valores en los combos
+            seleccionarValorCombo('unidad', unidad);
+            seleccionarValorCombo('categoria', categoria);
+            seleccionarValorCombo('estado', estado);
+
+            // Scroll al formulario y feedback
+            document.querySelector('.col-xl-4').scrollIntoView({ behavior: 'smooth' });
+            mostrarAlerta('Modo edición activado', 'info');
+        }
+
+        // Función auxiliar para seleccionar valores en combos
+        function seleccionarValorCombo(idCombo, valor) {
+            const combo = document.getElementById(idCombo);
+            if (!combo || !valor) return;
+
+            for (let i = 0; i < combo.options.length; i++) {
+                if (combo.options[i].text === valor) {
+                    combo.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+        // Función auxiliar para seleccionar valores en combos
+        function seleccionarValorCombo(idCombo, valor) {
+            const combo = document.getElementById(idCombo);
+            if (!combo) return;
+
+            for (let i = 0; i < combo.options.length; i++) {
+                if (combo.options[i].text === valor) {
+                    combo.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+        // Formatear moneda
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('es-PE', {
+                style: 'currency',
+                currency: 'PEN',
+                minimumFractionDigits: 2
+            }).format(amount);
+        }
+
+        // Actualizar controles de paginación
+        function actualizarPaginacion() {
+            const totalPaginas = Math.ceil(totalProductos / filasPorPagina);
+            const paginacion = document.getElementById('paginacion');
+            paginacion.innerHTML = '';
+
+            // Botón Anterior
+            const liAnterior = document.createElement('li');
+            liAnterior.className = `page-item ${paginaActual === 1 ? 'disabled' : ''}`;
+            liAnterior.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${paginaActual - 1})">Anterior</a>`;
+            paginacion.appendChild(liAnterior);
+
+            // Números de página
+            const inicio = Math.max(1, paginaActual - 2);
+            const fin = Math.min(totalPaginas, paginaActual + 2);
+
+            for (let i = inicio; i <= fin; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === paginaActual ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${i})">${i}</a>`;
+                paginacion.appendChild(li);
             }
 
-            mostrarAlerta('Producto eliminado correctamente', 'success');
-            cargarProductos();
-            cargarConteoProductos();
-        } catch (error) {
-            console.error('Error:', error);
-            mostrarAlerta(error.message, 'danger');
+            // Botón Siguiente
+            const liSiguiente = document.createElement('li');
+            liSiguiente.className = `page-item ${paginaActual === totalPaginas ? 'disabled' : ''}`;
+            liSiguiente.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${paginaActual + 1})">Siguiente</a>`;
+            paginacion.appendChild(liSiguiente);
         }
-    }
 
-    // Limpiar formulario
-    function limpiarFormulario() {
-        productoIdSeleccionado = null;
-        document.getElementById('formProducto').reset();
-        document.getElementById('id_producto').value = '';
-        document.getElementById('estado').selectedIndex = 0;
-        document.getElementById('unidad').selectedIndex = 0;
-        document.getElementById('categoria').selectedIndex = 0;
-        document.getElementById('formProducto').classList.remove('was-validated');
-    }
+        // Cambiar página
+        function cambiarPagina(nuevaPagina) {
+            if (nuevaPagina < 1 || nuevaPagina > Math.ceil(totalProductos / filasPorPagina)) return;
+            paginaActual = nuevaPagina;
+            cargarProductos();
+        }
 
-    // Mostrar alerta
-    function mostrarAlerta(mensaje, tipo) {
-        const alerta = document.createElement('div');
-        alerta.className = `alert alert-${tipo} alert-dismissible fade show`;
-        alerta.role = 'alert';
-        alerta.innerHTML = `
+        // Guardar producto (crear o actualizar)
+        async function guardarProducto() {
+            const form = document.getElementById('formProducto');
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+
+            const productoData = {
+                codigo_barras: document.getElementById('codigo_barras').value.trim(),
+                descripcion: document.getElementById('descripcion').value.trim(),
+                precio_compra: parseFloat(document.getElementById('precio_compra').value),
+                precio_venta: parseFloat(document.getElementById('precio_venta').value),
+                stock: parseInt(document.getElementById('stock').value),
+                stock_minimo: parseInt(document.getElementById('stock_minimo').value),
+                nombre_unidad: document.getElementById('unidad').value,
+                nombre_categoria: document.getElementById('categoria').value,
+                descripcion_estado: document.getElementById('estado').value
+            };
+
+            try {
+                const url = productoIdSeleccionado
+                    ? `${apiProductos.actualizar}/${productoIdSeleccionado}`
+                    : apiProductos.crear;
+
+                const method = productoIdSeleccionado ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(productoData)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Error en la operación');
+                }
+
+                const accion = productoIdSeleccionado ? 'actualizado' : 'creado';
+                mostrarAlerta(`Producto ${accion} correctamente`, 'success');
+
+                limpiarFormulario();
+                cargarProductos();
+                cargarConteoProductos();
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarAlerta(error.message || 'Error al guardar el producto', 'danger');
+            }
+        }
+
+        // Confirmar eliminación
+        function confirmarEliminar(id) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¡No podrás revertir esta acción!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    eliminarProducto(id);
+                }
+            });
+        }
+
+        // Eliminar producto
+        async function eliminarProducto(id) {
+            try {
+                const response = await fetch(`${apiProductos.eliminar}/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Error al eliminar');
+                }
+
+                mostrarAlerta('Producto eliminado correctamente', 'success');
+                cargarProductos();
+                cargarConteoProductos();
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarAlerta(error.message, 'danger');
+            }
+        }
+
+        // Limpiar formulario
+        function limpiarFormulario() {
+            productoIdSeleccionado = null;
+            document.getElementById('formProducto').reset();
+            document.getElementById('id_producto').value = '';
+            document.getElementById('estado').selectedIndex = 0;
+            document.getElementById('unidad').selectedIndex = 0;
+            document.getElementById('categoria').selectedIndex = 0;
+            document.getElementById('formProducto').classList.remove('was-validated');
+        }
+
+        // Mostrar alerta
+        function mostrarAlerta(mensaje, tipo) {
+            const alerta = document.createElement('div');
+            alerta.className = `alert alert-${tipo} alert-dismissible fade show`;
+            alerta.role = 'alert';
+            alerta.innerHTML = `
             ${mensaje}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         `;
 
-        const container = document.querySelector('.container-fluid');
-        container.prepend(alerta);
+            const container = document.querySelector('.container-fluid');
+            container.prepend(alerta);
 
-        setTimeout(() => {
-            alerta.remove();
-        }, 5000);
-    }
-</script>
-{% endblock %}
+            setTimeout(() => {
+                alerta.remove();
+            }, 5000);
+        }
+    </script>
+    {% endblock %}
