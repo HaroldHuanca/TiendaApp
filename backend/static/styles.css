@@ -197,3 +197,47 @@
 .sidebar .nav-link:hover:not(.active) {
     background-color: rgba(255, 255, 255, 0.05);
 }
+
+#fechaActual {
+    color: #f8f9fa;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    padding: 0.5rem 1rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+}
+
+#fechaActual i {
+    font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+    #fechaActual {
+        display: none; /* Ocultar en móviles si es necesario */
+    }
+}
+/* En tu archivo CSS */
+#fechaTexto {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.2;
+}
+
+.fecha-part {
+    font-size: 0.9em;
+}
+
+.hora-part {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    #fechaTexto {
+        flex-direction: row;
+        gap: 8px;
+    }
+}

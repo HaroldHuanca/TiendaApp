@@ -1,0 +1,502 @@
+{% extends "base.html" %}
+
+{% block title %}Registro de Ventas - Abarrotes Sarita{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4"><i class="fas fa-cash-register me-2"></i> Registro de Ventas</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+        <li class="breadcrumb-item active">Ventas</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-user me-1"></i>
+            Datos del Cliente
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="buscarCliente" placeholder="Buscar cliente por nombre o documento...">
+                        <button class="btn btn-outline-secondary" type="button" id="btnBuscarCliente">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div id="resultadosClientes" class="list-group" style="display: none; max-height: 200px; overflow-y: auto;"></div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="clienteSeleccionado" class="form-label">Cliente Seleccionado</label>
+                        <input type="text" class="form-control" id="clienteSeleccionado" readonly>
+                        <input type="hidden" id="idClienteSeleccionado">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-boxes me-1"></i>
+            Agregar Productos
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="buscarProducto" placeholder="Buscar producto por descripción o código de barras...">
+                        <button class="btn btn-outline-secondary" type="button" id="btnBuscarProducto">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div id="resultadosProductos" class="list-group" style="display: none; max-height: 200px; overflow-y: auto;"></div>
+                </div>
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="cantidadProducto" class="form-label">Cantidad</label>
+                            <input type="number" class="form-control" id="cantidadProducto" min="1" value="1">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="precioProducto" class="form-label">Precio Unitario</label>
+                            <input type="number" step="0.01" class="form-control" id="precioProducto" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="descuentoProducto" class="form-label">Descuento (%)</label>
+                            <input type="number" step="0.01" class="form-control" id="descuentoProducto" min="0" max="100" value="0">
+                        </div>
+                        <div class="col-md-6 mb-3 d-flex align-items-end">
+                            <button class="btn btn-success w-100" id="btnAgregarProducto" disabled>
+                                <i class="fas fa-plus me-1"></i> Agregar Producto
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-list me-1"></i>
+                Detalles de la Venta
+            </div>
+            <div class="d-flex">
+                <div class="me-3">
+                    <span class="me-2">Total:</span>
+                    <span class="fw-bold" id="totalVenta">S/ 0.00</span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="tablaDetallesVenta">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Producto</th>
+                            <th>Descripción</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unitario</th>
+                            <th>Descuento</th>
+                            <th>Subtotal</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detallesVentaBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button class="btn btn-secondary me-md-2" id="btnLimpiarVenta">
+                    <i class="fas fa-broom me-1"></i> Limpiar Todo
+                </button>
+                <button class="btn btn-primary" id="btnGuardarVenta" disabled>
+                    <i class="fas fa-save me-1"></i> Guardar Venta
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Variables globales
+let clienteSeleccionado = null;
+let productoSeleccionado = null;
+let detallesVenta = [];
+const apiClientes = "/clientes/mostrar_clientes";
+const apiProductos = "/productos/mostrar_productos_paginado";
+const apiVentas = "/ventas/insertar_venta";
+const apiVentaDetalles = "/venta_detalles/insertar_venta_detalle";
+
+// Inicialización cuando el DOM está listo
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar eventos
+    document.getElementById('buscarCliente').addEventListener('input', buscarClientes);
+    document.getElementById('btnBuscarCliente').addEventListener('click', buscarClientes);
+    document.getElementById('buscarProducto').addEventListener('input', buscarProductos);
+    document.getElementById('btnBuscarProducto').addEventListener('click', buscarProductos);
+    document.getElementById('btnAgregarProducto').addEventListener('click', agregarProducto);
+    document.getElementById('btnLimpiarVenta').addEventListener('click', limpiarVenta);
+    document.getElementById('btnGuardarVenta').addEventListener('click', guardarVenta);
+    document.getElementById('cantidadProducto').addEventListener('change', validarCamposProducto);
+    document.getElementById('descuentoProducto').addEventListener('change', validarCamposProducto);
+});
+
+// Buscar clientes por nombre o documento
+async function buscarClientes() {
+    const query = document.getElementById('buscarCliente').value.trim();
+    const resultadosDiv = document.getElementById('resultadosClientes');
+    
+    if (query.length < 2) {
+        resultadosDiv.style.display = 'none';
+        return;
+    }
+
+    try {
+        const response = await fetch(apiClientes);
+        if (!response.ok) throw new Error('Error al buscar clientes');
+        const clientes = await response.json();
+        
+        const filtrados = clientes.filter(cliente => 
+            cliente.Nombre.toLowerCase().includes(query.toLowerCase()) || 
+            (cliente.Documento && cliente.Documento.toString().includes(query)))
+            .slice(0, 10); // Limitar a 10 resultados
+        mostrarResultadosClientes(filtrados);
+    } catch (error) {
+        console.error('Error:', error);
+        resultadosDiv.innerHTML = '<div class="list-group-item text-danger">Error al buscar clientes</div>';
+        resultadosDiv.style.display = 'block';
+    }
+}
+
+// Mostrar resultados de búsqueda de clientes
+function mostrarResultadosClientes(clientes) {
+    const resultadosDiv = document.getElementById('resultadosClientes');
+    resultadosDiv.innerHTML = '';
+
+    if (clientes.length === 0) {
+        resultadosDiv.innerHTML = '<div class="list-group-item">No se encontraron clientes</div>';
+        resultadosDiv.style.display = 'block';
+        return;
+    }
+
+    clientes.forEach(cliente => {
+        const item = document.createElement('button');
+        item.className = 'list-group-item list-group-item-action';
+        item.innerHTML = `
+            <div class="d-flex justify-content-between">
+                <span>${cliente.Nombre}</span>
+                <small class="text-muted">${cliente.Documento || 'Sin documento'}</small>
+            </div>
+        `;
+        item.addEventListener('click', () => seleccionarCliente(cliente));
+        resultadosDiv.appendChild(item);
+    });
+
+    resultadosDiv.style.display = 'block';
+}
+
+// Seleccionar un cliente de los resultados
+function seleccionarCliente(cliente) {
+    console.log('Cliente seleccionado:', cliente);
+    clienteSeleccionado = cliente;
+    document.getElementById('clienteSeleccionado').value = `${cliente.Nombre} (${cliente.Documento || 'Sin documento'})`;
+    document.getElementById('idClienteSeleccionado').value = cliente.Id;
+    document.getElementById('resultadosClientes').style.display = 'none';
+    document.getElementById('buscarCliente').value = '';
+    validarCamposVenta();
+}
+
+// Buscar productos por descripción o código de barras
+async function buscarProductos() {
+    const query = document.getElementById('buscarProducto').value.trim();
+    const resultadosDiv = document.getElementById('resultadosProductos');
+    
+    if (query.length < 2) {
+        resultadosDiv.style.display = 'none';
+        return;
+    }
+
+    try {
+        const response = await fetch(apiProductos);
+        if (!response.ok) throw new Error('Error al buscar productos');
+        const productos = await response.json();
+        
+        const filtrados = productos.filter(producto => 
+            producto.Descripcion.toLowerCase().includes(query.toLowerCase()) || 
+            (producto.CodigoBarras && producto.CodigoBarras.toString().includes(query)))
+            .slice(0, 10); // Limitar a 10 resultados
+
+        mostrarResultadosProductos(filtrados);
+    } catch (error) {
+        console.error('Error:', error);
+        resultadosDiv.innerHTML = '<div class="list-group-item text-danger">Error al buscar productos</div>';
+        resultadosDiv.style.display = 'block';
+    }
+}
+
+// Mostrar resultados de búsqueda de productos
+function mostrarResultadosProductos(productos) {
+    const resultadosDiv = document.getElementById('resultadosProductos');
+    resultadosDiv.innerHTML = '';
+
+    if (productos.length === 0) {
+        resultadosDiv.innerHTML = '<div class="list-group-item">No se encontraron productos</div>';
+        resultadosDiv.style.display = 'block';
+        return;
+    }
+
+    productos.forEach(producto => {
+        const item = document.createElement('button');
+        item.className = 'list-group-item list-group-item-action';
+        item.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1">${producto.Descripcion}</h6>
+                    <small class="text-muted">Código: ${producto.CodigoBarras || 'N/A'}</small>
+                </div>
+                <span class="badge bg-primary rounded-pill">S/ ${parseFloat(producto['Precio Venta']).toFixed(2)}</span>
+            </div>
+        `;
+        item.addEventListener('click', () => seleccionarProducto(producto));
+        resultadosDiv.appendChild(item);
+    });
+
+    resultadosDiv.style.display = 'block';
+}
+
+// Seleccionar un producto de los resultados
+function seleccionarProducto(producto) {
+    productoSeleccionado = producto;
+    document.getElementById('precioProducto').value = parseFloat(producto['Precio Venta']).toFixed(2);
+    document.getElementById('resultadosProductos').style.display = 'none';
+    document.getElementById('buscarProducto').value = '';
+    document.getElementById('btnAgregarProducto').disabled = false;
+    document.getElementById('cantidadProducto').focus();
+}
+
+// Validar campos antes de agregar producto
+function validarCamposProducto() {
+    const cantidad = parseFloat(document.getElementById('cantidadProducto').value);
+    const descuento = parseFloat(document.getElementById('descuentoProducto').value);
+    
+    if (productoSeleccionado && cantidad > 0 && descuento >= 0 && descuento <= 100) {
+        document.getElementById('btnAgregarProducto').disabled = false;
+    } else {
+        document.getElementById('btnAgregarProducto').disabled = true;
+    }
+}
+
+// Agregar producto a la tabla de detalles
+function agregarProducto() {
+    if (!productoSeleccionado) return;
+
+    const cantidad = parseFloat(document.getElementById('cantidadProducto').value);
+    const precio = parseFloat(document.getElementById('precioProducto').value);
+    const descuento = parseFloat(document.getElementById('descuentoProducto').value);
+    const descuentoMonto = (precio * cantidad * descuento) / 100;
+    const subtotal = (precio * cantidad) - descuentoMonto;
+
+    const detalle = {
+        id_producto: productoSeleccionado.Id,
+        descripcion: productoSeleccionado.Descripcion,
+        cantidad: cantidad,
+        precio_venta: precio,
+        descuento: descuento,
+        subtotal: subtotal
+    };
+
+    // Verificar si el producto ya está en la lista
+    const indexExistente = detallesVenta.findIndex(d => d.id_producto === detalle.id_producto);
+    if (indexExistente >= 0) {
+        detallesVenta[indexExistente] = detalle; // Actualizar si ya existe
+    } else {
+        detallesVenta.push(detalle); // Agregar si es nuevo
+    }
+
+    actualizarTablaDetalles();
+    limpiarCamposProducto();
+    validarCamposVenta();
+}
+
+// Actualizar la tabla de detalles de venta
+function actualizarTablaDetalles() {
+    const tbody = document.getElementById('detallesVentaBody');
+    tbody.innerHTML = '';
+
+    let totalVenta = 0;
+
+    detallesVenta.forEach((detalle, index) => {
+        totalVenta += detalle.subtotal;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${detalle.id_producto}</td>
+            <td>${detalle.descripcion}</td>
+            <td>${detalle.cantidad}</td>
+            <td>S/ ${detalle.precio_venta.toFixed(2)}</td>
+            <td>${detalle.descuento}%</td>
+            <td>S/ ${detalle.subtotal.toFixed(2)}</td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-danger eliminar-detalle" data-index="${index}">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Actualizar total
+    document.getElementById('totalVenta').textContent = `S/ ${totalVenta.toFixed(2)}`;
+
+    // Agregar eventos a los botones de eliminar
+    document.querySelectorAll('.eliminar-detalle').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            detallesVenta.splice(index, 1);
+            actualizarTablaDetalles();
+            validarCamposVenta();
+        });
+    });
+}
+
+// Limpiar campos de producto después de agregar
+function limpiarCamposProducto() {
+    productoSeleccionado = null;
+    document.getElementById('buscarProducto').value = '';
+    document.getElementById('cantidadProducto').value = '1';
+    document.getElementById('precioProducto').value = '';
+    document.getElementById('descuentoProducto').value = '0';
+    document.getElementById('btnAgregarProducto').disabled = true;
+    document.getElementById('resultadosProductos').style.display = 'none';
+}
+
+// Limpiar toda la venta
+function limpiarVenta() {
+    clienteSeleccionado = null;
+    detallesVenta = [];
+    document.getElementById('clienteSeleccionado').value = '';
+    document.getElementById('idClienteSeleccionado').value = '';
+    document.getElementById('buscarCliente').value = '';
+    document.getElementById('resultadosClientes').style.display = 'none';
+    limpiarCamposProducto();
+    document.getElementById('detallesVentaBody').innerHTML = '';
+    document.getElementById('totalVenta').textContent = 'S/ 0.00';
+    document.getElementById('btnGuardarVenta').disabled = true;
+}
+
+// Validar campos antes de guardar venta
+function validarCamposVenta() {
+    if (clienteSeleccionado && detallesVenta.length > 0) {
+        document.getElementById('btnGuardarVenta').disabled = false;
+    } else {
+        document.getElementById('btnGuardarVenta').disabled = true;
+    }
+}
+
+// Guardar venta y detalles en la base de datos
+async function guardarVenta() {
+    if (!clienteSeleccionado || detallesVenta.length === 0) return;
+
+    const btnGuardar = document.getElementById('btnGuardarVenta');
+    btnGuardar.disabled = true;
+    btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Guardando...';
+
+    try {
+        // 1. Guardar la venta principal
+        const ventaData = {
+            id_serie: 1,
+            id_usuario:1,
+            id_cliente: clienteSeleccionado.Id,
+            descripcion_estado: "BOLETA",
+            fecha: new Date().toISOString().split('T')[0], // Fecha actual
+            total: calcularTotalVenta()
+        };
+        console.log(ventaData);
+        const responseVenta = await fetch(apiVentas, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(ventaData)
+        });
+
+        if (!responseVenta.ok) throw new Error('Error al guardar venta');
+        const { id: idVenta } = await responseVenta.json();
+        console.log(idVenta);
+        // 2. Guardar los detalles de la venta
+        const promesasDetalles = detallesVenta.map(detalle => {
+            const detalleData = {
+                id_venta: idVenta,
+                id_producto: detalle.id_producto,
+                cantidad: detalle.cantidad,
+                precio_venta: detalle.precio_venta,
+                descuento: detalle.descuento,
+                descripcion_estado: "GRAVADO"
+            };
+
+            return fetch(apiVentaDetalles, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(detalleData)
+            });
+        });
+
+        await Promise.all(promesasDetalles);
+
+        // 3. Mostrar mensaje de éxito y limpiar
+        alert('Venta registrada exitosamente con ID: ' + idVenta);
+        limpiarVenta();
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al guardar la venta: ' + error.message);
+    } finally {
+        btnGuardar.innerHTML = '<i class="fas fa-save me-1"></i> Guardar Venta';
+        btnGuardar.disabled = false;
+    }
+}
+
+// Calcular total de la venta
+function calcularTotalVenta() {
+    return detallesVenta.reduce((total, detalle) => total + detalle.subtotal, 0);
+}
+
+// Cerrar resultados al hacer clic fuera
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#buscarCliente') && !e.target.closest('#resultadosClientes')) {
+        document.getElementById('resultadosClientes').style.display = 'none';
+    }
+    if (!e.target.closest('#buscarProducto') && !e.target.closest('#resultadosProductos')) {
+        document.getElementById('resultadosProductos').style.display = 'none';
+    }
+});
+</script>
+
+<style>
+.list-group-item-action {
+    cursor: pointer;
+}
+.list-group-item-action:hover {
+    background-color: #f8f9fa;
+}
+#resultadosClientes, #resultadosProductos {
+    position: absolute;
+    z-index: 1000;
+    width: calc(100% - 30px);
+}
+#tablaDetallesVenta th {
+    white-space: nowrap;
+}
+</style>
+{% endblock %}

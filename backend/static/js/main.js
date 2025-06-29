@@ -96,6 +96,49 @@ document.addEventListener('DOMContentLoaded', function () {
         }, { passive: true });
     }
 
+    function actualizarFecha() {
+        const fechaElement = document.getElementById('fechaTexto');
+        if (!fechaElement) return;
+
+        fetch('/tiempo/fecha_actual')
+            .then(response => {
+                if (!response.ok) throw new Error('Error en la respuesta');
+                return response.json();
+            })
+            .then(data => {
+                // Opcional: puedes formatear adicionalmente en el frontend si lo deseas
+                const [fecha, hora] = data.fecha.split(' ');
+                fechaElement.innerHTML = `
+                <span class="fecha-part">${fecha}</span>
+                <span class="hora-part">${hora}</span>
+            `;
+            })
+            .catch(error => {
+                console.error('Error al obtener la fecha:', error);
+                // Fallback con formato similar usando JavaScript
+                const ahora = new Date();
+                fechaElement.textContent = ahora.toLocaleString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                }).replace(',', '');
+            });
+    }
+
+    // Inicialización de la fecha
+    function initFecha() {
+        // Solo inicializar si existe el elemento en el DOM
+        if (document.getElementById('fechaTexto')) {
+            actualizarFecha(); // Primera carga inmediata
+            setInterval(actualizarFecha, 1000); // Actualización periódica
+        }
+    }
+
+
     // Inicialización
     function init() {
         const isMobile = window.innerWidth <= mobileBreakpoint;
@@ -113,6 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
         setupSidebarLinks();
         setupSwipe();
         updateLayout();
+        initFecha();
     }
 
     // Event listeners
@@ -122,5 +166,5 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('popstate', setActiveLink); // Para manejar navegación adelante/atrás
     // Inicializar
     init();
-    setActiveLink(); 
+    setActiveLink();
 });
