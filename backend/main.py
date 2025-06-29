@@ -44,7 +44,7 @@ def create_app():
 
     @app.route('/clientes')
     def clientes_web():
-        return render_con_cookie("clientes.html")
+        return render_con_cookie("")
 
     @app.route('/proveedores')
     def proveedores_web():

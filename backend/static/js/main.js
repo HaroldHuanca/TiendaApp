@@ -1,99 +1,152 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Elementos del DOM
-    const sidebar = document.querySelector('.sidebar');
-    const main = document.querySelector('.main');
-    const footer = document.querySelector('.footer');
-    const toggleBtn = document.getElementById('sidebarToggle');
-    const overlay = document.createElement('div');
-    overlay.className = 'sidebar-overlay';
-    document.body.appendChild(overlay);
-
-    // Inicialización
-    function init() {
-        // Verificar si es móvil
-        const isMobile = window.innerWidth <= 768;
-        
-        // Cargar estado guardado o configurar por defecto para móviles
-        const savedState = localStorage.getItem('sidebarCollapsed');
-        
-        if (isMobile || savedState === 'true') {
-            sidebar.classList.add('sidebar-collapsed');
-        }
-        
-        updateLayout();
-    }
-
-    // Actualizar el layout
-    function updateLayout() {
-        const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
-        const isMobile = window.innerWidth <= 768;
-        
-        if (isMobile) {
-            if (isCollapsed) {
-                overlay.style.display = 'none';
-            } else {
-                overlay.style.display = 'block';
-            }
-        } else {
-            overlay.style.display = 'none';
-        }
-    }
-
-    // Evento del botón toggle
-    toggleBtn.addEventListener('click', function() {
-        sidebar.classList.toggle('sidebar-collapsed');
-        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('sidebar-collapsed'));
-        updateLayout();
-    });
-
-    // Cerrar sidebar al hacer clic en el overlay
-    overlay.addEventListener('click', function() {
-        sidebar.classList.add('sidebar-collapsed');
-        localStorage.setItem('sidebarCollapsed', true);
-        updateLayout();
-    });
-
-    // Cerrar sidebar al seleccionar un enlace (en móviles)
-    document.querySelectorAll('.sidebar .nav-link').forEach(link => {
-        link.addEventListener('click', function() {
-            if (window.innerWidth <= 768) {
-                sidebar.classList.add('sidebar-collapsed');
-                localStorage.setItem('sidebarCollapsed', true);
-                updateLayout();
-            }
-        });
-    });
-
-    // Swipe para móviles
-    let touchStartX = 0;
+(function ($) {
+    "use strict";
     
-    sidebar.addEventListener('touchstart', function(e) {
-        touchStartX = e.touches[0].clientX;
-    }, {passive: true});
-
-    sidebar.addEventListener('touchend', function(e) {
-        const touchEndX = e.changedTouches[0].clientX;
-        const diff = touchStartX - touchEndX;
-        
-        // Swipe izquierdo (ocultar)
-        if (diff > 50) {
-            sidebar.classList.add('sidebar-collapsed');
-            localStorage.setItem('sidebarCollapsed', true);
-            updateLayout();
+    // Dropdown on mouse hover
+    $(document).ready(function () {
+        function toggleNavbarMethod() {
+            if ($(window).width() > 992) {
+                $('.navbar .dropdown').on('mouseover', function () {
+                    $('.dropdown-toggle', this).trigger('click');
+                }).on('mouseout', function () {
+                    $('.dropdown-toggle', this).trigger('click').blur();
+                });
+            } else {
+                $('.navbar .dropdown').off('mouseover').off('mouseout');
+            }
         }
-        // Swipe derecho (mostrar)
-        else if (diff < -50) {
-            sidebar.classList.remove('sidebar-collapsed');
-            localStorage.setItem('sidebarCollapsed', false);
-            updateLayout();
+        toggleNavbarMethod();
+        $(window).resize(toggleNavbarMethod);
+    });
+    
+    
+    // Back to top button
+    $(window).scroll(function () {
+        if ($(this).scrollTop() > 100) {
+            $('.back-to-top').fadeIn('slow');
+        } else {
+            $('.back-to-top').fadeOut('slow');
         }
-    }, {passive: true});
-
-    // Redimensionamiento de ventana
-    window.addEventListener('resize', function() {
-        updateLayout();
+    });
+    $('.back-to-top').click(function () {
+        $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
+        return false;
     });
 
-    // Inicializar
-    init();
-});
+
+    // Tranding carousel
+    $(".tranding-carousel").owlCarousel({
+        autoplay: true,
+        smartSpeed: 2000,
+        items: 1,
+        dots: false,
+        loop: true,
+        nav : true,
+        navText : [
+            '<i class="fa fa-angle-left"></i>',
+            '<i class="fa fa-angle-right"></i>'
+        ]
+    });
+
+
+    // Carousel item 1
+    $(".carousel-item-1").owlCarousel({
+        autoplay: true,
+        smartSpeed: 1500,
+        items: 1,
+        dots: false,
+        loop: true,
+        nav : true,
+        navText : [
+            '<i class="fa fa-angle-left" aria-hidden="true"></i>',
+            '<i class="fa fa-angle-right" aria-hidden="true"></i>'
+        ]
+    });
+
+    // Carousel item 2
+    $(".carousel-item-2").owlCarousel({
+        autoplay: true,
+        smartSpeed: 1000,
+        margin: 30,
+        dots: false,
+        loop: true,
+        nav : true,
+        navText : [
+            '<i class="fa fa-angle-left" aria-hidden="true"></i>',
+            '<i class="fa fa-angle-right" aria-hidden="true"></i>'
+        ],
+        responsive: {
+            0:{
+                items:1
+            },
+            576:{
+                items:1
+            },
+            768:{
+                items:2
+            }
+        }
+    });
+
+
+    // Carousel item 3
+    $(".carousel-item-3").owlCarousel({
+        autoplay: true,
+        smartSpeed: 1000,
+        margin: 30,
+        dots: false,
+        loop: true,
+        nav : true,
+        navText : [
+            '<i class="fa fa-angle-left" aria-hidden="true"></i>',
+            '<i class="fa fa-angle-right" aria-hidden="true"></i>'
+        ],
+        responsive: {
+            0:{
+                items:1
+            },
+            576:{
+                items:1
+            },
+            768:{
+                items:2
+            },
+            992:{
+                items:3
+            }
+        }
+    });
+    
+
+    // Carousel item 4
+    $(".carousel-item-4").owlCarousel({
+        autoplay: true,
+        smartSpeed: 1000,
+        margin: 30,
+        dots: false,
+        loop: true,
+        nav : true,
+        navText : [
+            '<i class="fa fa-angle-left" aria-hidden="true"></i>',
+            '<i class="fa fa-angle-right" aria-hidden="true"></i>'
+        ],
+        responsive: {
+            0:{
+                items:1
+            },
+            576:{
+                items:1
+            },
+            768:{
+                items:2
+            },
+            992:{
+                items:3
+            },
+            1200:{
+                items:4
+            }
+        }
+    });
+    
+})(jQuery);
+
