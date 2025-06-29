@@ -3,6 +3,8 @@ from app.database import DatabaseManager
 from fastapi.responses import HTMLResponse
 
 app = FastAPI()
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
 @app.post("/login")
 def login(username: str = Form(...), password: str = Form(...)):

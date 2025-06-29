@@ -1,8 +1,13 @@
+import sys
+import os
+
+# Añadir la carpeta padre al sys.path para que Python encuentre el módulo 'app'
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "app")))
 from flask import Flask, render_template, request, make_response
 from flask_cors import CORS
 
 # Importación de blueprints
-from app.routes.categoria_routes import categoria_bp
+from BaseDatos.routes.categoria_routes import categoria_bp
 from app.routes.cliente_routes import cliente_bp
 from app.routes.estado_routes import estado_bp
 from app.routes.producto_routes import producto_bp
@@ -14,7 +19,7 @@ from app.routes.venta_routes import venta_bp
 from app.routes.venta_detalle_routes import venta_detalle_bp
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder="/templates", static_folder="/static")
     CORS(app)
 
     # Registro de blueprints
