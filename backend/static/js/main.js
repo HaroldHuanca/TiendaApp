@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Elementos del DOM
+    // =============================================
+    // Elementos del DOM y configuraciones generales
+    // =============================================
     const sidebar = document.querySelector('.sidebar');
     const main = document.querySelector('.main');
     const footer = document.querySelector('.footer');
@@ -7,59 +9,38 @@ document.addEventListener('DOMContentLoaded', function () {
     const overlay = document.createElement('div');
     overlay.className = 'sidebar-overlay';
     document.body.appendChild(overlay);
-
-    // Variables de configuración
+    
     const mobileBreakpoint = 768;
-    const sidebarWidth = '280px'; // Ajusta según tu variable CSS
+    const sidebarWidth = '280px';
 
-    // Función principal para actualizar el layout
+    // =============================================
+    // Funciones del Sidebar
+    // =============================================
     function updateLayout() {
         const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
         const isMobile = window.innerWidth <= mobileBreakpoint;
 
-        // Comportamiento para móviles
         if (isMobile) {
             sidebar.style.transform = isCollapsed ? 'translateX(-100%)' : 'translateX(0)';
             overlay.style.display = isCollapsed ? 'none' : 'block';
             main.style.marginLeft = '0';
             footer.style.left = '0';
-        }
-        // Comportamiento para desktop
-        else {
+        } else {
             overlay.style.display = 'none';
             sidebar.style.transform = isCollapsed ? 'translateX(-100%)' : 'translateX(0)';
             main.style.marginLeft = isCollapsed ? '0' : sidebarWidth;
             footer.style.left = isCollapsed ? '0' : sidebarWidth;
         }
 
-        // Ajuste del ancho del footer
         footer.style.width = isCollapsed ? '100%' : `calc(100% - ${sidebarWidth})`;
     }
-    function setActiveLink() {
-        const currentPath = window.location.pathname;
-        const navLinks = document.querySelectorAll('.sidebar .nav-link');
 
-        navLinks.forEach(link => {
-            link.classList.remove('active');
-
-            // Obtiene la ruta del enlace (compatible con Flask)
-            const linkPath = link.getAttribute('href');
-
-            // Comparación más flexible para rutas de Flask
-            if (linkPath === currentPath ||
-                (linkPath !== '/' && currentPath.startsWith(linkPath))) {
-                link.classList.add('active');
-            }
-        });
-    }
-    // Función para alternar el sidebar
     function toggleSidebar() {
         sidebar.classList.toggle('sidebar-collapsed');
         localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('sidebar-collapsed'));
         updateLayout();
     }
 
-    // Gestión de eventos en enlaces del sidebar
     function setupSidebarLinks() {
         document.querySelectorAll('.sidebar .nav-link').forEach(link => {
             link.addEventListener('click', function () {
@@ -72,7 +53,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Configuración de swipe para móviles
     function setupSwipe() {
         let touchStartX = 0;
 
@@ -84,16 +64,67 @@ document.addEventListener('DOMContentLoaded', function () {
             const touchEndX = e.changedTouches[0].clientX;
             const diff = touchStartX - touchEndX;
 
-            if (Math.abs(diff) > 50) { // Umbral de 50px para swipe
+            if (Math.abs(diff) > 50) {
                 if (diff > 0) {
-                    sidebar.classList.add('sidebar-collapsed'); // Swipe izquierdo
+                    sidebar.classList.add('sidebar-collapsed');
                 } else {
-                    sidebar.classList.remove('sidebar-collapsed'); // Swipe derecho
+                    sidebar.classList.remove('sidebar-collapsed');
                 }
                 localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('sidebar-collapsed'));
                 updateLayout();
             }
         }, { passive: true });
+    }
+
+    function setActiveLink() {
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll('.sidebar .nav-link');
+
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            const linkPath = link.getAttribute('href');
+
+            if (linkPath === currentPath ||
+                (linkPath !== '/' && currentPath.startsWith(linkPath))) {
+                link.classList.add('active');
+            }
+        });
+    }
+
+    // =============================================
+    // Funciones del Navbar (nuevas)
+    // =============================================
+    function setupLogout() {
+        const logoutButton = document.getElementById('logoutButton');
+        
+        if (logoutButton) {
+            logoutButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: "¿Deseas cerrar tu sesión actual?",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, cerrar sesión',
+                    cancelButtonText: 'Cancelar',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Eliminar todas las cookies
+                        document.cookie.split(";").forEach(function(c) {
+                            document.cookie = c.replace(/^ +/, "").replace(/=.*/, 
+                                "=;expires=" + new Date().toUTCString() + ";path=/");
+                        });
+                        
+                        // Redireccionar al index
+                        window.location.href = "/";
+                    }
+                });
+            });
+        }
     }
 
     function actualizarFecha() {
@@ -106,16 +137,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 return response.json();
             })
             .then(data => {
-                // Opcional: puedes formatear adicionalmente en el frontend si lo deseas
                 const [fecha, hora] = data.fecha.split(' ');
                 fechaElement.innerHTML = `
-                <span class="fecha-part">${fecha}</span>
-                <span class="hora-part">${hora}</span>
-            `;
+                    <span class="fecha-part">${fecha}</span>
+                    <span class="hora-part">${hora}</span>
+                `;
             })
             .catch(error => {
                 console.error('Error al obtener la fecha:', error);
-                // Fallback con formato similar usando JavaScript
+                // Fallback con JavaScript puro
                 const ahora = new Date();
                 fechaElement.textContent = ahora.toLocaleString('es-ES', {
                     day: '2-digit',
@@ -129,42 +159,44 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // Inicialización de la fecha
     function initFecha() {
-        // Solo inicializar si existe el elemento en el DOM
         if (document.getElementById('fechaTexto')) {
-            actualizarFecha(); // Primera carga inmediata
-            setInterval(actualizarFecha, 1000); // Actualización periódica
+            actualizarFecha();
+            setInterval(actualizarFecha, 1000);
         }
     }
 
-
-    // Inicialización
+    // =============================================
+    // Inicialización general
+    // =============================================
     function init() {
         const isMobile = window.innerWidth <= mobileBreakpoint;
         const savedState = localStorage.getItem('sidebarCollapsed');
 
-        // Configuración inicial del sidebar
         if (isMobile) {
             sidebar.classList.add('sidebar-collapsed');
         } else if (savedState === 'true') {
             sidebar.classList.add('sidebar-collapsed');
         } else {
-            sidebar.classList.remove('sidebar-collapsed'); // Asegura visibilidad en desktop
+            sidebar.classList.remove('sidebar-collapsed');
         }
 
         setupSidebarLinks();
         setupSwipe();
+        setupLogout(); // Nueva función de inicialización
         updateLayout();
         initFecha();
     }
 
-    // Event listeners
+    // =============================================
+    // Event Listeners
+    // =============================================
     toggleBtn.addEventListener('click', toggleSidebar);
     overlay.addEventListener('click', toggleSidebar);
     window.addEventListener('resize', updateLayout);
-    window.addEventListener('popstate', setActiveLink); // Para manejar navegación adelante/atrás
-    // Inicializar
+    window.addEventListener('popstate', setActiveLink);
+
+    // Inicialización final
     init();
     setActiveLink();
 });
