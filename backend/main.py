@@ -1,5 +1,7 @@
-from flask import Flask, render_template, request, make_response
+from flask import Flask, render_template, request, make_response, redirect, url_for
 from flask_cors import CORS
+import app.services.usuario_service as usuario_service
+from urllib.parse import unquote
 
 # Importación de blueprints
 from app.routes.categoria_routes import categoria_bp
@@ -17,6 +19,11 @@ def create_app():
     app = Flask(__name__)
     CORS(app)
 
+    # Configuración de seguridad recomendada
+    #app.config['SESSION_COOKIE_SECURE'] = True
+    #app.config['SESSION_COOKIE_HTTPONLY'] = True
+    #app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hora
+
     # Registro de blueprints
     app.register_blueprint(categoria_bp, url_prefix="/categorias")
     app.register_blueprint(cliente_bp, url_prefix="/clientes")
@@ -31,12 +38,53 @@ def create_app():
 
     def render_con_cookie(template):
         usuario_cookie = request.cookies.get("usuario")
-        if usuario_cookie:
-            return render_template(template, usuario=usuario_cookie)
-        else:
-            resp = make_response(render_template(template, usuario="admin"))
-            resp.set_cookie("usuario", "admin")
+        id_cookie = request.cookies.get("id")
+        estado_cookie = request.cookies.get("estado")
+        MAC_cookie = request.cookies.get("MAC")
+        # Si no hay usuario en cookies, redirigir a login
+        if not usuario_cookie:
+            return redirect(url_for('login'))
+            
+        # Verificar datos del usuario
+        datos_usuario = usuario_service.obtener_contrasena(usuario_cookie)[0]
+        if not datos_usuario:
+            # Usuario no encontrado en la base de datos
+            resp = make_response(redirect(url_for('login')))
+            resp.delete_cookie("usuario")
+            resp.delete_cookie("id")
+            resp.delete_cookie("contrasena")
+            resp.delete_cookie("estado")
+            resp.delete_cookie("MAC")
             return resp
+            
+        # Verificar coincidencia de MAC
+        if unquote(MAC_cookie) != datos_usuario['MAC']:
+            # MAC no coincide, posible sesión comprometida
+            resp = make_response(redirect(url_for('login')))
+            resp.delete_cookie("usuario")
+            resp.delete_cookie("id")
+            resp.delete_cookie("contrasena")
+            resp.delete_cookie("estado")
+            resp.delete_cookie("MAC")
+            return resp
+            
+        # Todas las verificaciones pasaron, renderizar template
+        resp = make_response(render_template(
+            template,
+            usuario=usuario_cookie,
+            id=id_cookie,
+            estado=estado_cookie,
+            MAC=MAC_cookie
+        ))
+        resp.set_cookie("usuario", usuario_cookie)
+        resp.set_cookie("id", id_cookie)
+        resp.set_cookie("estado", estado_cookie)
+        resp.set_cookie("MAC", MAC_cookie)
+        return resp
+
+    @app.route("/login")
+    def login():
+        return render_template('login.html')
 
     @app.route("/")
     def index():
@@ -57,15 +105,19 @@ def create_app():
     @app.route('/unidades')
     def unidades_web():
         return render_con_cookie("unidades.html")
+
     @app.route('/usuarios')
     def usuarios_web():
         return render_con_cookie("usuarios.html")
+
     @app.route('/about')
     def about_web():
         return render_con_cookie("about.html")
+
     @app.route('/productos')
     def productos_web():
         return render_con_cookie("productos.html")
+
     @app.route('/ventas')
     def ventas_web():
         return render_con_cookie("ventas.html")

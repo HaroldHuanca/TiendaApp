@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.services import usuario_service
+import bcrypt
 
 usuario_bp = Blueprint('usuario_bp', __name__)
 
@@ -53,7 +54,7 @@ def obtener_contrasena(nombre_usuario):
     try:
         resultado = usuario_service.obtener_contrasena(nombre_usuario)
         if resultado:
-            return jsonify({"contrasena": resultado[0]}), 200
+            return jsonify(resultado[0]), 200
         else:
             return jsonify({"error": "Usuario no encontrado"}), 404
     except Exception as e:
@@ -74,3 +75,50 @@ def restablecer_intento(nombre_usuario):
         return jsonify({"mensaje": "Intentos restablecidos"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+@usuario_bp.route('/verificar_login', methods=['POST'])
+def verificar_login():
+    datos = request.get_json()
+    try:
+        # 1. Obtener usuario de la base de datos
+        usuario = usuario_service.obtener_contrasena(datos['usuario'])[0]
+        if not usuario:
+            return jsonify({
+                "exito": False,
+                "mensaje": "Usuario no encontrado"
+            }), 404
+        
+        # 2. Verificar contraseña con bcrypt
+        if bcrypt.checkpw(datos['contrasena'].encode('utf-8'), usuario['Contrasena'].encode('utf-8')):
+            # 3. Restablecer intentos si es necesario
+            usuario_service.restablecer_intento(datos['usuario'])
+            
+            # 4. Generar nueva MAC (opcional)
+            nueva_mac = generar_mac_aleatoria()
+            usuario_service.actualizar_mac(datos['usuario'], nueva_mac)
+            
+            return jsonify({
+                "exito": True,
+                "mensaje": "Login exitoso",
+                "id_usuario": usuario['Id'],
+                "estado": usuario['Estado'],
+                "MAC": nueva_mac
+            })
+        else:
+            # Reducir intentos fallidos
+            usuario_service.reducir_intento(datos['usuario'])
+            
+            return jsonify({
+                "exito": False,
+                "mensaje": "Contraseña incorrecta"
+            }), 401
+            
+    except Exception as e:
+        return jsonify({
+            "exito": False,
+            "mensaje": str(e)
+        }), 500
+
+def generar_mac_aleatoria():
+    import random
+    return ":".join([f"{random.randint(0, 255):02x}" for _ in range(6)])

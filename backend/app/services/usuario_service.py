@@ -58,3 +58,8 @@ def actualizar_usuario(id_usuario: int, nombre_usuario: str, contrasena: str, de
 def eliminar_usuario(id_usuario: int) -> None:
     validar_id_tinyint(id_usuario,"ID Usuario")
     usuario_model.eliminar_usuario(id_usuario)
+    
+def actualizar_mac(id_usuario: str, direccion_mac: str) -> None:
+    validar_nombre_usuario(id_usuario)
+    validar_mac(direccion_mac)
+    usuario_model.actualizar_mac(id_usuario, direccion_mac)

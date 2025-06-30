@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Abarrotes Sarita</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-container">
+            <div class="logo">
+                <h3>Abarrotes Sarita</h3>
+            </div>
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Usuario</label>
+                    <input type="text" class="form-control" id="username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Contraseña</label>
+                    <input type="password" class="form-control" id="password" required>
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Ingresar</button>
+                </div>
+            </form>
+            <div id="alertContainer" class="mt-3"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const alertContainer = document.getElementById('alertContainer');
+            
+            // Limpiar alertas anteriores
+            alertContainer.innerHTML = '';
+            
+            if (!username || !password) {
+                showAlert('Por favor complete todos los campos', 'danger');
+                return;
+            }
+            
+            try {
+                // Enviar credenciales al backend para verificación
+                const response = await fetch('/usuarios/verificar_login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        usuario: username,
+                        contrasena: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.exito) {
+                    // Login exitoso
+                    showAlert('¡Inicio de sesión exitoso! Redirigiendo...', 'success');
+                    
+                    // Establecer cookies
+                    document.cookie = `usuario=${encodeURIComponent(username)}; path=/; secure`;
+                    document.cookie = `id=${encodeURIComponent(data.id_usuario || '')}; path=/; secure`;
+                    document.cookie = `estado=${encodeURIComponent(data.estado || '')}; path=/; secure`;
+                    document.cookie = `MAC=${encodeURIComponent(data.MAC || '')}; path=/; secure`;
+                    // Redirigir después de 1.5 segundos
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
+                } else {
+                    // Mostrar error
+                    showAlert(data.mensaje || 'Credenciales incorrectas', 'danger');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al conectar con el servidor', 'danger');
+            }
+        });
+        
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.role = 'alert';
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            alertContainer.appendChild(alert);
+        }
+    </script>
+</body>
+</html>
