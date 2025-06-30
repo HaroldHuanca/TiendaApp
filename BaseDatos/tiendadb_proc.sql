@@ -5,14 +5,27 @@ CREATE PROCEDURE proc_obtener_contrasena (
     IN p_nombre_usuario varchar(50)
 ) BEGIN
 SELECT
-    id as Id,
-    contrasena as Contraseña,
-    estado as Estado
+    u.id as Id,
+    u.contrasena as Contrasena,
+    e.descripcion as Estado,
+    u.direccion_mac as MAC
 FROM
-    tbl_usuarios
+    tbl_usuarios u
+JOIN tbl_estados e ON u.estado = e.estado
+    AND e.nombre_tabla = "tbl_usuarios"
+WHERE
+    u.nombre_usuario = p_nombre_usuario;
+END;
+
+CREATE PROCEDURE proc_actualizar_mac (
+    IN p_nombre_usuario varchar (50),
+    IN p_direccion_mac char(17)
+) BEGIN
+    UPDATE tbl_usuarios
+SET
+    direccion_mac = p_direccion_mac
 WHERE
     nombre_usuario = p_nombre_usuario;
-
 END;
 
 CREATE PROCEDURE proc_reducir_intento (
