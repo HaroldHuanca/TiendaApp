@@ -1,8 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
 :root {
+    /* Dimensiones y medidas */
     --sidebar-width: 280px;
     --footer-height: 40px;
     --transition-speed: 0.3s;
     --navbar-height: 56px;
+    
+    /* Nueva paleta de colores - Sarita's Supermarket */
+    --color-primary: #E63946;    /* Rojo vibrante - energía */
+    --color-secondary: #2A9D8F;  /* Verde azulado - frescura */
+    --color-accent: #F4A261;     /* Naranja terroso - alimentos */
+    --color-dark: #264653;       /* Azul oscuro - profesional */
+    --color-light: #F1FAEE;      /* Blanco crema - limpieza */
+    --color-highlight: #FFD166;  /* Amarillo - promociones */
+    
+    /* Textos */
+    --text-light: #FFFFFF;
+    --text-dark: #264653;
+    
+    /* Transparencias */
+    --hover-transparency: 0.1;
+    --active-transparency: 0.2;
 }
 
 /* Layout principal */
@@ -10,9 +29,10 @@
     display: flex;
     min-height: 100vh;
     position: relative;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Sidebar */
+/* Sidebar - Barra lateral */
 .sidebar {
     width: 250px;
     height: 100vh;
@@ -20,12 +40,53 @@
     left: 0;
     top: 0;
     z-index: 1000;
-    background-color: #343a40; /* Color de fondo */
-    color: white;
-    transition: transform 0.3s ease;
+    background-color: var(--color-dark);
+    color: var(--text-light);
+    transition: transform var(--transition-speed) ease;
     transform: translateX(0);
     display: flex;
     flex-direction: column;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    background-color: var(--color-primary) !important;
+    border-bottom: 3px solid var(--color-highlight);
+    text-align: center;
+}
+
+.sidebar-menu {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 0.5rem;
+}
+
+.sidebar .nav-link {
+    color: rgba(255,255,255,0.9);
+    padding: 0.75rem 1.25rem;
+    margin: 0.25rem 0;
+    border-radius: 0.25rem;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+}
+
+.sidebar .nav-link:hover {
+    color: var(--text-light);
+    background-color: rgba(255,255,255,var(--hover-transparency));
+    transform: translateX(5px);
+}
+
+.sidebar .nav-link.active {
+    color: var(--text-light);
+    background-color: var(--color-secondary);
+    font-weight: 600;
+}
+
+.sidebar .nav-item i {
+    width: 1.5rem;
+    text-align: center;
+    font-size: 1.1rem;
 }
 
 /* Contenido principal */
@@ -33,11 +94,17 @@
     margin-left: var(--sidebar-width);
     width: calc(100% - var(--sidebar-width));
     min-height: 100vh;
-    transition: all var(--transition-speed) ease; /* Cambiado a 'all' */
+    transition: all var(--transition-speed) ease;
     position: relative;
-    display: flex; /* Añadido */
-    flex-direction: column; /* Añadido */
-    padding-bottom: 0; /* Eliminado o ajustado */
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-light);
+    color: var(--text-dark);
+}
+
+.content {
+    flex: 1;
+    padding: 2rem;
 }
 
 /* Footer */
@@ -45,16 +112,19 @@
     position: fixed;
     bottom: 0;
     left: var(--sidebar-width);
-    right: 0; /* Nueva línea clave */
+    right: 0;
     height: var(--footer-height);
     transition: all var(--transition-speed) ease;
     z-index: 800;
-    background: #343a40;
-    color: white;
-    /* Elimina width: calc(100% - var(--sidebar-width)); */
+    background: var(--color-dark);
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
 }
 
-/* Estado colapsado */
+/* Estados colapsados */
 .sidebar-collapsed {
     transform: translateX(-100%);
 }
@@ -63,10 +133,7 @@
     margin-left: 0;
     width: 100%;
 }
-.sidebar-collapsed + .main .footer {
-    margin-left: 0;
-    width: 100%;
-}
+
 .sidebar-collapsed ~ .footer {
     left: 0;
 }
@@ -84,12 +151,11 @@
 }
 
 /* Estilos para móviles */
-/* Mantén este bloque existente para móviles (<= 768px) */
 @media (max-width: 768px) {
     .sidebar {
         transform: translateX(-100%);
         z-index: 1001;
-        width: 280px; /* Ancho explícito para móvil */
+        width: 280px;
     }
     
     .sidebar:not(.sidebar-collapsed) {
@@ -104,102 +170,37 @@
     
     .footer {
         left: 0;
-        width: 100%; /* Asegura que el footer ocupe todo el ancho */
+        width: 100%;
     }
     
     .sidebar:not(.sidebar-collapsed) + .sidebar-overlay {
         display: block;
     }
     
-    /* Nuevo: Oculta sidebar automáticamente al seleccionar enlaces SOLO en móviles */
     .sidebar .nav-link {
-        pointer-events: auto; /* Permite cerrar al tocar enlaces */
+        pointer-events: auto;
     }
 }
 
-/* Añade este nuevo bloque para desktop (> 768px) */
+/* Desktop styles */
 @media (min-width: 769px) {
     .sidebar {
-        transform: translateX(0) !important; /* Fuerza visibilidad */
-        width: var(--sidebar-width); /* Usa el ancho definido */
+        transform: translateX(0) !important;
+        width: var(--sidebar-width);
     }
     
     .sidebar-collapsed {
-        transform: translateX(-100%) !important; /* Solo si se colapsa manualmente */
-    }
-    
-    .sidebar .nav-link {
-        pointer-events: auto; /* Comportamiento normal en desktop */
+        transform: translateX(-100%) !important;
     }
     
     .sidebar-overlay {
-        display: none !important; /* Desactiva overlay en desktop */
+        display: none !important;
     }
 }
-/* Añade esta nueva regla */
-.sidebar-collapsed ~ .main .footer {
-    margin-left: 0;
-    width: 100%;
-}
 
-
-.content {
-    flex: 1; /* Hace que el contenido ocupe todo el espacio disponible */
-    padding: 20px; /* Ajusta según necesites */
-}
-
-.sidebar-content {
-    padding: 20px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-.sidebar-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.sidebar-header {
-    padding: 1rem;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-.sidebar-menu {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: 0.5rem;
-}
-.sidebar-collapsed .sidebar {
-    transform: translateX(-100%);
-}
-.sidebar .nav-link {
-    color: rgba(255,255,255,0.8);
-    padding: 0.75rem 1rem;
-    margin: 0.25rem 0;
-    border-radius: 0.25rem;
-    transition: all 0.2s;
-}
-
-.sidebar .nav-link:hover {
-    color: white;
-    background-color: rgba(255,255,255,0.1);
-}
-.sidebar .nav-link.active {
-    color: white;
-    background-color: rgba(255,255,255,0.2);
-}
-
-.sidebar .nav-item i {
-    width: 1.5rem;
-    text-align: center;
-}
-
-.sidebar .nav-link:hover:not(.active) {
-    background-color: rgba(255, 255, 255, 0.05);
-}
-
+/* Componentes específicos */
 #fechaActual {
-    color: #f8f9fa;
+    color: var(--text-light);
     font-weight: 500;
     letter-spacing: 0.5px;
     padding: 0.5rem 1rem;
@@ -207,18 +208,15 @@
     border-radius: 4px;
     display: flex;
     align-items: center;
+    margin: 1rem;
+    font-family: 'Montserrat', sans-serif;
 }
 
 #fechaActual i {
     font-size: 1.1rem;
+    margin-right: 0.5rem;
 }
 
-@media (max-width: 768px) {
-    #fechaActual {
-        display: none; /* Ocultar en móviles si es necesario */
-    }
-}
-/* En tu archivo CSS */
 #fechaTexto {
     display: flex;
     flex-direction: column;
@@ -235,9 +233,69 @@
     font-weight: bold;
 }
 
+/* Logo */
+.sidebar-logo {
+    height: auto;
+    max-width: 180px;
+    max-height: 60px;
+    transition: all 0.3s ease;
+    /*filter: brightness(0) invert(1); /* Logo blanco */
+}
+
+.sidebar-logo:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+
 @media (max-width: 768px) {
+    #fechaActual {
+        display: none;
+    }
+    
+    .sidebar-logo {
+        max-width: 150px;
+        max-height: 50px;
+    }
+    
     #fechaTexto {
         flex-direction: row;
         gap: 8px;
     }
+}
+
+/* Mejoras visuales adicionales */
+.card {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    background-color: var(--color-secondary);
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.btn-primary:hover {
+    background-color: #C1121F;
+    border-color: #C1121F;
+}
+
+.table thead {
+    background-color: var(--color-dark);
+    color: white;
 }

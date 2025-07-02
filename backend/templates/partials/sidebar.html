@@ -1,8 +1,12 @@
 <div class="sidebar">
     <div class="sidebar-container">
-        <!-- Encabezado -->
-        <div class="sidebar-header p-3 text-center bg-dark text-white">
-            <h4>Abarrotes Sarita</h4>
+        <!-- Encabezado con logo -->
+        <div class="sidebar-header p-3 text-center bg-dark">
+            <a href="{{ url_for('index') }}" class="d-inline-block">
+                <img src="{{ url_for('static', filename='img/logo-sarita.png') }}" 
+                     alt="Sarita's SuperMarket" 
+                     class="sidebar-logo">
+            </a>
         </div>
         
         <!-- Menú principal -->
@@ -51,8 +55,8 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('usuarios_web') }}">
-                        <i class="fas fa-user-cog me-2"></i> Usuarios
+                    <a class="nav-link" href="{{ url_for('about_web') }}">
+                        <i class="fas fa-user-cog me-2"></i> Nosotros
                     </a>
                 </li>
             </ul>

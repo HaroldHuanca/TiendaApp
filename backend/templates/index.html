@@ -1,125 +1,256 @@
 {% extends "base.html" %}
 
-{% block title %}Inicio - Abarrotes Sarita{% endblock %}
+{% block title %}Dashboard - Sarita's SuperMarket{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <!-- Banner Principal -->
-    <div class="row banner-principal rounded-3 mb-4">
-        <div class="col-md-8 mx-auto text-center py-5 text-white">
-            <h1 class="display-4 fw-bold">Abarrotes Sarita</h1>
-            <p class="lead">Tu tienda de confianza desde 1995</p>
+<div class="container-fluid px-4">
+    <h1 class="mt-4"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item active">Dashboard</li>
+    </ol>
+
+    <!-- Sección de Atajos Rápidos -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Nueva Venta</h6>
+                        <small>Registrar transacción</small>
+                    </div>
+                    <i class="fas fa-cash-register fa-2x"></i>
+                </div>
+                <a class="card-footer text-white stretched-link" href="{{ url_for('ventas_web') }}"></a>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Agregar Producto</h6>
+                        <small>Nuevo ingreso</small>
+                    </div>
+                    <i class="fas fa-box-open fa-2x"></i>
+                </div>
+                <a class="card-footer text-white stretched-link" href="{{ url_for('productos_web') }}"></a>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-dark mb-4">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Inventario Bajo</h6>
+                        <small>{{ productos_bajo_stock|length }} productos</small>
+                    </div>
+                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                </div>
+                <a class="card-footer text-dark stretched-link" href="{{ url_for('productos_web') }}?filtro=stock_bajo"></a>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Reporte Diario</h6>
+                        <small>Ventas de hoy</small>
+                    </div>
+                    <i class="fas fa-chart-line fa-2x"></i>
+                </div>
+                <a class="card-footer text-white stretched-link" href="{{ url_for('index') }}"></a>
+            </div>
         </div>
     </div>
 
-    <!-- Sección de Bienvenida -->
-    <div class="row mb-5">
-        <div class="col-lg-6">
-            <h2 class="text-primary mb-4"><i class="fas fa-store me-2"></i>Nuestra Historia</h2>
-            <p class="lead">Fundada en el corazón del barrio, Abarrotes Sarita comenzó como un pequeño negocio familiar.</p>
-            <p>Hoy, después de más de 25 años, seguimos comprometidos con ofrecer los mejores productos a precios justos, manteniendo ese trato cálido que nos caracteriza.</p>
-        </div>
-        <div class="col-lg-6">
-            <img src="{{ url_for('static', filename='imagenes/local.png') }}" alt="Fachada de Abarrotes Sarita" class="img-fluid rounded shadow">
-        </div>
-    </div>
-
-    <!-- Tarjetas de Servicios -->
-    <div class="row mb-5">
-        <h2 class="text-center mb-4"><i class="fas fa-star text-warning me-2"></i>¿Por qué elegirnos?</h2>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-primary">
-                <div class="card-body text-center">
-                    <i class="fas fa-tags text-primary fa-3x mb-3"></i>
-                    <h3 class="card-title">Precios Competitivos</h3>
-                    <p class="card-text">Los mejores precios del mercado con ofertas semanales especiales para nuestros clientes frecuentes.</p>
+    <!-- Sección de Gráficos -->
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <i class="fas fa-chart-bar me-1"></i>
+                    Ventas Semanales
                 </div>
+                <div class="card-body"><canvas id="ventasSemanales" width="100%" height="40"></canvas></div>
             </div>
         </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-success">
-                <div class="card-body text-center">
-                    <i class="fas fa-bread-slice text-success fa-3x mb-3"></i>
-                    <h3 class="card-title">Productos Frescos</h3>
-                    <p class="card-text">Recibimos mercancía diariamente para garantizar la máxima frescura en todos nuestros productos.</p>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <i class="fas fa-chart-pie me-1"></i>
+                    Productos Más Vendidos
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-info">
-                <div class="card-body text-center">
-                    <i class="fas fa-smile-beam text-info fa-3x mb-3"></i>
-                    <h3 class="card-title">Atención Personalizada</h3>
-                    <p class="card-text">Nuestro equipo siempre está dispuesto a ayudarte y aconsejarte en lo que necesites.</p>
-                </div>
+                <div class="card-body"><canvas id="topProductos" width="100%" height="40"></canvas></div>
             </div>
         </div>
     </div>
 
-    <!-- Horario y Contacto -->
-    <div class="row bg-light p-4 rounded-3 mb-4">
-        <div class="col-md-6">
-            <h3><i class="fas fa-clock text-primary me-2"></i>Horario de Atención</h3>
-            <ul class="list-unstyled">
-                <li><strong>Lunes a Viernes:</strong> 7:00 AM - 9:00 PM</li>
-                <li><strong>Sábados:</strong> 8:00 AM - 8:00 PM</li>
-                <li><strong>Domingos:</strong> 9:00 AM - 2:00 PM</li>
-            </ul>
+    <!-- Sección de Sugerencias -->
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <i class="fas fa-exclamation-circle me-1"></i>
+                    Productos con Stock Bajo
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Stock Actual</th>
+                                    <th>Mínimo</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for producto in productos_bajo_stock %}
+                                <tr>
+                                    <td>{{ producto.descripcion }}</td>
+                                    <td class="text-danger fw-bold">{{ producto.stock }}</td>
+                                    <td>{{ producto.stock_minimo }}</td>
+                                    <td>
+                                        <a href="{{ url_for('productos_web') }}?editar={{ producto.id }}" class="btn btn-sm btn-outline-primary">Reabastecer</a>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-success">¡Todo en orden! No hay productos con stock bajo</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="col-md-6">
-            <h3><i class="fas fa-map-marker-alt text-danger me-2"></i>Visítanos</h3>
-            <address>
-                <strong>Abarrotes Sarita</strong><br>
-                Av. Principal #123<br>
-                Colonia Centro<br>
-                Tel: 555-123-4567
-            </address>
-            <a href="#" class="btn btn-primary"><i class="fas fa-directions me-1"></i> Cómo llegar</a>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-lightbulb me-1"></i>
+                    Sugerencias de Compra
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Recomendación:</strong> Los siguientes productos tienen alta rotación y deberías considerar aumentar tu inventario.
+                    </div>
+                    <ul class="list-group">
+                        {% for producto in productos_sugeridos %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ producto.nombre }}
+                            <span class="badge bg-primary rounded-pill">{{ producto.ventas_semana }} vendidos esta semana</span>
+                        </li>
+                        {% else %}
+                        <li class="list-group-item text-muted">No hay sugerencias en este momento</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block extra_css %}
-<style>
-    .banner-principal {
-        background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
-                    url("{{ url_for('static', filename='imagenes/tienda-interior.jpg') }}");
-        background-size: cover;
-        background-position: center;
-        height: 300px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .card {
-        transition: transform 0.3s;
-    }
-    
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    }
-</style>
-{% endblock %}
-
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Animación para las tarjetas al cargar
-        const cards = document.querySelectorAll('.card');
-        cards.forEach((card, index) => {
-            setTimeout(() => {
-                card.style.opacity = '1';
-            }, 200 * index);
-        });
-        
-        // Mostrar año actual en el footer
-        document.getElementById('current-year').textContent = new Date().getFullYear();
-    });
+// Gráfico de Ventas Semanales
+const ctx1 = document.getElementById('ventasSemanales').getContext('2d');
+const ventasSemanales = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+        labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+        datasets: [{
+            label: 'Ventas en S/',
+            data: [1200, 1900, 1500, 2000, 2500, 3000, 2700],
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(75, 192, 192, 0.7)'
+            ],
+            borderColor: [
+                'rgba(54, 162, 235, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(75, 192, 192, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return 'S/ ' + context.raw.toLocaleString('es-PE');
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return 'S/ ' + value.toLocaleString('es-PE');
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Gráfico de Productos Más Vendidos
+const ctx2 = document.getElementById('topProductos').getContext('2d');
+const topProductos = new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+        labels: ['Arroz Costeño', 'Aceite Primor', 'Atún Florida', 'Leche Gloria', 'Fideos Don Vittorio'],
+        datasets: [{
+            data: [65, 59, 48, 56, 40],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(153, 102, 255, 0.7)'
+            ],
+            borderColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'right',
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': ' + context.raw + ' unidades';
+                    }
+                }
+            }
+        }
+    }
+});
 </script>
 {% endblock %}

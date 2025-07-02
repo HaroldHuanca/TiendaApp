@@ -106,9 +106,9 @@ def create_app():
     def unidades_web():
         return render_con_cookie("unidades.html")
 
-    @app.route('/usuarios')
+    @app.route('/about')
     def usuarios_web():
-        return render_con_cookie("usuarios.html")
+        return render_con_cookie("about.html")
 
     @app.route('/about')
     def about_web():

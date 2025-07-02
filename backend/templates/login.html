@@ -3,49 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Abarrotes Sarita</title>
+    <title>Login - Sarita's SuperMarket</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --color-primary: #E63946;
+            --color-secondary: #2A9D8F;
+            --color-accent: #F4A261;
+            --color-dark: #264653;
+            --color-light: #F1FAEE;
+            --color-highlight: #FFD166;
+        }
+        
         body {
-            background-color: #f8f9fa;
+            background: url('https://images.unsplash.com/photo-1606787366850-de6330128bfc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80') no-repeat center center fixed;
+            background-size: cover;
             height: 100vh;
             display: flex;
             align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+        
         .login-container {
             max-width: 400px;
             margin: 0 auto;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border-top: 5px solid var(--color-primary);
         }
-        .logo {
+        
+        .logo-container {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 2rem;
+        }
+        
+        .logo {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 1rem;
+        }
+        
+        .btn-login {
+            background-color: var(--color-primary);
+            border: none;
+            padding: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-login:hover {
+            background-color: #C1121F;
+            transform: translateY(-2px);
+        }
+        
+        .form-control:focus {
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 0.25rem rgba(244, 162, 97, 0.25);
+        }
+        
+        .input-group-text {
+            background-color: var(--color-light);
+            color: var(--color-dark);
+        }
+        
+        .footer-login {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--color-dark);
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 576px) {
+            .login-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            
+            .logo {
+                max-width: 150px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="login-container">
-            <div class="logo">
-                <h3>Abarrotes Sarita</h3>
+            <div class="logo-container">
+                <!-- Reemplaza con la ruta correcta a tu logo -->
+                <img src="{{ url_for('static', filename='img/logo-sarita.png') }}" alt="Sarita's SuperMarket" class="logo">
+                <h4 class="mt-2" style="color: var(--color-dark);">Sistema de Gestión</h4>
             </div>
             <form id="loginForm">
                 <div class="mb-3">
-                    <label for="username" class="form-label">Usuario</label>
-                    <input type="text" class="form-control" id="username" required>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input type="text" class="form-control" id="username" placeholder="Usuario" required>
+                    </div>
                 </div>
                 <div class="mb-3">
-                    <label for="password" class="form-label">Contraseña</label>
-                    <input type="password" class="form-control" id="password" required>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" class="form-control" id="password" placeholder="Contraseña" required>
+                    </div>
                 </div>
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary">Ingresar</button>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-login btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i> Ingresar
+                    </button>
                 </div>
             </form>
             <div id="alertContainer" class="mt-3"></div>
+            <div class="footer-login">
+                <p>© 2023 Sarita's SuperMarket. Todos los derechos reservados.</p>
+            </div>
         </div>
     </div>
 
@@ -67,6 +140,11 @@
             }
             
             try {
+                // Mostrar estado de carga
+                const submitBtn = document.querySelector('button[type="submit"]');
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Verificando...';
+                submitBtn.disabled = true;
+                
                 // Enviar credenciales al backend para verificación
                 const response = await fetch('/usuarios/verificar_login', {
                     method: 'POST',
@@ -90,6 +168,7 @@
                     document.cookie = `id=${encodeURIComponent(data.id_usuario || '')}; path=/; secure`;
                     document.cookie = `estado=${encodeURIComponent(data.estado || '')}; path=/; secure`;
                     document.cookie = `MAC=${encodeURIComponent(data.MAC || '')}; path=/; secure`;
+                    
                     // Redirigir después de 1.5 segundos
                     setTimeout(() => {
                         window.location.href = '/';
@@ -97,11 +176,16 @@
                 } else {
                     // Mostrar error
                     showAlert(data.mensaje || 'Credenciales incorrectas', 'danger');
+                    submitBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i> Ingresar';
+                    submitBtn.disabled = false;
                 }
                 
             } catch (error) {
                 console.error('Error:', error);
                 showAlert('Error al conectar con el servidor', 'danger');
+                const submitBtn = document.querySelector('button[type="submit"]');
+                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i> Ingresar';
+                submitBtn.disabled = false;
             }
         });
         
