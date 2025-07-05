@@ -42,7 +42,7 @@ def create_app():
         estado_cookie = request.cookies.get("estado")
         MAC_cookie = request.cookies.get("MAC")
         # Si no hay usuario en cookies, redirigir a login
-        if not usuario_cookie:
+        if not usuario_cookie or not MAC_cookie:
             return redirect(url_for('login'))
             
         # Verificar datos del usuario
