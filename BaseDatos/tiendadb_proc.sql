@@ -654,7 +654,7 @@ CREATE PROCEDURE proc_insertar_venta (
     p_id_usuario tinyint UNSIGNED,
     p_id_cliente smallint UNSIGNED,
     p_descripcion_estado varchar(100),
-    p_fecha datetime,
+    p_fecha timestamp,
     p_total decimal(9, 2)
 ) BEGIN DECLARE p_contador_serie mediumint UNSIGNED;
 
@@ -903,3 +903,22 @@ WHERE
 COMMIT;
 
 END;
+
+-- Mostrar todas las ventas individuales
+CREATE PROCEDURE proc_mostrar_ventas_individuales()
+BEGIN
+    SELECT 
+        vi.id_producto AS 'ID Producto',
+        p.codigo_barras AS 'Código de Barras',
+        p.descripcion AS 'Producto',
+        vi.id_usuario AS 'ID Usuario',
+        u.nombre AS 'Vendedor',
+        vi.cantidad AS Cantidad,
+        vi.precio_venta AS 'Precio Venta',
+        vi.fecha_hora AS 'Fecha/Hora'
+    FROM 
+        tbl_venta_individual vi
+        JOIN tbl_productos p ON vi.id_producto = p.id
+        JOIN tbl_usuarios u ON vi.id_usuario = u.id;
+END;
+

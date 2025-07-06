@@ -111,7 +111,7 @@ CREATE TABLE tbl_ventas (
     id_usuario tinyint unsigned,
     id_cliente smallint unsigned,
     estado tinyint unsigned,
-    fecha datetime NOT NULL,
+    fecha timestamp NOT NULL,
     total decimal(9, 2) NOT NULL,
     FOREIGN key (
         id_serie
@@ -143,3 +143,73 @@ CREATE TABLE tbl_venta_detalles (
         id_producto
     )
 );
+
+-- Crear la tabla para las ventas individuales del sistema
+CREATE TABLE tbl_venta_individual(
+    id_producto smallint unsigned,
+    id_usuario tinyint unsigned,
+    cantidad decimal(9, 2),
+    precio_venta decimal(9, 2),
+    fecha_hora timestamp NOT NULL,
+    FOREIGN key (
+        id_producto
+    ) REFERENCES tbl_productos (id),
+    FOREIGN key (
+        id_usuario
+    ) REFERENCEStbl_usuarios,
+);
+
+--Crear la tabla para las compras en la tienda
+
+CREATE TABLE tbl_compras (
+    id_compra mediumint unsigned AUTO_INCREMENT PRIMARY KEY,
+    id_usuario tinyint unsigned,
+    id_proveedor tinyint unsigned,
+    estado tinyint unsigned,
+    fecha_hora timestamp NOT NULL,
+    total decimal(9, 2),
+    FOREIGN key (
+        id_usuario
+    ) REFERENCES tbl_usuarios (id),
+    FOREIGN key (
+        id_proveedor
+    ) REFERENCES tbl_proveedores (id)
+);
+
+-- Crear la tabla para los detalles de las compras en la tienda
+
+CREATE TABLE tbl_compras_detalle (
+    id_compra mediumint unsigned,
+    id_producto smallint unsigned,
+    cantidad decimal(9, 2),
+    precio_compra decimal(9, 2),
+    estado tinyint unsigned,
+    FOREIGN key (
+        id_producto
+    ) REFERENCES tbl_productos (id),
+    FOREIGN key (
+        id_compra
+    ) REFERENCES tbl_compras (id_compra),
+    PRIMARY key (
+        id_compra,
+        id_producto
+    )
+);
+
+-- Creamos la tabla para las bonificaciones de las compras
+create TABLE tbl_bonificaciones (
+    id_compra mediumint unsigned,
+    id_producto smallintunsigned,
+    cantidad decimal(9, 2),
+    FOREIGN key (
+        id_compra
+    ) REFERENCES tbl_compras (id_compra),
+    FOREIGN key (
+        id_producto
+    ) REFERENCES tbl_productos (id),
+    PRIMARY key (
+        id_compra,
+        id_producto
+    )
+);
+
