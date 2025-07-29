@@ -905,12 +905,15 @@ COMMIT;
 END;
 
 -- Mostrar todas las ventas individuales
-CREATE PROCEDURE proc_mostrar_ventas_individuales()
+CREATE PROCEDURE proc_mostrar_ventas_individuales (
+    IN p_fecha DATE
+)
 BEGIN
-    SELECT 
+    SELECT
+        vi.id AS 'ID', 
         vi.id_producto AS 'ID Producto',
         p.codigo_barras AS 'Código de Barras',
-        p.descripcion AS 'Producto',
+        p.descripcion AS 'Descripcion',
         vi.id_usuario AS 'ID Usuario',
         u.nombre AS 'Vendedor',
         vi.cantidad AS Cantidad,
@@ -919,6 +922,44 @@ BEGIN
     FROM 
         tbl_venta_individual vi
         JOIN tbl_productos p ON vi.id_producto = p.id
-        JOIN tbl_usuarios u ON vi.id_usuario = u.id;
+        JOIN tbl_usuarios u ON vi.id_usuario = u.id
+    WHERE vi.fecha_hora >= p_fecha
+      AND vi.fecha_hora < DATE_ADD(p_fecha, INTERVAL 1 DAY)
+    ORDER BY vi.fecha_hora DESC;
+END ;
+
+
+CREATE PROCEDURE proc_insertar_venta_individual (
+    IN p_id_producto smallint UNSIGNED,
+    p_id_usuario tinyint unsigned,
+    p_cantidad decimal(9, 2),
+    p_precio_Venta decimal(9, 2),
+    p_fecha_hora timestamp not null
+) BEGIN 
+DECLARE exit HANDLER FOR SQLEXCEPTION BEGIN ROLLBACK;
+select 'funciono el procedimiento';
+END;
+
+START TRANSACTION;
+
+INSERT INTO
+    tbl_venta_individual (
+        id_producto,
+        id_usuario,
+        cantidad,
+        precio_venta,
+        fecha_hora
+    )
+VALUES
+    (
+        p_id_producto,
+        p_id_usuario,
+        p_cantidad,
+        p_precio_venta,
+        p_fecha_hora
+    );
+
+COMMIT;
+
 END;
 
