@@ -908,6 +908,7 @@ END;
 CREATE PROCEDURE proc_mostrar_ventas_individuales()
 BEGIN
     SELECT 
+        vi.id AS 'ID',
         vi.id_producto AS 'ID Producto',
         p.codigo_barras AS 'Código de Barras',
         p.descripcion AS 'Producto',
@@ -921,4 +922,6 @@ BEGIN
         JOIN tbl_productos p ON vi.id_producto = p.id
         JOIN tbl_usuarios u ON vi.id_usuario = u.id;
 END;
+
+
 
