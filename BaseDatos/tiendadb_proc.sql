@@ -963,3 +963,54 @@ COMMIT;
 
 END;
 
+CREATE PROCEDURE proc_actualizar_venta_individual (
+    IN p_id mediumint UNSIGNED,
+    IN p_id_producto smallint UNSIGNED,
+    IN p_id_usuario tinyint UNSIGNED,
+    IN p_cantidad decimal(9, 2),
+    IN p_precio_venta decimal(9, 2),
+    IN p_fecha_hora timestamp
+)
+BEGIN 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN 
+        ROLLBACK;
+    END;
+    
+    DECLARE EXIT HANDLER FOR SQLWARNING
+    BEGIN
+        ROLLBACK;
+    END;
+    
+    START TRANSACTION;
+    
+    -- Verificar si el registro existe
+    IF NOT EXISTS (SELECT 1 FROM tbl_venta_individual WHERE id = p_id) THEN
+        ROLLBACK;
+    ELSE
+        -- Actualizar el registro
+        UPDATE tbl_venta_individual
+        SET 
+            id_producto = COALESCE(p_id_producto, id_producto),
+            id_usuario = COALESCE(p_id_usuario, id_usuario),
+            cantidad = COALESCE(p_cantidad, cantidad),
+            precio_venta = COALESCE(p_precio_venta, precio_venta),
+            fecha_hora = COALESCE(p_fecha_hora, fecha_hora)
+        WHERE id = p_id;
+        
+        COMMIT;
+    END IF;
+END;
+
+CREATE PROCEDURE proc_eliminar_venta_individual(
+    in p_id mediumint unsigned
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+    END;
+    START TRANSACTION;
+    DELETE FROM tbl_venta_individual WHERE id = p_id;
+    COMMIT;
+END;
