@@ -1014,3 +1014,336 @@ BEGIN
     DELETE FROM tbl_venta_individual WHERE id = p_id;
     COMMIT;
 END;
+
+-- Procedimiento para mostrar todas las compras
+CREATE PROCEDURE proc_mostrar_compras ()
+BEGIN
+    SELECT
+        c.id as 'Id',
+        c.id_usuario as 'Id Usuario',
+        c.id_proveedor as 'Id Proveedor',
+        e.descripcion as 'Estado',
+        c.fecha_hora as 'Fecha y Hora',
+        c.total as Total
+    FROM
+        tbl_compras c
+        JOIN tbl_estados e ON c.estado = e.estado
+        AND e.nombre_tabla = "tbl_compras";
+END;
+
+-- Procedimiento para insertar una nueva compra
+CREATE PROCEDURE proc_insertar_compra (
+    IN p_id_usuario tinyint UNSIGNED,
+    p_id_proveedor tinyint UNSIGNED,
+    p_descripcion_estado varchar(100),
+    p_fecha_hora timestamp,
+    p_total decimal(9, 2)
+)
+BEGIN
+    DECLARE p_estado tinyint UNSIGNED;
+    DECLARE exit HANDLER FOR SQLEXCEPTION BEGIN
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+    
+    SET p_estado = (
+        SELECT estado
+        FROM tbl_estados
+        WHERE descripcion = p_descripcion_estado
+        AND nombre_tabla = "tbl_compras"
+    );
+
+    INSERT INTO tbl_compras (
+        id_usuario,
+        id_proveedor,
+        estado,
+        fecha_hora,
+        total
+    )
+    VALUES (
+        p_id_usuario,
+        p_id_proveedor,
+        p_estado,
+        p_fecha_hora,
+        p_total
+    );
+
+    SELECT LAST_INSERT_ID() AS id_compra;
+    
+    COMMIT;
+END;
+
+-- Procedimiento para actualizar una compra existente
+CREATE PROCEDURE proc_actualizar_compra (
+    IN p_id mediumint UNSIGNED,
+    p_id_proveedor tinyint UNSIGNED,
+    p_descripcion_estado varchar(100),
+    p_total decimal(9, 2)
+)
+BEGIN
+    DECLARE p_estado tinyint UNSIGNED;
+    DECLARE exit HANDLER FOR SQLEXCEPTION BEGIN
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+    
+    SET p_estado = (
+        SELECT estado
+        FROM tbl_estados
+        WHERE descripcion = p_descripcion_estado
+        AND nombre_tabla = "tbl_compras"
+    );
+
+    UPDATE tbl_compras
+    SET
+        id_proveedor = p_id_proveedor,
+        estado = p_estado,
+        total = p_total
+    WHERE
+        id = p_id;
+    
+    COMMIT;
+END;
+
+-- Procedimiento para eliminar (cambiar estado) de una compra
+CREATE PROCEDURE proc_eliminar_compra (
+    IN p_id_compra mediumint UNSIGNED
+)
+BEGIN
+    DECLARE exit HANDLER FOR SQLEXCEPTION BEGIN
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+    
+    UPDATE tbl_compras
+    SET estado = 255 - estado
+    WHERE id = p_id;
+    
+    COMMIT;
+END;
+
+-- Procedimiento para mostrar los detalles de una compra específica
+CREATE PROCEDURE proc_mostrar_compra_detalles (
+    IN p_id_compra mediumint unsigned
+)
+BEGIN
+    SELECT
+        cd.id_compra as 'Id Compra',
+        cd.id_producto as 'Id Producto',
+        cd.cantidad as Cantidad,
+        cd.precio_compra as 'Precio Compra',
+        cd.descuento as Descuento,
+        e.descripcion as Estado
+    FROM
+        tbl_compras_detalles cd
+        JOIN tbl_estados e ON cd.estado = e.estado
+        AND e.nombre_tabla = "tbl_compras_detalles"
+    WHERE
+        cd.id_compra = p_id_compra;
+END;
+
+-- Procedimiento para insertar un detalle de compra
+CREATE PROCEDURE proc_insertar_compra_detalle (
+    IN p_id_compra mediumint UNSIGNED,
+    p_id_producto smallint UNSIGNED,
+    p_cantidad decimal(9, 2),
+    p_precio_compra decimal(9, 2),
+    p_descuento decimal(9, 2),
+    p_descripcion_estado varchar(100)
+)
+BEGIN
+    DECLARE p_estado tinyint UNSIGNED;
+    DECLARE exit HANDLER FOR SQLEXCEPTION BEGIN
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+    
+    SET p_estado = (
+        SELECT estado
+        FROM tbl_estados
+        WHERE descripcion = p_descripcion_estado
+        AND nombre_tabla = "tbl_compras_detalles"
+    );
+
+    INSERT INTO tbl_compras_detalles (
+        id_compra,
+        id_producto,
+        cantidad,
+        precio_compra,
+        descuento,
+        estado
+    )
+    VALUES (
+        p_id_compra,
+        p_id_producto,
+        p_cantidad,
+        p_precio_compra,
+        p_descuento,
+        p_estado
+    );
+    
+    COMMIT;
+END;
+
+-- Procedimiento para actualizar un detalle de compra
+CREATE PROCEDURE proc_actualizar_compra_detalle (
+    IN p_id_compra mediumint UNSIGNED,
+    p_id_producto smallint UNSIGNED,
+    p_cantidad decimal(9, 2),
+    p_precio_compra decimal(9, 2),
+    p_descuento decimal(9, 2),
+    p_descripcion_estado varchar(100)
+)
+BEGIN
+    DECLARE p_estado tinyint UNSIGNED;
+    DECLARE exit HANDLER FOR SQLEXCEPTION BEGIN
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+    
+    SET p_estado = (
+        SELECT estado
+        FROM tbl_estados
+        WHERE descripcion = p_descripcion_estado
+        AND nombre_tabla = "tbl_compras_detalles"
+    );
+
+    UPDATE tbl_compras_detalles
+    SET
+        cantidad = p_cantidad,
+        precio_compra = p_precio_compra,
+        descuento = p_descuento,
+        estado = p_estado
+    WHERE
+        id_producto = p_id_producto
+        AND id_compra = p_id_compra;
+    
+    COMMIT;
+END;
+
+-- Procedimiento para eliminar (cambiar estado) de un detalle de compra
+CREATE PROCEDURE proc_eliminar_compra_detalle (
+    IN p_id_compra mediumint UNSIGNED,
+    p_id_producto smallint UNSIGNED
+)
+BEGIN
+    DECLARE exit HANDLER FOR SQLEXCEPTION BEGIN
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+    
+    UPDATE tbl_compras_detalles
+    SET estado = 255 - estado
+    WHERE id_compra = p_id_compra AND id_producto = p_id_producto;
+    
+    COMMIT;
+END;
+
+-- Procedimiento para mostrar todas las bonificaciones de una compra
+CREATE PROCEDURE proc_mostrar_bonificaciones (
+    IN p_id_compra mediumint unsigned
+)
+BEGIN
+    SELECT
+        b.id_compra as 'Id Compra',
+        b.id_producto as 'Id Producto',
+        p.descripcion as 'Producto',
+        b.cantidad as 'Cantidad'
+    FROM
+        tbl_bonificaciones b
+        JOIN tbl_productos p ON b.id_producto = p.id
+    WHERE
+        b.id_compra = p_id_compra;
+END;
+
+-- Procedimiento para insertar una nueva bonificación
+CREATE PROCEDURE proc_insertar_bonificacion (
+    IN p_id_compra mediumint UNSIGNED,
+    p_id_producto smallint UNSIGNED,
+    p_cantidad decimal(9, 2)
+)
+BEGIN
+    DECLARE exit HANDLER FOR SQLEXCEPTION BEGIN
+        ROLLBACK;
+        SELECT 'Error al insertar la bonificación' AS mensaje;
+    END;
+
+    START TRANSACTION;
+    
+    INSERT INTO tbl_bonificaciones (
+        id_compra,
+        id_producto,
+        cantidad
+    )
+    VALUES (
+        p_id_compra,
+        p_id_producto,
+        p_cantidad
+    );
+    
+    SELECT 'Bonificación agregada correctamente' AS mensaje;
+    COMMIT;
+END;
+
+-- Procedimiento para actualizar una bonificación existente
+CREATE PROCEDURE proc_actualizar_bonificacion (
+    IN p_id_compra mediumint UNSIGNED,
+    p_id_producto smallint UNSIGNED,
+    p_cantidad decimal(9, 2)
+)
+BEGIN
+    DECLARE exit HANDLER FOR SQLEXCEPTION BEGIN
+        ROLLBACK;
+        SELECT 'Error al actualizar la bonificación' AS mensaje;
+    END;
+
+    START TRANSACTION;
+    
+    UPDATE tbl_bonificaciones
+    SET
+        cantidad = p_cantidad
+    WHERE
+        id_compra = p_id_compra
+        AND id_producto = p_id_producto;
+    
+    IF ROW_COUNT() = 0 THEN
+        SELECT 'No se encontró la bonificación para actualizar' AS mensaje;
+    ELSE
+        SELECT 'Bonificación actualizada correctamente' AS mensaje;
+    END IF;
+    
+    COMMIT;
+END;
+
+-- Procedimiento para eliminar una bonificación
+CREATE PROCEDURE proc_eliminar_bonificacion (
+    IN p_id_compra mediumint UNSIGNED,
+    p_id_producto smallint UNSIGNED
+)
+BEGIN
+    DECLARE exit HANDLER FOR SQLEXCEPTION BEGIN
+        ROLLBACK;
+        SELECT 'Error al eliminar la bonificación' AS mensaje;
+    END;
+
+    START TRANSACTION;
+    
+    DELETE FROM tbl_bonificaciones
+    WHERE
+        id_compra = p_id_compra
+        AND id_producto = p_id_producto;
+    
+    IF ROW_COUNT() = 0 THEN
+        SELECT 'No se encontró la bonificación para eliminar' AS mensaje;
+    ELSE
+        SELECT 'Bonificación eliminada correctamente' AS mensaje;
+    END IF;
+    
+    COMMIT;
+END;
