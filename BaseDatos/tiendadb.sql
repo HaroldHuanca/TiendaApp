@@ -146,7 +146,7 @@ CREATE TABLE tbl_venta_detalles (
 
 -- Crear la tabla para las ventas individuales del sistema
 CREATE TABLE tbl_venta_individual(
-    id int unsigned AUTO_INCREMENT PRIMARY KEY,
+    id mediumint unsigned AUTO_INCREMENT PRIMARY KEY,
     id_producto smallint unsigned,
     id_usuario tinyint unsigned,
     cantidad decimal(9, 2),
@@ -165,7 +165,7 @@ CREATE TABLE tbl_venta_individual(
 CREATE TABLE tbl_compras (
     id mediumint unsigned AUTO_INCREMENT PRIMARY KEY,
     id_usuario tinyint unsigned,
-    id_proveedor tinyint unsigned,
+    id_proveedor smallint unsigned,
     estado tinyint unsigned,
     fecha_hora timestamp NOT NULL,
     total decimal(9, 2),

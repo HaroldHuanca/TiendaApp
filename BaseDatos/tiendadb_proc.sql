@@ -1034,7 +1034,7 @@ END;
 -- Procedimiento para insertar una nueva compra
 CREATE PROCEDURE proc_insertar_compra (
     IN p_id_usuario tinyint UNSIGNED,
-    p_id_proveedor tinyint UNSIGNED,
+    p_id_proveedor smallint UNSIGNED,
     p_descripcion_estado varchar(100),
     p_fecha_hora timestamp,
     p_total decimal(9, 2)
@@ -1077,7 +1077,7 @@ END;
 -- Procedimiento para actualizar una compra existente
 CREATE PROCEDURE proc_actualizar_compra (
     IN p_id mediumint UNSIGNED,
-    p_id_proveedor tinyint UNSIGNED,
+    p_id_proveedor smallint UNSIGNED,
     p_descripcion_estado varchar(100),
     p_total decimal(9, 2)
 )

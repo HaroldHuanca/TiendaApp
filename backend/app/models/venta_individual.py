@@ -1,5 +1,5 @@
 from sqlalchemy import text
-from typing import Optional, List, Dict, Any
+from typing import List, Dict, Any
 from app.database import DatabaseManager
 
 # Mostramos las ventas indidividuales
@@ -13,7 +13,7 @@ def mostrar_ventas_individuales(fecha: str) -> List[Dict[str, Any]]:
 
 # Insertar una venta individual
 def insertar_venta_individual(
-    id_produccto: int,
+    id_producto: int,
     id_usuario: int,
     cantidad: float,
     precio_venta: float,
@@ -31,7 +31,7 @@ def insertar_venta_individual(
                  )
             """),
             {
-                "p_id_producto": id_produccto,
+                "p_id_producto": id_producto,
                 "p_id_usuario": id_usuario,
                 "p_cantidad": cantidad,
                 "p_precio_venta": precio_venta,

@@ -9,7 +9,13 @@ def mostrar_compras() -> List[Dict[str, Any]]:
         return [dict(row._mapping) for row in result.fetchall()]
 
 # Insertar una compra (retorna el ID generado)
-def insertar_compra(id_usuario: int, id_proveedor: int, descripcion_estado: str, fecha_hora: str, total: float) -> Optional[int]:
+def insertar_compra(
+    id_usuario: int,
+    id_proveedor: int,
+    descripcion_estado: str,
+    fecha_hora: str,
+    total: float
+) -> Optional[int]:
     with DatabaseManager() as db:
         connection = db.connection()
         raw_connection = connection.connection  # conexión real de MariaDB

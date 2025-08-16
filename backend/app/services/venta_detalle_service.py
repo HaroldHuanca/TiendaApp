@@ -1,20 +1,6 @@
 from typing import List, Dict, Any
 import app.models.venta_detalle as venta_detalle_model
-import re
-from app.services.validaciones import validar_descripcion, validar_id_smallint, validar_id_mediumint
-# Validaciones
-
-def validar_cantidad(cantidad: float) -> None:
-    if not isinstance(cantidad, (int, float)) or cantidad <= 0:
-        raise ValueError("La cantidad debe ser un número positivo.")
-
-def validar_precio(precio: float) -> None:
-    if not isinstance(precio, (int, float)) or precio < 0:
-        raise ValueError("El precio de venta debe ser un número no negativo.")
-
-def validar_descuento(descuento: float) -> None:
-    if not isinstance(descuento, (int, float)) or descuento <= 0:
-        raise ValueError("El descuento debe ser un numero positivo.")
+from app.services.validaciones import validar_descripcion, validar_id_smallint, validar_id_mediumint, validar_cantidad, validar_descuento, validar_precio
 
 # Lógica del servicio
 
