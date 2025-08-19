@@ -14,6 +14,10 @@ from app.routes.unidad_routes import unidad_bp
 from app.routes.usuario_routes import usuario_bp
 from app.routes.venta_routes import venta_bp
 from app.routes.venta_detalle_routes import venta_detalle_bp
+from app.routes.bonificacion_routes import bonificacion_bp
+from app.routes.compra_detalle_routes import compra_detalle_bp
+from app.routes.compra_routes import compra_bp
+from app.routes.venta_individual_routes import venta_individual_bp
 
 def create_app():
     app = Flask(__name__)
@@ -35,6 +39,10 @@ def create_app():
     app.register_blueprint(usuario_bp, url_prefix="/usuarios")
     app.register_blueprint(venta_bp, url_prefix="/ventas")
     app.register_blueprint(venta_detalle_bp, url_prefix="/venta_detalles")
+    app.register_blueprint(bonificacion_bp, url_prefix="/bonificaciones")
+    app.register_blueprint(compra_detalle_bp, url_prefix="/compra_detalles")
+    app.register_blueprint(compra_bp, url_prefix="/compras")
+    app.register_blueprint(venta_individual_bp, url_prefix="/venta_individuales")
 
     def render_con_cookie(template):
         usuario_cookie = request.cookies.get("usuario")
