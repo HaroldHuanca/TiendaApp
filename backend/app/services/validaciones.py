@@ -1,5 +1,5 @@
 import re
-import datetime
+from datetime import datetime
 
 def validar_id_tinyint(id_: int, nombre: str = "ID") -> None:
     if not isinstance(id_, int) or id_ <= 0 or id_ > 255:
@@ -43,5 +43,5 @@ def validar_precio(precio: float) -> None:
         raise ValueError("El precio de venta debe ser un número no negativo.")
 
 def validar_descuento(descuento: float) -> None:
-    if not isinstance(descuento, (int, float)) or descuento <= 0:
-        raise ValueError("El descuento debe ser un numero positivo.")
+    if not isinstance(descuento, (int, float)) or descuento < 0:
+        raise ValueError("El descuento debe ser un numero positivo o cero.")

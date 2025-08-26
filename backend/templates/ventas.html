@@ -410,7 +410,7 @@ async function guardarVenta() {
     const btnGuardar = document.getElementById('btnGuardarVenta');
     btnGuardar.disabled = true;
     btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Guardando...';
-
+    let fechaCompleta = new Date().toISOString();
     try {
         // 1. Guardar la venta principal
         const ventaData = {
@@ -418,10 +418,11 @@ async function guardarVenta() {
             id_usuario:1,
             id_cliente: clienteSeleccionado.Id,
             descripcion_estado: "BOLETA",
-            fecha: new Date().toISOString().split('T')[0], // Fecha actual
+            fecha: fechaCompleta.split('T')[0]+' '+fechaCompleta.split('T')[1].split('.')[0], // Fecha actual
             total: calcularTotalVenta()
         };
         console.log(ventaData);
+        console.log(detallesVenta);
         const responseVenta = await fetch(apiVentas, {
             method: 'POST',
             headers: {
@@ -430,7 +431,7 @@ async function guardarVenta() {
             body: JSON.stringify(ventaData)
         });
 
-        if (!responseVenta.ok) throw new Error('Error al guardar venta');
+        if (!responseVenta.ok) throw new Error(responseVenta.error);
         const { id: idVenta } = await responseVenta.json();
         console.log(idVenta);
         // 2. Guardar los detalles de la venta
@@ -443,7 +444,7 @@ async function guardarVenta() {
                 descuento: detalle.descuento,
                 descripcion_estado: "GRAVADO"
             };
-
+            console.log(detalleData);
             return fetch(apiVentaDetalles, {
                 method: 'POST',
                 headers: {

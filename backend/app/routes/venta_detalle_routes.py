@@ -25,6 +25,7 @@ def crear_detalle_venta():
         )
         return jsonify({"mensaje": "Detalle de venta insertado exitosamente"}), 201
     except Exception as e:
+        print(str(e))
         return jsonify({"error": str(e)}), 400
 
 @venta_detalle_bp.route('/actualizar_venta_detalle', methods=['PUT'])

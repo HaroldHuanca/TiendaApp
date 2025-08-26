@@ -25,6 +25,8 @@ def crear_venta():
         )
         return jsonify({"mensaje": "Venta registrada exitosamente", "id": id_nueva_venta}), 201
     except Exception as e:
+        print("ESTE ES EL ERROR QUE NO ME DEJA DORMIR")
+        print(str(e))
         return jsonify({"error": str(e)}), 400
 
 @venta_bp.route('/actualizar_venta', methods=['PUT'])
