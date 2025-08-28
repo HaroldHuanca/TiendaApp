@@ -1,3 +1,4 @@
+let reloj = null;
 document.addEventListener('DOMContentLoaded', function () {
     // =============================================
     // Elementos del DOM y configuraciones generales
@@ -9,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const overlay = document.createElement('div');
     overlay.className = 'sidebar-overlay';
     document.body.appendChild(overlay);
-    
+
     const mobileBreakpoint = 768;
     const sidebarWidth = '280px';
 
@@ -96,11 +97,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // =============================================
     function setupLogout() {
         const logoutButton = document.getElementById('logoutButton');
-        
+
         if (logoutButton) {
-            logoutButton.addEventListener('click', function(e) {
+            logoutButton.addEventListener('click', function (e) {
                 e.preventDefault();
-                
+
                 Swal.fire({
                     title: '¿Estás seguro?',
                     text: "¿Deseas cerrar tu sesión actual?",
@@ -114,11 +115,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // Eliminar todas las cookies
-                        document.cookie.split(";").forEach(function(c) {
-                            document.cookie = c.replace(/^ +/, "").replace(/=.*/, 
+                        document.cookie.split(";").forEach(function (c) {
+                            document.cookie = c.replace(/^ +/, "").replace(/=.*/,
                                 "=;expires=" + new Date().toUTCString() + ";path=/");
                         });
-                        
+
                         // Redireccionar al index
                         window.location.href = "/";
                     }
@@ -128,36 +129,56 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function actualizarFecha() {
-        const fechaElement = document.getElementById('fechaTexto');
-        if (!fechaElement) return;
+  const fechaElement = document.getElementById('fechaTexto');
+  if (!fechaElement) return;
 
-        fetch('/tiempo/fecha_actual')
-            .then(response => {
-                if (!response.ok) throw new Error('Error en la respuesta');
-                return response.json();
-            })
-            .then(data => {
-                const [fecha, hora] = data.fecha.split(' ');
-                fechaElement.innerHTML = `
-                    <span class="fecha-part">${fecha}</span>
-                    <span class="hora-part">${hora}</span>
-                `;
-            })
-            .catch(error => {
-                console.error('Error al obtener la fecha:', error);
-                // Fallback con JavaScript puro
-                const ahora = new Date();
-                fechaElement.textContent = ahora.toLocaleString('es-ES', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                }).replace(',', '');
-            });
-    }
+  const fechaEl = document.querySelector(".fecha-part");
+  const horaEl  = document.querySelector(".hora-part");
+
+  if (fechaEl && horaEl) {
+    const fechaText = fechaEl.textContent.trim(); // "2025-08-27"
+    const horaText  = horaEl.textContent.trim();   // "22:23:56"
+
+    const [anio, mes, dia] = fechaText.split('-').map(Number);
+    const [hora, min, seg] = horaText.split(':').map(Number);
+
+    // Local time
+    const fecha = new Date(anio, mes - 1, dia, hora, min, seg);
+    fecha.setSeconds(fecha.getSeconds() + 1);
+
+    // Formateo MANUAL para conservar el mismo patrón SIEMPRE
+    const yyyy = String(fecha.getFullYear());
+    const mm   = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dd   = String(fecha.getDate()).padStart(2, '0');
+    const HH   = String(fecha.getHours()).padStart(2, '0');
+    const MM   = String(fecha.getMinutes()).padStart(2, '0');
+    const SS   = String(fecha.getSeconds()).padStart(2, '0');
+
+    // Mantén el mismo formato en los spans
+    fechaEl.textContent = `${yyyy}-${mm}-${dd}`; // SIEMPRE YYYY-MM-DD
+    horaEl.textContent  = `${HH}:${MM}:${SS}`;   // SIEMPRE HH:mm:ss
+    return;
+  }
+
+  // Primer render: crea los spans en el formato base
+  fetch('/tiempo/fecha_actual')
+    .then(r => r.json())
+    .then(data => {
+      // si te llega "27/08/2025 22:23:56"
+      const [fecha, hora] = data.fecha.split(' ');
+      const [d, m, y] = fecha.includes('/') ? fecha.split('/') : fecha.split('-');
+      const yyyy = y.length === 4 ? y : d.length === 4 ? d : y; // por si ya viene ISO
+      const mm   = y.length === 4 ? m : m; // m ya es mes
+      const dd   = y.length === 4 ? d : d; // d ya es día
+
+      fechaElement.innerHTML = `
+        <span class="fecha-part">${yyyy}-${mm}-${dd}</span>
+        <span class="hora-part">${hora}</span>
+      `;
+    })
+    .catch(err => console.error(err));
+}
+
 
     function initFecha() {
         if (document.getElementById('fechaTexto')) {
