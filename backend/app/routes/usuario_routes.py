@@ -80,28 +80,45 @@ def restablecer_intento(nombre_usuario):
 def verificar_login():
     datos = request.get_json()
     try:
-        # 1. Obtener usuario de la base de datos
-        usuario = usuario_service.obtener_contrasena(datos['usuario'])[0]
-        if not usuario:
-            return jsonify({
-                "exito": False,
-                "mensaje": "Usuario no encontrado"
-            }), 404
-        
-        # 2. Verificar contraseña con bcrypt
-        if bcrypt.checkpw(datos['contrasena'].encode('utf-8'), usuario['Contrasena'].encode('utf-8')):
+        # Validar input básico
+        if not datos or 'usuario' not in datos or 'contrasena' not in datos:
+            return jsonify({"exito": False, "mensaje": "Se requiere usuario y contraseña"}), 400
+
+        # 1. Obtener usuario de la base de datos (proc devuelve una lista)
+        resultado = usuario_service.obtener_contrasena(datos['usuario'])
+        if not resultado or len(resultado) == 0:
+            return jsonify({"exito": False, "mensaje": "Usuario no encontrado"}), 404
+
+        usuario = resultado[0]
+
+        # Helper: obtener campo sin importar mayúsculas/minúsculas
+        def field_ci(obj: dict, field_name: str):
+            for k, v in obj.items():
+                if k.lower() == field_name.lower():
+                    return v
+            return None
+
+        # 2. Verificar contraseña con bcrypt (buscar el campo 'contrasena' de forma case-insensitive)
+        stored_hash = field_ci(usuario, 'contrasena')
+        if not stored_hash:
+            return jsonify({"exito": False, "mensaje": "Registro de usuario inválido (hash no encontrado)"}), 500
+
+        if bcrypt.checkpw(datos['contrasena'].encode('utf-8'), stored_hash.encode('utf-8')):
             # 3. Restablecer intentos si es necesario
             usuario_service.restablecer_intento(datos['usuario'])
             
             # 4. Generar nueva MAC (opcional)
             nueva_mac = generar_mac_aleatoria()
             usuario_service.actualizar_mac(datos['usuario'], nueva_mac)
-            
+            # Obtener id y estado de forma case-insensitive
+            id_usuario = field_ci(usuario, 'id') or field_ci(usuario, 'Id')
+            estado = field_ci(usuario, 'estado') or field_ci(usuario, 'Estado')
+
             return jsonify({
                 "exito": True,
                 "mensaje": "Login exitoso",
-                "id_usuario": usuario['Id'],
-                "estado": usuario['Estado'],
+                "id_usuario": id_usuario,
+                "estado": estado,
                 "MAC": nueva_mac
             })
         else:

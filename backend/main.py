@@ -66,7 +66,7 @@ def create_app():
             return resp
             
         # Verificar coincidencia de MAC
-        if unquote(MAC_cookie) != datos_usuario['MAC']:
+        if unquote(MAC_cookie) != datos_usuario['direccion_mac']:
             # MAC no coincide, posible sesión comprometida
             resp = make_response(redirect(url_for('login')))
             resp.delete_cookie("usuario")

@@ -157,12 +157,11 @@ CREATE TABLE tbl_venta_individual(
     ) REFERENCES tbl_productos (id),
     FOREIGN key (
         id_usuario
-    ) REFERENCEStbl_usuarios,
+    ) REFERENCES tbl_usuarios(id)
 );
 
---Crear la tabla para las compras en la tienda
-
-CREATE TABLE tbl_compras (
+-- Crear la tabla para las compras en la tienda
+CREATE TABLE tbl_compras(
     id mediumint unsigned AUTO_INCREMENT PRIMARY KEY,
     id_usuario tinyint unsigned,
     id_proveedor smallint unsigned,
@@ -201,7 +200,7 @@ CREATE TABLE tbl_compras_detalles (
 -- Creamos la tabla para las bonificaciones de las compras
 create TABLE tbl_bonificaciones (
     id_compra mediumint unsigned,
-    id_producto smallintunsigned,
+    id_producto smallint unsigned,
     cantidad decimal(9, 2),
     FOREIGN key (
         id_compra

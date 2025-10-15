@@ -5,10 +5,10 @@ CREATE PROCEDURE proc_obtener_contrasena (
     IN p_nombre_usuario varchar(50)
 ) BEGIN
 SELECT
-    u.id as Id,
-    u.contrasena as Contrasena,
-    e.descripcion as Estado,
-    u.direccion_mac as MAC
+    u.id,
+    u.contrasena,
+    e.descripcion as estado,
+    u.direccion_mac
 FROM
     tbl_usuarios u
 JOIN tbl_estados e ON u.estado = e.estado
@@ -125,10 +125,10 @@ END;
 
 CREATE PROCEDURE proc_mostrar_usuario () BEGIN
 SELECT
-    u.id AS Id,
-    u.nombre_usuario AS "Nombre Usuario",
-    u.intentos AS Intentos,
-    e.descripcion AS Descripcion
+    u.id,
+    u.nombre_usuario,
+    u.intentos,
+    e.descripcion as estado
 FROM
     tbl_usuarios u
     JOIN tbl_estados e ON e.estado = u.estado
@@ -208,16 +208,16 @@ CREATE PROCEDURE proc_obtener_productos_actualizados (
     IN p_tiempo_actualizacion TIMESTAMP
 ) BEGIN
 SELECT
-    p.id AS Id,
-    p.codigo_Barras AS CodigoBarras,
-    u.nombre AS Unidad,
-    c.nombre AS Categoria,
-    p.descripcion AS Descripcion,
-    p.precio_compra AS "Precio Compra",
-    p.precio_venta AS "Precio Venta",
-    p.stock AS Stock,
-    p.stock_minimo AS "Stock Minimo",
-    e.descripcion AS Estado
+    p.id,
+    p.codigo_Barras,
+    u.nombre AS unidad,
+    c.nombre AS categoria,
+    p.descripcion,
+    p.precio_compra,
+    p.precio_venta,
+    p.stock,
+    p.stock_minimo,
+    e.descripcion as 'estado'
 FROM
     tbl_productos p
     INNER JOIN tbl_unidades u ON u.id = p.id_unidad
@@ -237,16 +237,16 @@ CREATE PROCEDURE proc_mostrar_productos_paginado (
 )
 BEGIN
     SELECT
-        p.id AS Id,
-        p.codigo_Barras AS CodigoBarras,
-        u.nombre AS Unidad,
-        c.nombre AS Categoria,
-        p.descripcion AS Descripcion,
-        p.precio_compra AS "Precio Compra",
-        p.precio_venta AS "Precio Venta",
-        p.stock AS Stock,
-        p.stock_minimo AS "Stock Minimo",
-        e.descripcion AS Estado
+        p.id,
+        p.codigo_Barras,
+        u.nombre as unidad,
+        c.nombre AS categoria,
+        p.descripcion,
+        p.precio_compra,
+        p.precio_venta,
+        p.stock,
+        p.stock_minimo,
+        e.descripcion as estado
     FROM
         tbl_productos p
         INNER JOIN tbl_unidades u ON u.id = p.id_unidad
@@ -261,7 +261,7 @@ END;
 create procedure proc_productos_conteo()
 BEGIN
     SELECT
-        COUNT(*) AS Conteo
+        COUNT(*) AS conteo
     FROM
         tbl_productos;
 END;
@@ -419,10 +419,10 @@ END;
 -- Procedimientos almacenados para la tabla de clientes
 CREATE PROCEDURE proc_mostrar_clientes () BEGIN
 SELECT
-    c.id as Id,
-    c.documento as Documento,
-    c.nombre as Nombre,
-    e.descripcion as Estado
+    c.id,
+    c.documento,
+    c.nombre,
+    e.descripcion as estado
 FROM
     tbl_clientes c
     JOIN tbl_estados e ON c.estado = e.estado
@@ -504,10 +504,10 @@ END;
 -- Procedimientos para la tabla de proveedores
 CREATE PROCEDURE proc_mostrar_proveedores () BEGIN
 SELECT
-    p.id as Id,
-    p.ruc as RUC,
-    p.nombre as Nombre,
-    e.descripcion as Estado
+    p.id,
+    p.ruc,
+    p.nombre,
+    e.descripcion as estado
 FROM
     tbl_proveedores p
     JOIN tbl_estados e ON p.estado = e.estado
@@ -634,14 +634,14 @@ END;
 -- Procedimientos para las ventas
 CREATE PROCEDURE proc_mostrar_ventas () BEGIN
 SELECT
-    v.id as Id,
-    v.id_serie as 'Id Serie',
-    v.contador_serie as 'Contador Serie',
-    v.id_usuario as 'Id Usuario',
-    v.id_cliente as 'Id Cliente',
-    e.descripcion as 'Estado',
-    v.fecha as Fecha,
-    v.total as Total
+    v.id,
+    v.id_serie,
+    v.contador_serie,
+    v.id_usuario,
+    v.id_cliente,
+    e.descripcion as estado,
+    v.fecha,
+    v.total
 FROM
     tbl_ventas v
     JOIN tbl_estados e ON v.estado = e.estado
@@ -780,12 +780,12 @@ CREATE PROCEDURE proc_mostrar_venta_detalles (
     IN p_id_venta mediumint unsigned
 ) BEGIN
 SELECT
-    vd.id_venta as 'Id Venta',
-    vd.id_producto as 'Id Producto',
-    vd.cantidad as Cantidad,
-    vd.precio_venta as 'Precio Venta',
-    vd.descuento as Descuento,
-    e.descripcion as Estado
+    vd.id_venta,
+    vd.id_producto,
+    vd.cantidad,
+    vd.precio_venta,
+    vd.descuento,
+    e.descripcion as estado
 FROM
     tbl_venta_detalles vd
     JOIN tbl_estados e ON vd.estado = e.estado
@@ -910,15 +910,15 @@ CREATE PROCEDURE proc_mostrar_ventas_individuales (
 )
 BEGIN
     SELECT
-        vi.id AS 'ID', 
-        vi.id_producto AS 'ID Producto',
-        p.codigo_barras AS 'Código de Barras',
-        p.descripcion AS 'Descripcion',
-        vi.id_usuario AS 'ID Usuario',
-        u.nombre AS 'Vendedor',
-        vi.cantidad AS Cantidad,
-        vi.precio_venta AS 'Precio Venta',
-        vi.fecha_hora AS 'Fecha/Hora'
+        vi.id, 
+        vi.id_producto,
+        p.codigo_barras,
+        p.descripcion,
+        vi.id_usuario,
+        u.nombre,
+        vi.cantidad,
+        vi.precio_venta,
+        vi.fecha_hora
     FROM 
         tbl_venta_individual vi
         JOIN tbl_productos p ON vi.id_producto = p.id
@@ -934,7 +934,7 @@ CREATE PROCEDURE proc_insertar_venta_individual (
     p_id_usuario tinyint unsigned,
     p_cantidad decimal(9, 2),
     p_precio_Venta decimal(9, 2),
-    p_fecha_hora timestamp not null
+    p_fecha_hora timestamp
 ) BEGIN 
 DECLARE exit HANDLER FOR SQLEXCEPTION BEGIN ROLLBACK;
 select 'funciono el procedimiento';
@@ -1019,12 +1019,12 @@ END;
 CREATE PROCEDURE proc_mostrar_compras ()
 BEGIN
     SELECT
-        c.id as 'Id',
-        c.id_usuario as 'Id Usuario',
-        c.id_proveedor as 'Id Proveedor',
-        e.descripcion as 'Estado',
-        c.fecha_hora as 'Fecha y Hora',
-        c.total as Total
+        c.id,
+        c.id_usuario,
+        c.id_proveedor,
+        e.descripcion as estado,
+        c.fecha_hora,
+        c.total
     FROM
         tbl_compras c
         JOIN tbl_estados e ON c.estado = e.estado
@@ -1131,12 +1131,12 @@ CREATE PROCEDURE proc_mostrar_compra_detalles (
 )
 BEGIN
     SELECT
-        cd.id_compra as 'Id Compra',
-        cd.id_producto as 'Id Producto',
-        cd.cantidad as Cantidad,
-        cd.precio_compra as 'Precio Compra',
-        cd.descuento as Descuento,
-        e.descripcion as Estado
+        cd.id_compra,
+        cd.id_producto,
+        cd.cantidad,
+        cd.precio_compra,
+        cd.descuento,
+        e.descripcion as estado
     FROM
         tbl_compras_detalles cd
         JOIN tbl_estados e ON cd.estado = e.estado
@@ -1251,10 +1251,10 @@ CREATE PROCEDURE proc_mostrar_bonificaciones (
 )
 BEGIN
     SELECT
-        b.id_compra as 'Id Compra',
-        b.id_producto as 'Id Producto',
-        p.descripcion as 'Producto',
-        b.cantidad as 'Cantidad'
+        b.id_compra,
+        b.id_producto,
+        p.descripcion,
+        b.cantidad
     FROM
         tbl_bonificaciones b
         JOIN tbl_productos p ON b.id_producto = p.id
