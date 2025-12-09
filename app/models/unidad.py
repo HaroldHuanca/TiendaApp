@@ -26,3 +26,27 @@ def actualizar_unidad(id: int, nombre: str) -> None:
             {"p_id": id, "p_nombre": nombre}
         )
         db.commit()
+
+# ✅ Eliminar (alternar estado) de una unidad
+def eliminar_unidad(id_unidad: int) -> None:
+    with DatabaseManager() as db:
+        db.execute(
+            text("CALL proc_eliminar_unidad(:p_id)"),
+            {"p_id": id_unidad}
+        )
+        db.commit()
+
+# ✅ Mostrar unidades eliminadas
+def mostrar_unidades_eliminadas() -> List[Dict[str, Any]]:
+    with DatabaseManager() as db:
+        result = db.execute(text("CALL proc_mostrar_unidades_eliminadas()"))
+        return [dict(row._mapping) for row in result.fetchall()]
+
+# ✅ Restaurar una unidad
+def restaurar_unidad(id_unidad: int) -> None:
+    with DatabaseManager() as db:
+        db.execute(
+            text("CALL proc_restaurar_unidad(:p_id)"),
+            {"p_id": id_unidad}
+        )
+        db.commit()

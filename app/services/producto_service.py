@@ -95,3 +95,10 @@ def mostrar_productos_paginado(limit: int, offset: int) -> List[Dict[str, Any]]:
 
 def obtener_conteo_productos() -> int:
     return producto_model.obtener_conteo_productos()
+
+def mostrar_productos_eliminados() -> List[Dict[str, Any]]:
+    return producto_model.mostrar_productos_eliminados()
+
+def restaurar_producto(id_producto: int) -> None:
+    validar_id_smallint(id_producto, "ID de producto")
+    producto_model.restaurar_producto(id_producto)

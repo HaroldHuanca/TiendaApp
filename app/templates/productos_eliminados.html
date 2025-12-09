@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <h1 class="page-title">Productos Eliminados</h1>
+        <div class="page-actions">
+            <a href="{{ url_for('producto_bp.productos_lista') }}" class="btn btn-outline">
+                Volver a Lista
+            </a>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    {% if productos %}
+    <div class="data-table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Código Barras</th>
+                    <th>Descripción</th>
+                    <th>Categoría</th>
+                    <th>Unidad</th>
+                    <th>Precio Venta</th>
+                    <th>Stock</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr>
+                    <td>{{ producto.ID_Producto }}</td>
+                    <td>{{ producto.Codigo_Barras }}</td>
+                    <td>{{ producto.Descripcion }}</td>
+                    <td>{{ producto.Nombre_Categoria }}</td>
+                    <td>{{ producto.Nombre_Unidad }}</td>
+                    <td>S/ {{ "%.2f"|format(producto.Precio_Venta) }}</td>
+                    <td>{{ producto.Stock }}</td>
+                    <td>
+                        <form method="POST"
+                            action="{{ url_for('producto_bp.productos_restaurar', id_producto=producto.ID_Producto) }}"
+                            style="display: inline;">
+                            <button type="submit" class="btn btn-icon btn-restore" title="Restaurar">
+                                ♻️
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">✅</div>
+        <h3 class="empty-state-title">No hay productos eliminados</h3>
+        <p class="empty-state-message">Todos los productos están activos</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

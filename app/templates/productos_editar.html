@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <h1 class="page-title">Editar Producto</h1>
+    </div>
+
+    <form id="productoForm" method="PUT">
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label required">Código de Barras</label>
+                <input type="text" name="codigo_barras" class="form-control" value="{{ producto.Codigo_Barras }}"
+                    required maxlength="13">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">Descripción</label>
+                <input type="text" name="descripcion" class="form-control" value="{{ producto.Descripcion }}" required
+                    maxlength="1500">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label required">Categoría</label>
+                <select name="nombre_unidad" class="form-control" required>
+                    {% for categoria in categorias %}
+                    <option value="{{ categoria.ID_Categoria }}" {% if categoria.ID_Categoria==producto.ID_Categoria
+                        %}selected{% endif %}>
+                        {{ categoria.Nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">Unidad</label>
+                <select name="nombre_categoria" class="form-control" required>
+                    {% for unidad in unidades %}
+                    <option value="{{ unidad.ID_Unidad }}" {% if unidad.ID_Unidad==producto.ID_Unidad %}selected{% endif
+                        %}>
+                        {{ unidad.Nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label required">Precio de Compra</label>
+                <input type="number" name="precio_compra" class="form-control" value="{{ producto.Precio_Compra }}"
+                    step="0.01" min="0" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">Precio de Venta</label>
+                <input type="number" name="precio_venta" class="form-control" value="{{ producto.Precio_Venta }}"
+                    step="0.01" min="0" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label required">Stock</label>
+                <input type="number" name="stock" class="form-control" value="{{ producto.Stock }}" step="0.01" min="0"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">Stock Mínimo</label>
+                <input type="number" name="stock_minimo" class="form-control" value="{{ producto.Stock_Minimo }}"
+                    step="0.01" min="0" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label required">Estado</label>
+            <select name="descripcion_estado" class="form-control" required>
+                <option value="Activo" {% if producto.Descripcion_Estado=='Activo' %}selected{% endif %}>Activo</option>
+                <option value="Inactivo" {% if producto.Descripcion_Estado=='Inactivo' %}selected{% endif %}>Inactivo
+                </option>
+            </select>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('producto_bp.productos_lista') }}" class="btn btn-outline">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Actualizar Producto</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('productoForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const data = {
+            codigo_barras: formData.get('codigo_barras'),
+            nombre_categoria: parseInt(formData.get('nombre_categoria')),
+            nombre_unidad: parseInt(formData.get('nombre_unidad')),
+            descripcion: formData.get('descripcion'),
+            precio_compra: parseFloat(formData.get('precio_compra')),
+            precio_venta: parseFloat(formData.get('precio_venta')),
+            stock: parseFloat(formData.get('stock')),
+            stock_minimo: parseFloat(formData.get('stock_minimo')),
+            descripcion_estado: formData.get('descripcion_estado')
+        };
+
+        fetch('/actualizar_producto/{{ producto.ID_Producto }}', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.mensaje) {
+                    alert(data.mensaje);
+                    window.location.href = '{{ url_for("producto_bp.productos_lista") }}';
+                } else if (data.error) {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Error al actualizar el producto');
+                console.error('Error:', error);
+            });
+    });
+</script>
+{% endblock %}

@@ -17,3 +17,14 @@ def actualizar_unidad(id_unidad: int, nombre: str) -> None:
     validar_id_tinyint(id_unidad, "ID de la unidad")
     validar_descripcion(nombre, "Nombre de Unidad")
     unidad_model.actualizar_unidad(id_unidad, nombre)
+
+def eliminar_unidad(id_unidad: int) -> None:
+    validar_id_tinyint(id_unidad, "ID de la unidad")
+    unidad_model.eliminar_unidad(id_unidad)
+
+def mostrar_unidades_eliminadas() -> List[Dict[str, Any]]:
+    return unidad_model.mostrar_unidades_eliminadas()
+
+def restaurar_unidad(id_unidad: int) -> None:
+    validar_id_tinyint(id_unidad, "ID de la unidad")
+    unidad_model.restaurar_unidad(id_unidad)

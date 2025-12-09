@@ -1,0 +1,50 @@
+{%extends "base.html" %}
+{%block content %}
+<div class="card">
+    <div class="page-header">
+        <h1 class="page-title">Unidades</h1>
+        <div class="page-actions">
+            <a href="{{url_for('unidad_bp.unidades_eliminados')}}" class="btn btn-outline">Ver Eliminados</a>
+            <a href="{{url_for('unidad_bp.unidades_crear')}}" class="btn btn-primary">+ Nuevo/a</a>
+        </div>
+    </div>
+    {%with messages = get_flashed_messages(with_categories=true) %}
+        {%if messages%}{%for category, message in messages %}<div class="alert alert-{{category}}">{{message}}</div>{%endfor%}{%endif%}
+    {%endwith%}
+    {%if unidades %}
+        <div class="data-table-wrapper">
+            <table class="data-table">
+                <thead><tr><th>ID</th><th>Nombre</th><th>Acciones</th></tr></thead>
+                <tbody>
+                    {%for unidade in unidades %}
+                    <tr>
+                        <td>{{ unidade.ID_Unidad }}</td>
+                        <td>{{ unidade.Nombre }}</td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="{{url_for('unidad_bp.unidades_editar', id_unidade=unidade.ID_Unidad)}}" class="btn btn-icon btn-edit">✏️</a>
+                                <button onclick="eliminarUnidade({{ unidade.ID_Unidad }})" class="btn btn-icon btn-delete">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {%endfor%}
+                </tbody>
+            </table>
+        </div>
+    {%else%}
+        <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <h3 class="empty-state-title">No hay registros</h3>
+        </div>
+    {%endif%}
+</div>
+<script>
+function eliminarUnidade(id) {
+    if (confirm('¿Deseas eliminar este registro?')) {
+        fetch(`/eliminar_unidade/${id}`, {method: 'DELETE'})
+        .then(r => r.json())
+        .then(d => { if (d.mensaje) { alert(d.mensaje); location.reload(); } else if (d.error) { alert('Error: ' + d.error); } });
+    }
+}
+</script>
+{%endblock%}

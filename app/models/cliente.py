@@ -56,3 +56,18 @@ def eliminar_cliente(id_cliente: int) -> None:
             {"p_id": id_cliente}
         )
         db.commit()
+
+# ✅ Mostrar clientes eliminados
+def mostrar_clientes_eliminados() -> List[Dict[str, Any]]:
+    with DatabaseManager() as db:
+        result = db.execute(text("CALL proc_mostrar_clientes_eliminados()"))
+        return [dict(row._mapping) for row in result.fetchall()]
+
+# ✅ Restaurar un cliente
+def restaurar_cliente(id_cliente: int) -> None:
+    with DatabaseManager() as db:
+        db.execute(
+            text("CALL proc_restaurar_cliente(:p_id)"),
+            {"p_id": id_cliente}
+        )
+        db.commit()

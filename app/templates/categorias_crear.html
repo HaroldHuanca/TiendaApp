@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <h1 class="page-title">Crear Categoría</h1>
+    </div>
+
+    <form id="categoriaForm">
+        <div class="form-group">
+            <label class="form-label required">Nombre</label>
+            <input type="text" name="nombre" class="form-control" required maxlength="100">
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('categoria_bp.categorias_lista') }}" class="btn btn-outline">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Guardar Cate
+
+goría</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('categoriaForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const data = { nombre: formData.get('nombre') };
+
+    fetch('/insertar_categoria', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.mensaje) {
+            alert(data.mensaje);
+            window.location.href = '{{ url_for("categoria_bp.categorias_lista") }}';
+        } else if (data.error) {
+            alert('Error: ' + data.error);
+        }
+    });
+});
+</script>
+{% endblock %}

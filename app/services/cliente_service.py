@@ -40,3 +40,10 @@ def actualizar_cliente(id_cliente: int, documento: str, nombre: str, descripcion
 def eliminar_cliente(id_cliente: int) -> None:
     validar_id_smallint(id_cliente,"ID Cliente")
     cli.eliminar_cliente(id_cliente)
+
+def mostrar_clientes_eliminados() -> List[Dict[str, Any]]:
+    return cli.mostrar_clientes_eliminados()
+
+def restaurar_cliente(id_cliente: int) -> None:
+    validar_id_smallint(id_cliente,"ID Cliente")
+    cli.restaurar_cliente(id_cliente)

@@ -40,4 +40,10 @@ def actualizar_proveedor(id_proveedor: int, ruc: str, nombre: str, descripcion_e
 def eliminar_proveedor(id_proveedor: int) -> None:
     validar_id_smallint(id_proveedor, "ID del proveedor")
     proveedor_model.eliminar_proveedor(id_proveedor)
-"descripcion_estado"
+
+def mostrar_proveedores_eliminados() -> List[Dict[str, Any]]:
+    return proveedor_model.mostrar_proveedores_eliminados()
+
+def restaurar_proveedor(id_proveedor: int) -> None:
+    validar_id_smallint(id_proveedor, "ID del proveedor")
+    proveedor_model.restaurar_proveedor(id_proveedor)

@@ -27,3 +27,27 @@ def actualizar_categoria(id: int, nombre: str) -> None:
         )
         db.commit()
 
+# ✅ Eliminar (alternar estado) de una categoría
+def eliminar_categoria(id_categoria: int) -> None:
+    with DatabaseManager() as db:
+        db.execute(
+            text("CALL proc_eliminar_categoria(:p_id)"),
+            {"p_id": id_categoria}
+        )
+        db.commit()
+
+# ✅ Mostrar categorías eliminadas
+def mostrar_categorias_eliminadas() -> List[Dict[str, Any]]:
+    with DatabaseManager() as db:
+        result = db.execute(text("CALL proc_mostrar_categorias_eliminadas()"))
+        return [dict(row._mapping) for row in result.fetchall()]
+
+# ✅ Restaurar una categoría
+def restaurar_categoria(id_categoria: int) -> None:
+    with DatabaseManager() as db:
+        db.execute(
+            text("CALL proc_restaurar_categoria(:p_id)"),
+            {"p_id": id_categoria}
+        )
+        db.commit()
+

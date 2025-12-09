@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="page-header">
+        <h1 class="page-title">Categorías</h1>
+        <div class="page-actions">
+            <a href="{{ url_for('categoria_bp.categorias_eliminados') }}" class="btn btn-outline">Ver Eliminados</a>
+            <a href="{{ url_for('categoria_bp.categorias_crear') }}" class="btn btn-primary">+ Nueva Categoría</a>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if categorias %}
+        <div class="data-table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for categoria in categorias %}
+                    <tr>
+                        <td>{{ categoria.ID_Categoria }}</td>
+                        <td>{{ categoria.Nombre }}</td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="{{ url_for('categoria_bp.categorias_editar', id_categoria=categoria.ID_Categoria) }}" 
+                                   class="btn btn-icon btn-edit" title="Editar">✏️</a>
+                                <button onclick="eliminarCategoria({{ categoria.ID_Categoria }})" 
+                                        class="btn btn-icon btn-delete" title="Eliminar">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📁</div>
+            <h3 class="empty-state-title">No hay categorías registradas</h3>
+            <p class="empty-state-message">Comienza agregando tu primera categoría</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function eliminarCategoria(id) {
+    if (confirm('¿Estás seguro de que deseas eliminar esta categoría?')) {
+        fetch(`/api/eliminar_categoria/${id}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.mensaje) {
+                alert(data.mensaje);
+                location.reload();
+            } else if (data.error) {
+                alert('Error: ' + data.error);
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

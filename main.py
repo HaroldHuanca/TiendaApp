@@ -90,23 +90,23 @@ def create_app():
 
     @app.route('/clientes')
     def clientes_web():
-        return render_con_session("clientes.html")
+        return render_con_session("clientes_lista.html")
 
     @app.route('/proveedores')
     def proveedores_web():
-        return render_con_session("proveedores.html")
+        return render_con_session("proveedores_lista.html")
 
     @app.route('/categorias')
     def categorias_web():
-        return render_con_session("categorias.html")
+        return render_con_session("categorias_lista.html")
 
     @app.route('/unidades')
     def unidades_web():
-        return render_con_session("unidades.html")
+        return render_con_session("unidades_lista.html")
 
     @app.route('/productos')
     def productos_web():
-        return render_con_session("productos.html")
+        return render_con_session("productos_lista.html")
 
     @app.route('/ventas')
     def ventas_web():

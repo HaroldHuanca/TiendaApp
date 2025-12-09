@@ -132,4 +132,19 @@ def obtener_conteo_productos() -> int:
         _ = result.fetchall()
         return int(row[0]) if row else 0
 
+# ✅ Mostrar productos eliminados
+def mostrar_productos_eliminados() -> List[Dict[str, Any]]:
+    with DatabaseManager() as db:
+        result = db.execute(text("CALL proc_mostrar_productos_eliminados()"))
+        return [dict(row._mapping) for row in result.fetchall()]
+
+# ✅ Restaurar un producto (cambiar estado de Eliminado a Activo)
+def restaurar_producto(id_producto: int) -> None:
+    with DatabaseManager() as db:
+        db.execute(
+            text("CALL proc_restaurar_producto(:p_id)"),
+            {"p_id": id_producto}
+        )
+        db.commit()
+
 

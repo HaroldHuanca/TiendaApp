@@ -56,3 +56,18 @@ def eliminar_proveedor(id_proveedor: int) -> None:
             {"p_id": id_proveedor}
         )
         db.commit()
+
+# ✅ Mostrar proveedores eliminados
+def mostrar_proveedores_eliminados() -> List[Dict[str, Any]]:
+    with DatabaseManager() as db:
+        result = db.execute(text("CALL proc_mostrar_proveedores_eliminados()"))
+        return [dict(row._mapping) for row in result.fetchall()]
+
+# ✅ Restaurar un proveedor
+def restaurar_proveedor(id_proveedor: int) -> None:
+    with DatabaseManager() as db:
+        db.execute(
+            text("CALL proc_restaurar_proveedor(:p_id)"),
+            {"p_id": id_proveedor}
+        )
+        db.commit()

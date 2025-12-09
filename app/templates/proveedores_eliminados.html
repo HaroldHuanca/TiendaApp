@@ -1,0 +1,39 @@
+{%extends "base.html" %}
+{%block content %}
+<div class="card">
+    <div class="page-header">
+        <h1 class="page-title">Proveedores Eliminados</h1>
+        <div class="page-actions">
+            <a href="{{url_for('proveedor_bp.proveedores_lista')}}" class="btn btn-outline">Volver a Lista</a>
+        </div>
+    </div>
+    {%with messages = get_flashed_messages(with_categories=true) %}
+        {%if messages%}{%for category, message in messages %}<div class="alert alert-{{category}}">{{message}}</div>{%endfor%}{%endif%}
+    {%endwith%}
+    {%if proveedores %}
+        <div class="data-table-wrapper">
+            <table class="data-table">
+                <thead><tr><th>ID</th><th>RUC</th><th>Nombre</th><th>Acciones</th></tr></thead>
+                <tbody>
+                    {%for proveedore in proveedores %}
+                    <tr>
+                        <td>{{ proveedore.ID_Proveedor }}</td>
+                        <td>{{ proveedore.RUC }}</td><td>{{ proveedore.Nombre }}</td>
+                        <td>
+                            <form method="POST" action="{{url_for('proveedor_bp.proveedores_restaurar', id_proveedore=proveedore.ID_Proveedor)}}" style="display: inline;">
+                                <button type="submit" class="btn btn-icon btn-restore">♻️</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {%endfor%}
+                </tbody>
+            </table>
+        </div>
+    {%else%}
+        <div class="empty-state">
+            <div class="empty-state-icon">✅</div>
+            <h3 class="empty-state-title">No hay registros eliminados</h3>
+        </div>
+    {%endif%}
+</div>
+{%endblock%}
