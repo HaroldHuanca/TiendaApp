@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from typing import List, Dict, Any
-from app.database import DatabaseManager
+from database.connection import DatabaseManager
 
 # Mostramos las ventas indidividuales
 def mostrar_ventas_individuales(fecha: str) -> List[Dict[str, Any]]:

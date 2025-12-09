@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from typing import List, Dict, Any
-from app.database import DatabaseManager
+from database.connection import DatabaseManager
 
 # ✅ Mostrar todos los proveedores
 def mostrar_proveedores() -> List[Dict[str, Any]]:

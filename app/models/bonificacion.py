@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from typing import List, Dict, Any, Optional
-from app.database import DatabaseManager
+from database.connection import DatabaseManager
 
 # Mostrar bonificaciones de una compra
 def mostrar_bonificaciones(id_compra: int) -> List[Dict[str, Any]]:

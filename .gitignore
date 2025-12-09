@@ -1,31 +1,39 @@
 # Archivo .gitignore para un proyecto de Python
 
-# Ignorar la carpeta del Entorno Virtual
+# Entornos virtuales
 venv/
 env/
-*.venv
-*venv
-*env
-*.venv
-*.env
-*env
-*.env
+ENV/
+.venv
 
-# Ignorar carpetas de cache de Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.pyc
-*.pyo
-*.py[cod]
+# Archivos de sistema
+.DS_Store
+Thumbs.db
 
-# Ignorar archivos de entorno (que pueden contener contraseñas)
-.env
-
-#Ignorar carpeta de configuracion .vscode
+# Archivos de IDE
 .vscode/
 !/.vscode/extensions.json
+.idea/
+*.swp
+*.swo
 
-# Ignorar archivos compilados de Python
+# Caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
 
+# Archivos de base de datos locales
+*.db
+*.sqlite3
+
+# Archivos de logs
+*.log
+
+# Archivos de entorno (pueden contener contraseñas)
+.env
+
+# Archivos de bibliotecas externas (pueden descargarse con descargar_assets.sh)
+app/static/css/bootstrap.min.css
+app/static/js/bootstrap.bundle.min.js
+app/static/js/sweetalert2.all.min.js

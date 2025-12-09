@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from typing import List, Dict, Any
-from app.database import DatabaseManager
+from database.connection import DatabaseManager
 
 # ✅ Mostrar estados por nombre de tabla
 def mostrar_estados(nombre_tabla: str) -> List[Dict[str, Any]]:

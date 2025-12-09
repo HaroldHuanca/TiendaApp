@@ -97,6 +97,14 @@ def verificar_login():
                     return v
             return None
 
+        # 1.5. Verificar intentos disponibles ANTES de validar contraseña
+        intentos = field_ci(usuario, 'intentos')
+        if intentos is not None and intentos <= 0:
+            return jsonify({
+                "exito": False,
+                "mensaje": "Ya no tiene más intentos disponibles, contacte a su administrador."
+            }), 403
+
         # 2. Verificar contraseña con bcrypt (buscar el campo 'contrasena' de forma case-insensitive)
         stored_hash = field_ci(usuario, 'contrasena')
         if not stored_hash:
@@ -106,27 +114,38 @@ def verificar_login():
             # 3. Restablecer intentos si es necesario
             usuario_service.restablecer_intento(datos['usuario'])
             
-            # 4. Generar nueva MAC (opcional)
-            nueva_mac = generar_mac_aleatoria()
-            usuario_service.actualizar_mac(datos['usuario'], nueva_mac)
             # Obtener id y estado de forma case-insensitive
             id_usuario = field_ci(usuario, 'id') or field_ci(usuario, 'Id')
             estado = field_ci(usuario, 'estado') or field_ci(usuario, 'Estado')
+
+            # 4. Establecer sesión
+            from flask import session
+            session['usuario'] = datos['usuario']
+            session['id'] = id_usuario
+            session['estado'] = estado
 
             return jsonify({
                 "exito": True,
                 "mensaje": "Login exitoso",
                 "id_usuario": id_usuario,
-                "estado": estado,
-                "MAC": nueva_mac
+                "estado": estado
             })
         else:
-            # Reducir intentos fallidos
-            usuario_service.reducir_intento(datos['usuario'])
+            # Reducir intentos fallidos solo si tiene intentos disponibles
+            if intentos is not None and intentos > 0:
+                usuario_service.reducir_intento(datos['usuario'])
+                intentos_restantes = intentos - 1
+                
+                if intentos_restantes > 0:
+                    mensaje = f"Contraseña incorrecta. Le quedan {intentos_restantes} intentos."
+                else:
+                    mensaje = "Contraseña incorrecta. Este fue su último intento. Contacte a su administrador."
+            else:
+                mensaje = "Contraseña incorrecta."
             
             return jsonify({
                 "exito": False,
-                "mensaje": "Contraseña incorrecta"
+                "mensaje": mensaje
             }), 401
             
     except Exception as e:

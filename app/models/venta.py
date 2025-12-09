@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from typing import Optional, List, Dict, Any
-from app.database import DatabaseManager
+from database.connection import DatabaseManager
 
 # ✅ Mostrar todas las ventas
 def mostrar_ventas() -> List[Dict[str, Any]]:

@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from typing import List, Dict, Any
-from app.database import DatabaseManager
+from database.connection import DatabaseManager
 
 # ✅ Mostrar todos los clientes
 def mostrar_clientes() -> List[Dict[str, Any]]:

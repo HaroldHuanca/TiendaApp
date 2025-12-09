@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 from app.services.usuario_service import (
     mostrar_usuarios, insertar_usuario, actualizar_usuario, eliminar_usuario,
-    obtener_contrasena, reducir_intento, restablecer_intento, actualizar_mac
+    obtener_contrasena, reducir_intento, restablecer_intento
 )
 
 class TestUsuarioService(unittest.TestCase):

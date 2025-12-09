@@ -21,7 +21,7 @@ class TestUsuarioRoutes(unittest.TestCase):
         mock_service.insertar_usuario.return_value = 1
         response = self.client.post('/insetar_usuario', json={
             "nombre_usuario": "user", "contrasena": "pass", "correo": "mail", 
-            "direccion_mac": "mac", "descripcion_estado": "estado"
+            "descripcion_estado": "estado"
         })
         self.assertEqual(response.status_code, 201)
 

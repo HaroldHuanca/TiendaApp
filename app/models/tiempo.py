@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from typing import Optional
-from app.database import DatabaseManager
+from database.connection import DatabaseManager
 from datetime import datetime
 
 # ✅ Obtener la fecha y hora actual del servidor

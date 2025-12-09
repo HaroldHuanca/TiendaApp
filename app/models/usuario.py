@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from typing import Optional, List, Dict, Any, Tuple
-from app.database import DatabaseManager
+from database.connection import DatabaseManager
 
 # ✅ Reducir intentos
 def reducir_intento(nombre_usuario: str) -> None:
@@ -88,10 +88,3 @@ def obtener_contrasena(nombre_usuario: str) -> List[Dict[str, Any]]:
         rows = result.fetchall()
         return [dict(row._mapping) for row in rows]
     
-def actualizar_mac(nombre_usuario: str) -> None:
-    with DatabaseManager() as db:
-        db.execute(
-            text("CALL proc_actualizar_mac(:p_nombre_usuario)"),
-            {"p_nombre_usuario": nombre_usuario}
-        )
-        db.commit()

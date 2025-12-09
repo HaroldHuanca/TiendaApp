@@ -1,7 +1,6 @@
-from flask import Flask, render_template, request, make_response, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 from flask_cors import CORS
 import app.services.usuario_service as usuario_service
-from urllib.parse import unquote
 import os
 
 # Importación de blueprints
@@ -27,12 +26,11 @@ def create_app():
     static_dir = os.path.join(base_dir, 'app', 'static')
     
     app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
+    app.config['SECRET_KEY'] = 'super-clave-123456'  # cámbiala por una segura
+    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hora
     CORS(app)
-
-    # Configuración de seguridad recomendada
-    #app.config['SESSION_COOKIE_SECURE'] = True
-    #app.config['SESSION_COOKIE_HTTPONLY'] = True
-    #app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hora
     
     # Registro de blueprints
     app.register_blueprint(categoria_bp, url_prefix="/categorias")
@@ -50,83 +48,69 @@ def create_app():
     app.register_blueprint(compra_bp, url_prefix="/compras")
     app.register_blueprint(venta_individual_bp, url_prefix="/venta_individuales")
 
-    def render_con_cookie(template):
-        usuario_cookie = request.cookies.get("usuario")
-        id_cookie = request.cookies.get("id")
-        estado_cookie = request.cookies.get("estado")
-        MAC_cookie = request.cookies.get("MAC")
-        # Si no hay usuario en cookies, redirigir a login
-        if not usuario_cookie or not MAC_cookie:
+    def render_con_session(template):
+        """Renderiza un template verificando que el usuario tenga una sesión activa."""
+        # Verificar si hay un usuario en la sesión
+        if 'usuario' not in session:
             return redirect(url_for('login'))
-            
-        # Verificar datos del usuario
-        datos_usuario = usuario_service.obtener_contrasena(usuario_cookie)[0]
-        if not datos_usuario:
-            # Usuario no encontrado en la base de datos
-            resp = make_response(redirect(url_for('login')))
-            resp.delete_cookie("usuario")
-            resp.delete_cookie("id")
-            resp.delete_cookie("contrasena")
-            resp.delete_cookie("estado")
-            resp.delete_cookie("MAC")
-            return resp
-            
-        # Verificar coincidencia de MAC
-        if unquote(MAC_cookie) != datos_usuario['direccion_mac']:
-            # MAC no coincide, posible sesión comprometida
-            resp = make_response(redirect(url_for('login')))
-            resp.delete_cookie("usuario")
-            resp.delete_cookie("id")
-            resp.delete_cookie("contrasena")
-            resp.delete_cookie("estado")
-            resp.delete_cookie("MAC")
-            return resp
-            
-        # Todas las verificaciones pasaron, renderizar template
-        resp = make_response(render_template(
+        
+        # Verificar que el usuario existe en la base de datos
+        try:
+            resultado = usuario_service.obtener_contrasena(session['usuario'])
+            if not resultado or len(resultado) == 0:
+                # Usuario no encontrado, limpiar sesión
+                session.clear()
+                return redirect(url_for('login'))
+        except Exception:
+            # Error al verificar usuario, limpiar sesión
+            session.clear()
+            return redirect(url_for('login'))
+        
+        # Renderizar template con los datos de la sesión
+        return render_template(
             template,
-            usuario=usuario_cookie,
-            id=id_cookie,
-            estado=estado_cookie,
-            MAC=MAC_cookie
-        ))
-        resp.set_cookie("usuario", usuario_cookie)
-        resp.set_cookie("id", id_cookie)
-        resp.set_cookie("estado", estado_cookie)
-        resp.set_cookie("MAC", MAC_cookie)
-        return resp
+            usuario=session.get('usuario'),
+            id=session.get('id'),
+            estado=session.get('estado')
+        )
 
     @app.route("/login")
     def login():
         return render_template('login.html')
+    
+    @app.route("/logout")
+    def logout():
+        """Cierra la sesión del usuario."""
+        session.clear()
+        return redirect(url_for('login'))
 
     @app.route("/")
     def index():
-        return render_con_cookie("index.html")
+        return render_con_session("dashboard.html")
 
     @app.route('/clientes')
     def clientes_web():
-        return render_con_cookie("clientes.html")
+        return render_con_session("clientes.html")
 
     @app.route('/proveedores')
     def proveedores_web():
-        return render_con_cookie("proveedores.html")
+        return render_con_session("proveedores.html")
 
     @app.route('/categorias')
     def categorias_web():
-        return render_con_cookie("categorias.html")
+        return render_con_session("categorias.html")
 
     @app.route('/unidades')
     def unidades_web():
-        return render_con_cookie("unidades.html")
+        return render_con_session("unidades.html")
 
     @app.route('/productos')
     def productos_web():
-        return render_con_cookie("productos.html")
+        return render_con_session("productos.html")
 
     @app.route('/ventas')
     def ventas_web():
-        return render_con_cookie("ventas.html")
+        return render_con_session("ventas.html")
             
     return app
 

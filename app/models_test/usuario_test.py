@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
-from app.models.usuario import mostrar_usuarios, insertar_usuario, actualizar_usuario, eliminar_usuario, obtener_contrasena, reducir_intento, restablecer_intento, actualizar_mac
+from app.models.usuario import mostrar_usuarios, insertar_usuario, actualizar_usuario, eliminar_usuario, obtener_contrasena, reducir_intento, restablecer_intento
 
 class TestUsuarioModel(unittest.TestCase):
 
@@ -26,7 +26,7 @@ class TestUsuarioModel(unittest.TestCase):
         mock_cursor.fetchall.side_effect = [[(123,)], []]
         mock_cursor.nextset.return_value = False
 
-        result = insertar_usuario("user", "pass", "mail", "mac", "estado")
+        result = insertar_usuario("user", "pass", "mail", "estado")
         self.assertEqual(result, 123)
         mock_cursor.callproc.assert_called()
 
@@ -73,13 +73,6 @@ class TestUsuarioModel(unittest.TestCase):
         mock_db.execute.assert_called()
         mock_db.commit.assert_called()
 
-    @patch('app.models.usuario.DatabaseManager')
-    def test_actualizar_mac(self, MockDatabaseManager):
-        mock_db = MockDatabaseManager.return_value.__enter__.return_value
-        
-        actualizar_mac("user", "new_mac")
-        mock_db.execute.assert_called()
-        mock_db.commit.assert_called()
 
 if __name__ == '__main__':
     unittest.main()

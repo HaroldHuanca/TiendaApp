@@ -7,6 +7,7 @@ CREATE PROCEDURE proc_obtener_contrasena (
 SELECT
     u.id,
     u.contrasena,
+    u.intentos,
     e.descripcion as estado
 FROM
     tbl_usuarios u
@@ -22,7 +23,7 @@ CREATE PROCEDURE proc_reducir_intento (
 ) BEGIN
 UPDATE tbl_usuarios
 SET
-    intentos = (intentos - 1)
+    intentos = GREATEST(0, intentos - 1)
 WHERE
     nombre_usuario = p_nombre_usuario;
 

@@ -1,0 +1,43 @@
+<header class="header">
+    <div class="d-flex align-items-center">
+        <button class="btn btn-link d-md-none" id="sidebarToggle">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+        <h5 class="mb-0 ms-2">{% block page_title %}Dashboard{% endblock %}</h5>
+    </div>
+
+    <div class="d-flex align-items-center gap-3">
+        <!-- Notificaciones -->
+        <button class="btn btn-link position-relative">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                3
+            </span>
+        </button>
+
+        <!-- Usuario -->
+        <div class="dropdown">
+            <button class="btn btn-link dropdown-toggle d-flex align-items-center gap-2" type="button" id="userDropdown"
+                data-bs-toggle="dropdown">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                    style="width: 40px; height: 40px;">
+                    <strong>{{ usuario[0]|upper if usuario else 'U' }}</strong>
+                </div>
+                <span class="d-none d-md-inline">{{ usuario }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#">Mi Perfil</a></li>
+                <li><a class="dropdown-item" href="#">Configuración</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Cerrar Sesión</a></li>
+            </ul>
+        </div>
+    </div>
+</header>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+{% include 'components/head.html' %}
+
+<body>
+    <div class="main-wrapper">
+        <!-- Sidebar -->
+        {% include 'components/sidebar.html' %}
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <!-- Header -->
+            {% include 'components/header.html' %}
+
+            <!-- Navbar/Breadcrumb -->
+            {% include 'components/navbar.html' %}
+
+            <!-- Main Content -->
+            <main class="main-content">
+                {% block content %}
+                {% endblock %}
+            </main>
+
+            <!-- Footer -->
+            {% include 'components/footer.html' %}
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - TiendaApp{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Dashboard</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h2>¡Bienvenido, {{ usuario }}! 👋</h2>
+            </div>
+            <div class="card-body">
+                <p class="mb-4">Has iniciado sesión correctamente en el sistema.</p>
+
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <strong>Usuario:</strong> {{ usuario }}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>ID:</strong> {{ id }}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Estado:</strong>
+                        <span class="badge bg-success">{{ estado }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">150</h3>
+                <p class="mb-0 text-muted">Ventas del Mes</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">85</h3>
+                <p class="mb-0 text-muted">Productos</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-info">42</h3>
+                <p class="mb-0 text-muted">Clientes</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-warning">12</h3>
+                <p class="mb-0 text-muted">Proveedores</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Accesos Rápidos</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="/ventas" class="btn btn-primary w-100">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="me-2">
+                                <circle cx="9" cy="21" r="1" />
+                                <circle cx="20" cy="21" r="1" />
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                            </svg>
+                            Nueva Venta
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/productos" class="btn btn-secondary w-100">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="me-2">
+                                <path
+                                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                            </svg>
+                            Ver Productos
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/clientes" class="btn btn-info w-100">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="me-2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                            </svg>
+                            Ver Clientes
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/proveedores" class="btn btn-warning w-100">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="me-2">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="8.5" cy="7" r="4" />
+                            </svg>
+                            Ver Proveedores
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

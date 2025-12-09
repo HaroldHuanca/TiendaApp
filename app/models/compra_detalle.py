@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from typing import List, Dict, Any
-from app.database import DatabaseManager
+from database.connection import DatabaseManager
 
 # Mostrar detalles de una compra específica
 def mostrar_detalles_compra(id_compra: int) -> List[Dict[str, Any]]:

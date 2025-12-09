@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from typing import Optional, List, Dict, Any
-from app.database import DatabaseManager
+from database.connection import DatabaseManager
 
 # ✅ Obtener productos actualizados desde una fecha
 def obtener_productos_actualizados(tiempo_actualizacion: str) -> List[Dict[str, Any]]:

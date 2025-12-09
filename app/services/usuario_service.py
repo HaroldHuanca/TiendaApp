@@ -41,7 +41,7 @@ def insertar_usuario(nombre_usuario: str, contrasena: str, correo: str, descripc
     validar_correo(correo)
     validar_descripcion(descripcion_estado, "Descripcion Estado")
     
-    return usuario_model.insertar_usuario(nombre_usuario, contrasena, correo, direccion_mac, descripcion_estado)
+    return usuario_model.insertar_usuario(nombre_usuario, contrasena, correo, descripcion_estado)
 
 def actualizar_usuario(id_usuario: int, nombre_usuario: str, contrasena: str, descripcion_estado: str) -> None:
     validar_id_tinyint(id_usuario,"ID Usuario")
@@ -54,5 +54,4 @@ def eliminar_usuario(id_usuario: int) -> None:
     validar_id_tinyint(id_usuario,"ID Usuario")
     usuario_model.eliminar_usuario(id_usuario)
     
-def actualizar_mac(id_usuario: str) -> None:
-    validar_nombre_usuario(id_usuario)
+
