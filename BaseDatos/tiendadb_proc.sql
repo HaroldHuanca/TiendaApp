@@ -7,8 +7,7 @@ CREATE PROCEDURE proc_obtener_contrasena (
 SELECT
     u.id,
     u.contrasena,
-    e.descripcion as estado,
-    u.direccion_mac
+    e.descripcion as estado
 FROM
     tbl_usuarios u
 JOIN tbl_estados e ON u.estado = e.estado
@@ -17,16 +16,6 @@ WHERE
     u.nombre_usuario = p_nombre_usuario;
 END;
 
-CREATE PROCEDURE proc_actualizar_mac (
-    IN p_nombre_usuario varchar (50),
-    IN p_direccion_mac char(17)
-) BEGIN
-    UPDATE tbl_usuarios
-SET
-    direccion_mac = p_direccion_mac
-WHERE
-    nombre_usuario = p_nombre_usuario;
-END;
 
 CREATE PROCEDURE proc_reducir_intento (
     IN p_nombre_usuario varchar(50)
@@ -54,7 +43,6 @@ CREATE PROCEDURE proc_insertar_usuario (
     IN p_nombre_usuario varchar(50),
     IN p_contrasena varchar(255),
     IN p_correo varchar(100),
-    IN p_direccion_mac char(17),
     IN p_descripcion_estado varchar(100)
 )
 BEGIN
@@ -71,13 +59,11 @@ BEGIN
         nombre_usuario,
         contrasena,
         correo,
-        direccion_mac,
         estado
     ) VALUES (
         p_nombre_usuario,
         p_contrasena,
         p_correo,
-        p_direccion_mac,
         p_estado
     );
 

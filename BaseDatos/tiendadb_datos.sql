@@ -3,13 +3,13 @@ USE tiendadb;
 
 -- Insertar un usuario administrador
 INSERT INTO
-    tbl_usuarios (nombre_usuario, contrasena, correo, direccion_mac)
+    tbl_usuarios (nombre_usuario, contrasena, correo)
 VALUES
-    ('admin', '$2b$12$zgW83/y9YyMlqBN31ydCHengRCPx.oBtxDRXFhyJi4.38x4oTnHUy', 'lordarien3456@gmail.com', '20:16:d8:11:3e:8c'),
-    ('usuario1', '$2b$12$WAcEH9vYv7sUWSO6WQ7WX.WhzYb4tq56ywPOi7CrfrJ.leaLkBsgW', 'usuario1@gmail.com', '20:16:d8:11:3e:8c'),
-    ('usuario2', '$2b$12$WAcEH9vYv7sUWSO6WQ7WX.WhzYb4tq56ywPOi7CrfrJ.leaLkBsgW', 'usuario2@gmail.com', '20:16:d8:11:3e:8c'),
-    ('usuario3', '$2b$12$WAcEH9vYv7sUWSO6WQ7WX.WhzYb4tq56ywPOi7CrfrJ.leaLkBsgW', 'usuario3@gmail.com', '20:16:d8:11:3e:8c'),
-    ('usuario4', '$2b$12$WAcEH9vYv7sUWSO6WQ7WX.WhzYb4tq56ywPOi7CrfrJ.leaLkBsgW', 'usuario4@gmail.com', '20:16:d8:11:3e:8c');
+    ('admin', '$2b$12$zgW83/y9YyMlqBN31ydCHengRCPx.oBtxDRXFhyJi4.38x4oTnHUy', 'lordarien3456@gmail.com'),
+    ('usuario1', '$2b$12$WAcEH9vYv7sUWSO6WQ7WX.WhzYb4tq56ywPOi7CrfrJ.leaLkBsgW', 'usuario1@gmail.com'),
+    ('usuario2', '$2b$12$WAcEH9vYv7sUWSO6WQ7WX.WhzYb4tq56ywPOi7CrfrJ.leaLkBsgW', 'usuario2@gmail.com'),
+    ('usuario3', '$2b$12$WAcEH9vYv7sUWSO6WQ7WX.WhzYb4tq56ywPOi7CrfrJ.leaLkBsgW', 'usuario3@gmail.com'),
+    ('usuario4', '$2b$12$WAcEH9vYv7sUWSO6WQ7WX.WhzYb4tq56ywPOi7CrfrJ.leaLkBsgW', 'usuario4@gmail.com');
 
 INSERT INTO
     `tbl_categorias`

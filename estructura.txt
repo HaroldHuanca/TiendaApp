@@ -1,0 +1,42 @@
+tu_proyecto/
+│── main.py
+│── config.py
+│── requirements.txt
+│
+├── app/
+│   ├── __init__.py
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   ├── productos_routes.py
+│   │   ├── usuarios_routes.py
+│   │   └── proveedores_routes.py
+│   │
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── producto.py
+│   │   ├── usuario.py
+│   │   └── proveedor.py
+│   │
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── producto_service.py
+│   │   ├── usuario_service.py
+│   │   └── proveedor_service.py
+│   │
+│   ├── templates/
+│   │   ├── base.html
+│   │   ├── productos.html
+│   │   ├── usuarios.html
+│   │   └── proveedores.html
+│   │
+│   └── static/
+│       ├── css/
+│       │   └── estilos.css
+│       ├── js/
+│       │   └── app.js
+│       └── img/
+│           └── logo.png
+│
+└── database/
+    ├── __init__.py
+    └── connection.py
