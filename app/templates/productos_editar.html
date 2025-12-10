@@ -10,13 +10,13 @@
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label required">Código de Barras</label>
-                <input type="text" name="codigo_barras" class="form-control" value="{{ producto.Codigo_Barras }}"
+                <input type="text" name="codigo_barras" class="form-control" value="{{ producto.codigo_Barras }}"
                     required maxlength="13">
             </div>
 
             <div class="form-group">
                 <label class="form-label required">Descripción</label>
-                <input type="text" name="descripcion" class="form-control" value="{{ producto.Descripcion }}" required
+                <input type="text" name="descripcion" class="form-control" value="{{ producto.descripcion }}" required
                     maxlength="1500">
             </div>
         </div>
@@ -24,10 +24,10 @@
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label required">Categoría</label>
-                <select name="nombre_unidad" class="form-control" required>
+                <select name="nombre_categoria" class="form-control" required>
+                    <option value="">Seleccione una categoría</option>
                     {% for categoria in categorias %}
-                    <option value="{{ categoria.ID_Categoria }}" {% if categoria.ID_Categoria==producto.ID_Categoria
-                        %}selected{% endif %}>
+                    <option value="{{ categoria.Nombre }}" {% if categoria.Nombre == producto.categoria %}selected{% endif %}>
                         {{ categoria.Nombre }}
                     </option>
                     {% endfor %}
@@ -36,10 +36,10 @@
 
             <div class="form-group">
                 <label class="form-label required">Unidad</label>
-                <select name="nombre_categoria" class="form-control" required>
+                <select name="nombre_unidad" class="form-control" required>
+                    <option value="">Seleccione una unidad</option>
                     {% for unidad in unidades %}
-                    <option value="{{ unidad.ID_Unidad }}" {% if unidad.ID_Unidad==producto.ID_Unidad %}selected{% endif
-                        %}>
+                    <option value="{{ unidad.Nombre }}" {% if unidad.Nombre == producto.unidad %}selected{% endif %}>
                         {{ unidad.Nombre }}
                     </option>
                     {% endfor %}
@@ -50,13 +50,13 @@
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label required">Precio de Compra</label>
-                <input type="number" name="precio_compra" class="form-control" value="{{ producto.Precio_Compra }}"
+                <input type="number" name="precio_compra" class="form-control" value="{{ producto.precio_compra }}"
                     step="0.01" min="0" required>
             </div>
 
             <div class="form-group">
                 <label class="form-label required">Precio de Venta</label>
-                <input type="number" name="precio_venta" class="form-control" value="{{ producto.Precio_Venta }}"
+                <input type="number" name="precio_venta" class="form-control" value="{{ producto.precio_venta }}"
                     step="0.01" min="0" required>
             </div>
         </div>
@@ -64,13 +64,13 @@
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label required">Stock</label>
-                <input type="number" name="stock" class="form-control" value="{{ producto.Stock }}" step="0.01" min="0"
+                <input type="number" name="stock" class="form-control" value="{{ producto.stock }}" step="0.01" min="0"
                     required>
             </div>
 
             <div class="form-group">
                 <label class="form-label required">Stock Mínimo</label>
-                <input type="number" name="stock_minimo" class="form-control" value="{{ producto.Stock_Minimo }}"
+                <input type="number" name="stock_minimo" class="form-control" value="{{ producto.stock_minimo }}"
                     step="0.01" min="0" required>
             </div>
         </div>
@@ -78,9 +78,8 @@
         <div class="form-group">
             <label class="form-label required">Estado</label>
             <select name="descripcion_estado" class="form-control" required>
-                <option value="Activo" {% if producto.Descripcion_Estado=='Activo' %}selected{% endif %}>Activo</option>
-                <option value="Inactivo" {% if producto.Descripcion_Estado=='Inactivo' %}selected{% endif %}>Inactivo
-                </option>
+                <option value="ACTIVO" {% if producto.estado == 'ACTIVO' %}selected{% endif %}>Activo</option>
+                <option value="INACTIVO" {% if producto.estado == 'INACTIVO' %}selected{% endif %}>Inactivo</option>
             </select>
         </div>
 
@@ -98,8 +97,8 @@
         const formData = new FormData(this);
         const data = {
             codigo_barras: formData.get('codigo_barras'),
-            nombre_categoria: parseInt(formData.get('nombre_categoria')),
-            nombre_unidad: parseInt(formData.get('nombre_unidad')),
+            nombre_categoria: formData.get('nombre_categoria'),
+            nombre_unidad: formData.get('nombre_unidad'),
             descripcion: formData.get('descripcion'),
             precio_compra: parseFloat(formData.get('precio_compra')),
             precio_venta: parseFloat(formData.get('precio_venta')),
@@ -108,7 +107,7 @@
             descripcion_estado: formData.get('descripcion_estado')
         };
 
-        fetch('/actualizar_producto/{{ producto.ID_Producto }}', {
+        fetch('/productos/actualizar_producto/{{ producto.id }}', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Consumo API Usuarios</title>
+</head>
+<body>
+    <h1>Prueba de API con JavaScript</h1>
+
+    <button onclick="getUsuarios()">GET Usuarios</button>
+    <button onclick="crearUsuario()">POST Crear</button>
+    <button onclick="actualizarUsuario()">PUT Actualizar</button>
+    <button onclick="eliminarUsuario()">DELETE Eliminar</button>
+
+    <pre id="output"></pre>
+
+    <script>
+        // Use ruta relativa para que funcione tanto si se sirve desde el mismo servidor
+        // como desde otro origen (CORS está habilitado en el servidor de prueba).
+        const API = "/usuarios";
+
+        // -------------------------------------
+        // GET: obtener todos los usuarios
+        // -------------------------------------
+        function getUsuarios() {
+            fetch(API)
+                .then(res => res.json())
+                .then(data => mostrar(data));
+        }
+
+        // -------------------------------------
+        // POST: crear un usuario
+        // -------------------------------------
+        function crearUsuario() {
+            fetch(API, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({nombre: "Nuevo Usuario"})
+            })
+            .then(res => res.json())
+            .then(data => mostrar(data));
+        }
+
+        // -------------------------------------
+        // PUT: actualizar usuario id = 1
+        // -------------------------------------
+        function actualizarUsuario() {
+            fetch(`${API}/1`, {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({nombre: "Nombre actualizado"})
+            })
+            .then(res => res.json())
+            .then(data => mostrar(data));
+        }
+
+        // -------------------------------------
+        // DELETE: eliminar usuario id = 2
+        // -------------------------------------
+        function eliminarUsuario() {
+            fetch(`${API}/2`, {
+                method: "DELETE"
+            })
+            .then(res => res.json())
+            .then(data => mostrar(data));
+        }
+
+        // Mostrar salida
+        function mostrar(data) {
+            document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+        }
+    </script>
+</body>
+</html>

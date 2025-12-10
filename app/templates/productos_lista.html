@@ -45,28 +45,28 @@
             <tbody>
                 {% for producto in productos %}
                 <tr>
-                    <td>{{ producto.ID_Producto }}</td>
-                    <td>{{ producto.Codigo_Barras }}</td>
-                    <td>{{ producto.Descripcion }}</td>
-                    <td>{{ producto.Nombre_Categoria }}</td>
-                    <td>{{ producto.Nombre_Unidad }}</td>
-                    <td>S/ {{ "%.2f"|format(producto.Precio_Compra) }}</td>
-                    <td>S/ {{ "%.2f"|format(producto.Precio_Venta) }}</td>
-                    <td>{{ producto.Stock }}</td>
-                    <td>{{ producto.Stock_Minimo }}</td>
+                    <td>{{ producto.id }}</td>
+                    <td>{{ producto.codigo_Barras }}</td>
+                    <td>{{ producto.descripcion }}</td>
+                    <td>{{ producto.categoria }}</td>
+                    <td>{{ producto.unidad }}</td>
+                    <td>S/ {{ "%.2f"|format(producto.precio_compra|float) }}</td>
+                    <td>S/ {{ "%.2f"|format(producto.precio_venta|float) }}</td>
+                    <td>{{ producto.stock }}</td>
+                    <td>{{ producto.stock_minimo }}</td>
                     <td>
                         <span
-                            class="badge badge-{{ 'success' if producto.Descripcion_Estado == 'Activo' else 'danger' }}">
-                            {{ producto.Descripcion_Estado }}
+                            class="badge badge-{{ 'success' if producto.estado == 'ACTIVO' else 'danger' }}">
+                            {{ producto.estado }}
                         </span>
                     </td>
                     <td>
                         <div class="table-actions">
-                            <a href="{{ url_for('producto_bp.productos_editar', id_producto=producto.ID_Producto) }}"
+                            <a href="{{ url_for('producto_bp.productos_editar', id_producto=producto.id) }}"
                                 class="btn btn-icon btn-edit" title="Editar">
                                 ✏️
                             </a>
-                            <button onclick="eliminarProducto({{ producto.ID_Producto }})"
+                            <button onclick="eliminarProducto({{ producto.id }})"
                                 class="btn btn-icon btn-delete" title="Eliminar">
                                 🗑️
                             </button>

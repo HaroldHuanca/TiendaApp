@@ -39,16 +39,16 @@
             <tbody>
                 {% for producto in productos %}
                 <tr>
-                    <td>{{ producto.ID_Producto }}</td>
-                    <td>{{ producto.Codigo_Barras }}</td>
-                    <td>{{ producto.Descripcion }}</td>
-                    <td>{{ producto.Nombre_Categoria }}</td>
-                    <td>{{ producto.Nombre_Unidad }}</td>
-                    <td>S/ {{ "%.2f"|format(producto.Precio_Venta) }}</td>
-                    <td>{{ producto.Stock }}</td>
+                    <td>{{ producto.id }}</td>
+                    <td>{{ producto.codigo_Barras }}</td>
+                    <td>{{ producto.descripcion }}</td>
+                    <td>{{ producto.categoria }}</td>
+                    <td>{{ producto.unidad }}</td>
+                    <td>S/ {{ "%.2f"|format(producto.precio_venta|float) }}</td>
+                    <td>{{ producto.stock }}</td>
                     <td>
                         <form method="POST"
-                            action="{{ url_for('producto_bp.productos_restaurar', id_producto=producto.ID_Producto) }}"
+                            action="{{ url_for('producto_bp.productos_restaurar', id_producto=producto.id) }}"
                             style="display: inline;">
                             <button type="submit" class="btn btn-icon btn-restore" title="Restaurar">
                                 ♻️
