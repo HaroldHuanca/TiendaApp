@@ -188,7 +188,7 @@
      * Guardar unidad (crear o actualizar)
      */
     async function guardarUnidad() {
-        const nombre = inputNombre.value.trim();
+        const nombre = inputNombre.value.trim().toUpperCase();
 
         if (!nombre) {
             Swal.fire({

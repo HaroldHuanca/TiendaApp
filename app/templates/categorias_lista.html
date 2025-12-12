@@ -188,7 +188,7 @@
      * Guardar categoría (crear o actualizar)
      */
     async function guardarCategoria() {
-        const nombre = inputNombre.value.trim();
+        const nombre = inputNombre.value.trim().toUpperCase();
 
         if (!nombre) {
             Swal.fire({
