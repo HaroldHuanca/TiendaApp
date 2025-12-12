@@ -1,50 +1,286 @@
-{%extends "base.html" %}
-{%block content %}
+{% extends "base.html" %}
+
+{% block content %}
+<!-- SweetAlert2 CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.all.min.js"></script>
+
+<!-- Modal -->
+{% include 'components/modal_unidad.html' %}
+
 <div class="card">
     <div class="page-header">
         <h1 class="page-title">Unidades</h1>
         <div class="page-actions">
-            <a href="{{url_for('unidad_bp.unidades_eliminados')}}" class="btn btn-outline">Ver Eliminados</a>
-            <a href="{{url_for('unidad_bp.unidades_crear')}}" class="btn btn-primary">+ Nuevo/a</a>
+            <button class="btn btn-primary" onclick="abrirModalNueva()">+ Nueva Unidad</button>
         </div>
     </div>
-    {%with messages = get_flashed_messages(with_categories=true) %}
-        {%if messages%}{%for category, message in messages %}<div class="alert alert-{{category}}">{{message}}</div>{%endfor%}{%endif%}
-    {%endwith%}
-    {%if unidades %}
-        <div class="data-table-wrapper">
-            <table class="data-table">
-                <thead><tr><th>ID</th><th>Nombre</th><th>Acciones</th></tr></thead>
-                <tbody>
-                    {%for unidade in unidades %}
-                    <tr>
-                        <td>{{ unidade.ID_Unidad }}</td>
-                        <td>{{ unidade.Nombre }}</td>
-                        <td>
-                            <div class="table-actions">
-                                <a href="{{url_for('unidad_bp.unidades_editar', id_unidade=unidade.ID_Unidad)}}" class="btn btn-icon btn-edit">✏️</a>
-                                <button onclick="eliminarUnidade({{ unidade.ID_Unidad }})" class="btn btn-icon btn-delete">🗑️</button>
-                            </div>
-                        </td>
-                    </tr>
-                    {%endfor%}
-                </tbody>
-            </table>
-        </div>
-    {%else%}
-        <div class="empty-state">
-            <div class="empty-state-icon">📋</div>
-            <h3 class="empty-state-title">No hay registros</h3>
-        </div>
-    {%endif%}
+
+    <!-- Buscador de Unidades -->
+    <div style="margin-bottom: 20px;">
+        <input 
+            type="text" 
+            id="filtroNombre" 
+            class="form-control" 
+            placeholder="🔍 Buscar unidad por nombre..."
+            style="padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius); width: 100%;"
+        >
+    </div>
+
+    <!-- Tabla Responsiva -->
+    <div class="data-table-wrapper" id="div-tabla">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-tabla">
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Estado Vacío -->
+    <div class="empty-state" id="div-vacio" style="display: none;">
+        <div class="empty-state-icon">📏</div>
+        <h3 class="empty-state-title">No hay unidades registradas</h3>
+        <p class="empty-state-message">Comienza agregando tu primera unidad</p>
+    </div>
 </div>
+
 <script>
-function eliminarUnidade(id) {
-    if (confirm('¿Deseas eliminar este registro?')) {
-        fetch(`/eliminar_unidade/${id}`, {method: 'DELETE'})
-        .then(r => r.json())
-        .then(d => { if (d.mensaje) { alert(d.mensaje); location.reload(); } else if (d.error) { alert('Error: ' + d.error); } });
+    // Variables globales
+    const API_URL = `${window.location.origin}/unidades`;
+    let unidadActual = null;
+    let todasLasUnidades = []; // Guardar todas las unidades para filtrar
+    
+    // Referencias a los elementos del DOM
+    const tablaBody = document.getElementById('tbody-tabla');
+    const divTabla = document.getElementById('div-tabla');
+    const divVacio = document.getElementById('div-vacio');
+    const modal = document.getElementById('modalUnidad');
+    const modalTitulo = document.getElementById('modalTitulo');
+    const formUnidad = document.getElementById('formUnidad');
+    const inputNombre = document.getElementById('nombreUnidad');
+    const filtroNombre = document.getElementById('filtroNombre');
+
+    /**
+     * Función para crear una fila de tabla a partir de un objeto de unidad.
+     */
+    function crearFila(unidad) {
+        return `
+            <tr>
+                <td>${unidad.id}</td>
+                <td>${unidad.nombre}</td>
+                <td>
+                    <div class="table-actions">
+                        <button class="btn btn-icon btn-edit" title="Editar" onclick="abrirModalEditar(${unidad.id}, '${unidad.nombre.replace(/'/g, "&apos;")}')" style="background: none; border: none; color: var(--info-color); cursor: pointer; font-size: 1.25rem;">✏️</button>
+                    </div>
+                </td>
+            </tr>
+        `;
     }
-}
+
+    /**
+     * Renderizar tabla con las unidades filtradas
+     */
+    function renderizarTabla(unidades) {
+        if (Array.isArray(unidades) && unidades.length > 0) {
+            const filasHTML = unidades.map(crearFila).join('');
+            tablaBody.innerHTML = filasHTML;
+            divTabla.style.display = 'block';
+            divVacio.style.display = 'none';
+        } else {
+            tablaBody.innerHTML = '';
+            divTabla.style.display = 'none';
+            if (todasLasUnidades.length === 0) {
+                divVacio.innerHTML = `<div class="empty-state-icon">📏</div>
+                                      <h3 class="empty-state-title">No hay unidades registradas</h3>
+                                      <p class="empty-state-message">Comienza agregando tu primera unidad</p>`;
+            } else {
+                divVacio.innerHTML = `<div class="empty-state-icon">🔍</div>
+                                      <h3 class="empty-state-title">Sin resultados</h3>
+                                      <p class="empty-state-message">No hay unidades que coincidan con tu búsqueda</p>`;
+            }
+            divVacio.style.display = 'block';
+        }
+    }
+
+    /**
+     * Cargar y renderizar las unidades desde la API.
+     */
+    async function cargarUnidades() {
+        try {
+            const response = await fetch(`${API_URL}/mostrar_unidades`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error en la API: ${response.status} ${response.statusText}`);
+            }
+
+            todasLasUnidades = await response.json();
+            filtroNombre.value = ''; // Limpiar filtro
+            renderizarTabla(todasLasUnidades);
+        } catch (error) {
+            console.error('Error al cargar las unidades:', error);
+            divTabla.style.display = 'none';
+            divVacio.innerHTML = `<div class="empty-state-icon">⚠️</div>
+                                  <h3 class="empty-state-title">Error de Conexión</h3>
+                                  <p class="empty-state-message">No se pudieron cargar los datos. Intenta nuevamente.</p>`;
+            divVacio.style.display = 'block';
+        }
+    }
+
+    /**
+     * Filtrar unidades por nombre
+     */
+    function filtrarUnidades(termino) {
+        if (!termino.trim()) {
+            renderizarTabla(todasLasUnidades);
+            return;
+        }
+
+        const terminoLower = termino.toLowerCase();
+        const unidadesFiltradas = todasLasUnidades.filter(unidad => 
+            unidad.nombre.toLowerCase().includes(terminoLower)
+        );
+        renderizarTabla(unidadesFiltradas);
+    }
+
+    /**
+     * Abrir modal para crear nueva unidad
+     */
+    function abrirModalNueva() {
+        unidadActual = null;
+        modalTitulo.textContent = 'Nueva Unidad';
+        inputNombre.value = '';
+        inputNombre.focus();
+        modal.classList.add('active');
+    }
+
+    /**
+     * Abrir modal para editar unidad existente
+     */
+    function abrirModalEditar(id, nombre) {
+        unidadActual = { id, nombre };
+        modalTitulo.textContent = 'Editar Unidad';
+        inputNombre.value = nombre;
+        inputNombre.focus();
+        modal.classList.add('active');
+    }
+
+    /**
+     * Cerrar el modal
+     */
+    function cerrarModal() {
+        modal.classList.remove('active');
+        unidadActual = null;
+        inputNombre.value = '';
+    }
+
+    /**
+     * Guardar unidad (crear o actualizar)
+     */
+    async function guardarUnidad() {
+        const nombre = inputNombre.value.trim();
+
+        if (!nombre) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campo Requerido',
+                text: 'Por favor ingresa el nombre de la unidad',
+                confirmButtonText: 'Ok'
+            });
+            return;
+        }
+
+        try {
+            let response;
+            let endpoint;
+
+            if (unidadActual) {
+                // Actualizar unidad existente
+                endpoint = `${API_URL}/actualizar_unidad/${unidadActual.id}`;
+                response = await fetch(endpoint, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nombre })
+                });
+            } else {
+                // Crear nueva unidad
+                endpoint = `${API_URL}/insertar_unidad`;
+                response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nombre })
+                });
+            }
+
+            const data = await response.json();
+
+            if (response.ok) {
+                cerrarModal();
+                cargarUnidades();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: data.mensaje || 'Operación completada exitosamente',
+                    confirmButtonText: 'Ok',
+                    timer: 2000,
+                    timerProgressBar: true
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.error || 'Error al guardar la unidad',
+                    confirmButtonText: 'Ok'
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al guardar la unidad. Intenta nuevamente.',
+                confirmButtonText: 'Ok'
+            });
+        }
+    }
+
+    // Ejecutar cuando el DOM esté cargado
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarUnidades();
+        
+        // Event listener para el filtro
+        filtroNombre.addEventListener('input', function(e) {
+            filtrarUnidades(e.target.value);
+        });
+    });
+
+    // Cerrar modal al hacer clic fuera
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            cerrarModal();
+        }
+    });
+
+    // Permitir guardar con Enter en el input
+    inputNombre.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            guardarUnidad();
+        }
+    });
 </script>
-{%endblock%}
+{% endblock %}

@@ -12,9 +12,6 @@
             <!-- Header -->
             {% include 'components/header.html' %}
 
-            <!-- Navbar/Breadcrumb -->
-            {% include 'components/navbar.html' %}
-
             <!-- Main Content -->
             <main class="main-content">
                 {% block content %}
@@ -25,6 +22,11 @@
             {% include 'components/footer.html' %}
         </div>
     </div>
+
+    <!-- Bootstrap Bundle JS (necesario para componentes interactivos) -->
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 
 </html>

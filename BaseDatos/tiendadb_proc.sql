@@ -128,7 +128,9 @@ CREATE PROCEDURE proc_mostrar_categoria () BEGIN
 SELECT
     *
 FROM
-    tbl_categorias;
+    tbl_categorias
+ORDER BY
+    id DESC;
 END;
 
 CREATE PROCEDURE proc_insertar_categoria (
@@ -164,8 +166,9 @@ CREATE PROCEDURE proc_mostrar_unidad () BEGIN
 SELECT
     *
 FROM
-    tbl_unidades;
-
+    tbl_unidades
+ORDER BY
+    id DESC;
 END;
 
 CREATE PROCEDURE proc_insertar_unidad (

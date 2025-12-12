@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from flask_cors import CORS
 import app.services.usuario_service as usuario_service
 import os
+from config import LANConfig
 
 # Importación de blueprints
 from app.routes.categoria_routes import categoria_bp
@@ -26,11 +27,14 @@ def create_app():
     static_dir = os.path.join(base_dir, 'app', 'static')
     
     app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
-    app.config['SECRET_KEY'] = 'super-clave-123456'  # cámbiala por una segura
-    app.config['SESSION_COOKIE_SECURE'] = True
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hora
-    CORS(app)
+
+    # Cargar configuración para LAN
+    app.config.from_object(LANConfig)
+
+    # Habilitar CORS para permitir peticiones desde la LAN (preflight incluida)
+    # Se permite cualquier origen para facilitar el uso en red local; si necesitas
+    # credenciales (cookies/sesión) reemplaza '*' por orígenes específicos.
+    CORS(app, resources={r"/*": {"origins": "*"}})
     
     # Registro de blueprints
     app.register_blueprint(categoria_bp, url_prefix="/categorias")
@@ -83,6 +87,11 @@ def create_app():
         """Cierra la sesión del usuario."""
         session.clear()
         return redirect(url_for('login'))
+
+    @app.route("/test-sidebar")
+    def test_sidebar():
+        """Página de test para el sidebar móvil (sin requiere sesión)"""
+        return render_template('test_sidebar.html', usuario='Test', id='0', estado='activo')
 
     @app.route("/")
     def index():

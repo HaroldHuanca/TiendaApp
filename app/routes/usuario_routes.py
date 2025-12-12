@@ -120,6 +120,7 @@ def verificar_login():
 
             # 4. Establecer sesión
             from flask import session
+            session.permanent = True  # Hacer la sesión permanente
             session['usuario'] = datos['usuario']
             session['id'] = id_usuario
             session['estado'] = estado

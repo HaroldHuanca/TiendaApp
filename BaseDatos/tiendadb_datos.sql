@@ -6,10 +6,10 @@ INSERT INTO
     tbl_usuarios (nombre_usuario, contrasena, correo)
 VALUES
     ('admin', '$2b$12$zgW83/y9YyMlqBN31ydCHengRCPx.oBtxDRXFhyJi4.38x4oTnHUy', 'lordarien3456@gmail.com'),
-    ('usuario1', '$2b$12$WAcEH9vYv7sUWSO6WQ7WX.WhzYb4tq56ywPOi7CrfrJ.leaLkBsgW', 'usuario1@gmail.com'),
-    ('usuario2', '$2b$12$WAcEH9vYv7sUWSO6WQ7WX.WhzYb4tq56ywPOi7CrfrJ.leaLkBsgW', 'usuario2@gmail.com'),
-    ('usuario3', '$2b$12$WAcEH9vYv7sUWSO6WQ7WX.WhzYb4tq56ywPOi7CrfrJ.leaLkBsgW', 'usuario3@gmail.com'),
-    ('usuario4', '$2b$12$WAcEH9vYv7sUWSO6WQ7WX.WhzYb4tq56ywPOi7CrfrJ.leaLkBsgW', 'usuario4@gmail.com');
+    ('usuario1', '$2b$12$Gopdh0jl5FPsWRXywp1YYOzRvtX.pDguUV8lHdtj6z3QfxVfyKO8i', 'usuario1@gmail.com'),
+    ('usuario2', '$2b$12$Gopdh0jl5FPsWRXywp1YYOzRvtX.pDguUV8lHdtj6z3QfxVfyKO8i', 'usuario2@gmail.com'),
+    ('usuario3', '$2b$12$Gopdh0jl5FPsWRXywp1YYOzRvtX.pDguUV8lHdtj6z3QfxVfyKO8i', 'usuario3@gmail.com'),
+    ('usuario4', '$2b$12$Gopdh0jl5FPsWRXywp1YYOzRvtX.pDguUV8lHdtj6z3QfxVfyKO8i', 'usuario4@gmail.com');
 
 INSERT INTO
     `tbl_categorias`

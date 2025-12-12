@@ -1,47 +1,73 @@
 {% extends "base.html" %}
 
 {% block content %}
+<!-- SweetAlert2 CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.all.min.js"></script>
+
+<!-- Modal -->
+{% include 'components/modal_categoria.html' %}
+
 <div class="card">
     <div class="page-header">
         <h1 class="page-title">Categorías</h1>
         <div class="page-actions">
-            <a href="{{ url_for('productos_web') }}" class="btn btn-outline">Ver Productos</a>
-            <a href="{{ url_for('ventas_web') }}" class="btn btn-primary">+ Nueva Venta</a>
+            <button class="btn btn-primary" onclick="abrirModalNueva()">+ Nueva Categoría</button>
         </div>
     </div>
-        <div class="data-table-wrapper" id="div-tabla">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="tbody-tabla">
-                    </tbody>
-            </table>
-        </div>
-        <div class="empty-state" id="div-vacio" style="display: none;">
-            <div class="empty-state-icon">📁</div>
-            <h3 class="empty-state-title">No hay categorías registradas</h3>
-            <p class="empty-state-message">Comienza agregando tu primera categoría</p>
-        </div>
+
+    <!-- Buscador de Categorías -->
+    <div style="margin-bottom: 20px;">
+        <input 
+            type="text" 
+            id="filtroNombre" 
+            class="form-control" 
+            placeholder="🔍 Buscar categoría por nombre..."
+            style="padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius); width: 100%;"
+        >
+    </div>
+
+    <!-- Tabla Responsiva -->
+    <div class="data-table-wrapper" id="div-tabla">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-tabla">
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Estado Vacío -->
+    <div class="empty-state" id="div-vacio" style="display: none;">
+        <div class="empty-state-icon">📁</div>
+        <h3 class="empty-state-title">No hay categorías registradas</h3>
+        <p class="empty-state-message">Comienza agregando tu primera categoría</p>
+    </div>
 </div>
 
 <script>
-    // 1. Definición de la URL de la API
-    const API_URL = 'http://localhost:5000/categorias/mostrar_categorias';
+    // Variables globales
+    const API_URL = `${window.location.origin}/categorias`;
+    let categoriaActual = null;
+    let todasLasCategorias = []; // Guardar todas las categorías para filtrar
     
-    // 2. Obtención de referencias a los elementos del DOM
+    // Referencias a los elementos del DOM
     const tablaBody = document.getElementById('tbody-tabla');
     const divTabla = document.getElementById('div-tabla');
     const divVacio = document.getElementById('div-vacio');
+    const modal = document.getElementById('modalCategoria');
+    const modalTitulo = document.getElementById('modalTitulo');
+    const formCategoria = document.getElementById('formCategoria');
+    const inputNombre = document.getElementById('nombreCategoria');
+    const filtroNombre = document.getElementById('filtroNombre');
 
     /**
-     * Función para crear una fila de tabla (<tr>) a partir de un objeto de categoría.
-     * @param {Object} categoria - Un objeto de categoría con propiedades 'id' y 'nombre'.
-     * @returns {string} El HTML de la fila de la tabla.
+     * Función para crear una fila de tabla a partir de un objeto de categoría.
      */
     function crearFila(categoria) {
         return `
@@ -50,9 +76,7 @@
                 <td>${categoria.nombre}</td>
                 <td>
                     <div class="table-actions">
-                        <a href="#" class="btn btn-icon btn-edit" title="Editar">✏️</a>
-                        <button onclick="eliminarCategoria(${categoria.id})" 
-                                class="btn btn-icon btn-delete" title="Eliminar">🗑️</button>
+                        <button class="btn btn-icon btn-edit" title="Editar" onclick="abrirModalEditar(${categoria.id}, '${categoria.nombre.replace(/'/g, "&apos;")}')" style="background: none; border: none; color: var(--info-color); cursor: pointer; font-size: 1.25rem;">✏️</button>
                     </div>
                 </td>
             </tr>
@@ -60,65 +84,205 @@
     }
 
     /**
-     * Función principal para cargar y renderizar las categorías.
+     * Renderizar tabla con las categorías filtradas
+     */
+    function renderizarTabla(categorias) {
+        if (Array.isArray(categorias) && categorias.length > 0) {
+            const filasHTML = categorias.map(crearFila).join('');
+            tablaBody.innerHTML = filasHTML;
+            divTabla.style.display = 'block';
+            divVacio.style.display = 'none';
+        } else {
+            tablaBody.innerHTML = '';
+            divTabla.style.display = 'none';
+            if (todasLasCategorias.length === 0) {
+                divVacio.innerHTML = `<div class="empty-state-icon">📁</div>
+                                      <h3 class="empty-state-title">No hay categorías registradas</h3>
+                                      <p class="empty-state-message">Comienza agregando tu primera categoría</p>`;
+            } else {
+                divVacio.innerHTML = `<div class="empty-state-icon">🔍</div>
+                                      <h3 class="empty-state-title">Sin resultados</h3>
+                                      <p class="empty-state-message">No hay categorías que coincidan con tu búsqueda</p>`;
+            }
+            divVacio.style.display = 'block';
+        }
+    }
+
+    /**
+     * Cargar y renderizar las categorías desde la API.
      */
     async function cargarCategorias() {
         try {
-            // Realiza la petición GET a la API
-            const response = await fetch(API_URL, {
+            const response = await fetch(`${API_URL}/mostrar_categorias`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
 
-            // Verifica si la respuesta es exitosa
             if (!response.ok) {
-                // Lanza un error si el estado HTTP no es 200 (OK)
                 throw new Error(`Error en la API: ${response.status} ${response.statusText}`);
             }
 
-            // Parsea la respuesta JSON
-            const data = await response.json();
-            
-            // Verifica si la data es un array y si tiene elementos
-            if (Array.isArray(data) && data.length > 0) {
-                // Hay datos: Llenar la tabla
-                const filasHTML = data.map(crearFila).join('');
-                tablaBody.innerHTML = filasHTML;
-                
-                // Mostrar la tabla y ocultar el estado vacío
-                divTabla.style.display = 'block';
-                divVacio.style.display = 'none';
-
-            } else {
-                // No hay datos (array vacío o no es un array válido)
-                tablaBody.innerHTML = ''; // Limpiar por seguridad
-                
-                // Ocultar la tabla y mostrar el estado vacío
-                divTabla.style.display = 'none';
-                divVacio.style.display = 'block';
-            }
-            
+            todasLasCategorias = await response.json();
+            filtroNombre.value = ''; // Limpiar filtro
+            renderizarTabla(todasLasCategorias);
         } catch (error) {
             console.error('Error al cargar las categorías:', error);
-            // Mostrar un mensaje de error al usuario si la API falla
             divTabla.style.display = 'none';
             divVacio.innerHTML = `<div class="empty-state-icon">⚠️</div>
                                   <h3 class="empty-state-title">Error de Conexión</h3>
-                                  <p class="empty-state-message">No se pudieron cargar los datos. Revisa la consola para más detalles.</p>`;
+                                  <p class="empty-state-message">No se pudieron cargar los datos. Intenta nuevamente.</p>`;
             divVacio.style.display = 'block';
         }
     }
 
-    // Ejecutar la función cuando el DOM esté completamente cargado
-    document.addEventListener('DOMContentLoaded', cargarCategorias);
+    /**
+     * Filtrar categorías por nombre
+     */
+    function filtrarCategorias(termino) {
+        if (!termino.trim()) {
+            renderizarTabla(todasLasCategorias);
+            return;
+        }
 
-    // ************ FUNCIÓN DE EJEMPLO PARA LA ACCIÓN DE ELIMINAR ************
-    function eliminarCategoria(id) {
-        alert(`Implementar la lógica de eliminación para el ID: ${id}`);
-        // Después de la eliminación exitosa, deberías llamar a cargarCategorias() nuevamente
-        // para actualizar la tabla: cargarCategorias();
+        const terminoLower = termino.toLowerCase();
+        const categoriasFiltradas = todasLasCategorias.filter(cat => 
+            cat.nombre.toLowerCase().includes(terminoLower)
+        );
+        renderizarTabla(categoriasFiltradas);
     }
+
+    /**
+     * Abrir modal para crear nueva categoría
+     */
+    function abrirModalNueva() {
+        categoriaActual = null;
+        modalTitulo.textContent = 'Nueva Categoría';
+        inputNombre.value = '';
+        inputNombre.focus();
+        modal.classList.add('active');
+    }
+
+    /**
+     * Abrir modal para editar categoría existente
+     */
+    function abrirModalEditar(id, nombre) {
+        categoriaActual = { id, nombre };
+        modalTitulo.textContent = 'Editar Categoría';
+        inputNombre.value = nombre;
+        inputNombre.focus();
+        modal.classList.add('active');
+    }
+
+    /**
+     * Cerrar el modal
+     */
+    function cerrarModal() {
+        modal.classList.remove('active');
+        categoriaActual = null;
+        inputNombre.value = '';
+    }
+
+    /**
+     * Guardar categoría (crear o actualizar)
+     */
+    async function guardarCategoria() {
+        const nombre = inputNombre.value.trim();
+
+        if (!nombre) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campo Requerido',
+                text: 'Por favor ingresa el nombre de la categoría',
+                confirmButtonText: 'Ok'
+            });
+            return;
+        }
+
+        try {
+            let response;
+            let endpoint;
+            let esNueva = false;
+
+            if (categoriaActual) {
+                // Actualizar categoría existente
+                endpoint = `${API_URL}/actualizar_categoria/${categoriaActual.id}`;
+                response = await fetch(endpoint, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nombre })
+                });
+            } else {
+                // Crear nueva categoría
+                endpoint = `${API_URL}/insertar_categoria`;
+                response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nombre })
+                });
+                esNueva = true;
+            }
+
+            const data = await response.json();
+
+            if (response.ok) {
+                cerrarModal();
+                cargarCategorias();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: data.mensaje || 'Operación completada exitosamente',
+                    confirmButtonText: 'Ok',
+                    timer: 2000,
+                    timerProgressBar: true
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.error || 'Error al guardar la categoría',
+                    confirmButtonText: 'Ok'
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al guardar la categoría. Intenta nuevamente.',
+                confirmButtonText: 'Ok'
+            });
+        }
+    }
+
+    // Ejecutar cuando el DOM esté cargado
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarCategorias();
+        
+        // Event listener para el filtro
+        filtroNombre.addEventListener('input', function(e) {
+            filtrarCategorias(e.target.value);
+        });
+    });
+
+    // Cerrar modal al hacer clic fuera
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            cerrarModal();
+        }
+    });
+
+    // Permitir guardar con Enter en el input
+    inputNombre.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            guardarCategoria();
+        }
+    });
 </script>
 {% endblock %}
