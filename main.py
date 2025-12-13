@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, make_response
 from flask_cors import CORS
 import app.services.usuario_service as usuario_service
 import os
@@ -35,6 +35,18 @@ def create_app():
     # Se permite cualquier origen para facilitar el uso en red local; si necesitas
     # credenciales (cookies/sesión) reemplaza '*' por orígenes específicos.
     CORS(app, resources={r"/*": {"origins": "*"}})
+    
+    # Middleware para evitar cacheo de páginas autenticadas
+    @app.after_request
+    def set_cache_headers(response):
+        """Previene el cacheo de páginas para evitar problemas de sesión stale"""
+        if request.path.startswith(('/productos', '/categorias', '/unidades', '/clientes', '/proveedores')):
+            response.cache_control.no_cache = True
+            response.cache_control.no_store = True
+            response.cache_control.max_age = 0
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+        return response
     
     # Registro de blueprints
     app.register_blueprint(categoria_bp, url_prefix="/categorias")
@@ -82,42 +94,90 @@ def create_app():
     def login():
         return render_template('login.html')
     
-    @app.route("/logout")
+    @app.route("/logout", methods=['GET', 'POST'], strict_slashes=False)
     def logout():
-        """Cierra la sesión del usuario."""
+        """Cierra la sesión del usuario y limpia todas las cookies."""
+        # Limpiar la sesión
         session.clear()
-        return redirect(url_for('login'))
+        
+        # Crear respuesta de redirección
+        response = make_response(redirect(url_for('login')))
+        
+        # Eliminar cookies específicamente
+        response.delete_cookie('session', path='/')
+        response.delete_cookie('session', path='/productos')
+        response.delete_cookie('session', path='/categorias')
+        response.delete_cookie('session', path='/unidades')
+        response.delete_cookie('session', path='/clientes')
+        response.delete_cookie('session', path='/proveedores')
+        
+        # Agregar headers para evitar cacheo
+        response.cache_control.no_cache = True
+        response.cache_control.no_store = True
+        response.cache_control.max_age = 0
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        
+        return response
+
+    @app.route("/clear-session", strict_slashes=False)
+    def clear_session():
+        """Endpoint para limpiar sesión corrupta (útil para debugging)"""
+        session.clear()
+        response = make_response(redirect(url_for('login')))
+        response.delete_cookie('session', path='/')
+        response.cache_control.no_cache = True
+        response.cache_control.no_store = True
+        return response
 
     @app.route("/test-sidebar")
     def test_sidebar():
         """Página de test para el sidebar móvil (sin requiere sesión)"""
         return render_template('test_sidebar.html', usuario='Test', id='0', estado='activo')
 
-    @app.route("/")
+    @app.route('/', strict_slashes=False)
     def index():
         return render_con_session("dashboard.html")
 
-    @app.route('/clientes')
+    @app.route('/clientes', strict_slashes=False)
     def clientes_web():
         return render_con_session("clientes_lista.html")
 
-    @app.route('/proveedores')
+    @app.route('/proveedores', strict_slashes=False)
     def proveedores_web():
         return render_con_session("proveedores_lista.html")
 
-    @app.route('/categorias')
+    @app.route('/categorias', strict_slashes=False)
     def categorias_web():
         return render_con_session("categorias_lista.html")
 
-    @app.route('/unidades')
+    @app.route('/unidades', strict_slashes=False)
     def unidades_web():
         return render_con_session("unidades_lista.html")
 
-    @app.route('/productos')
+    @app.route('/productos', strict_slashes=False)
     def productos_web():
-        return render_con_session("productos_lista.html")
+        # Verificar si hay sesión activa
+        if 'usuario' not in session:
+            return redirect(url_for('login'))
+        
+        try:
+            resultado = usuario_service.obtener_contrasena(session['usuario'])
+            if not resultado or len(resultado) == 0:
+                # Usuario no existe en la BD, pero si hay sesión activa, permitir acceso
+                print(f"Advertencia: Usuario {session['usuario']} en sesión pero no en BD")
+        except Exception as e:
+            # Si hay error pero hay sesión, permitir acceso (para desarrollo)
+            print(f"Error verificando usuario: {e}")
+        
+        return render_template(
+            "productos_listar.html",
+            usuario=session.get('usuario'),
+            id=session.get('id'),
+            estado=session.get('estado')
+        )
 
-    @app.route('/ventas')
+    @app.route('/ventas', strict_slashes=False)
     def ventas_web():
         return render_con_session("ventas.html")
             

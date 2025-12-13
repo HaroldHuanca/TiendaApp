@@ -1,0 +1,276 @@
+<!-- Modal para Crear/Editar Productos -->
+<div id="modalProducto" class="modal">
+    <div class="modal-overlay" onclick="cerrarModalProducto()"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTituloProducto">Nuevo Producto</h3>
+            <button class="modal-close" onclick="cerrarModalProducto()">&times;</button>
+        </div>
+        <form id="formProducto" class="modal-body">
+            <!-- Código de Barras -->
+            <div class="form-group">
+                <label for="codigoBarras" class="form-label">Código de Barras</label>
+                <input 
+                    type="text" 
+                    id="codigoBarras" 
+                    class="form-control" 
+                    placeholder="Ej: 1234567890123"
+                    required
+                >
+                <small id="mensajeCodigoBarras" style="color: #e74c3c; display: none;"></small>
+            </div>
+
+            <!-- Nombre de Unidad -->
+            <div class="form-group">
+                <label for="nombreUnidad" class="form-label">Unidad de Medida</label>
+                <select id="nombreUnidad" class="form-control" required>
+                    <option value="">-- Seleccionar Unidad --</option>
+                </select>
+            </div>
+
+            <!-- Nombre de Categoría -->
+            <div class="form-group">
+                <label for="nombreCategoria" class="form-label">Categoría</label>
+                <select id="nombreCategoria" class="form-control" required>
+                    <option value="">-- Seleccionar Categoría --</option>
+                </select>
+            </div>
+
+            <!-- Descripción -->
+            <div class="form-group">
+                <label for="descripcion" class="form-label">Descripción</label>
+                <input 
+                    type="text" 
+                    id="descripcion" 
+                    class="form-control" 
+                    placeholder="Ej: Descripción del producto"
+                    required
+                >
+            </div>
+
+            <!-- Precio de Compra -->
+            <div class="form-group">
+                <label for="precioCompra" class="form-label">Precio de Compra</label>
+                <input 
+                    type="number" 
+                    id="precioCompra" 
+                    class="form-control" 
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                    required
+                >
+            </div>
+
+            <!-- Precio de Venta -->
+            <div class="form-group">
+                <label for="precioVenta" class="form-label">Precio de Venta</label>
+                <input 
+                    type="number" 
+                    id="precioVenta" 
+                    class="form-control" 
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                    required
+                >
+            </div>
+
+            <!-- Stock -->
+            <div class="form-group">
+                <label for="stock" class="form-label">Stock</label>
+                <input 
+                    type="number" 
+                    id="stock" 
+                    class="form-control" 
+                    placeholder="0"
+                    step="0.01"
+                    min="0"
+                    required
+                >
+            </div>
+
+            <!-- Stock Mínimo -->
+            <div class="form-group">
+                <label for="stockMinimo" class="form-label">Stock Mínimo</label>
+                <input 
+                    type="number" 
+                    id="stockMinimo" 
+                    class="form-control" 
+                    placeholder="0"
+                    step="0.01"
+                    min="0"
+                    required
+                >
+            </div>
+
+            <!-- Estado -->
+            <div class="form-group">
+                <label for="descriptionEstado" class="form-label">Estado</label>
+                <select id="descriptionEstado" class="form-control" required>
+                    <option value="">-- Seleccionar Estado --</option>
+                </select>
+            </div>
+        </form>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="cerrarModalProducto()">Cancelar</button>
+            <button type="button" class="btn btn-primary" onclick="guardarProducto()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal {
+        display: none !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2000;
+    }
+
+    .modal.active {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+    }
+
+    .modal-content {
+        position: relative;
+        background-color: var(--bg-secondary);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-xl);
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--spacing-lg);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-header h3 {
+        margin: 0;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 2rem;
+        cursor: pointer;
+        color: var(--text-secondary);
+        padding: 0;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s ease;
+    }
+
+    .modal-close:hover {
+        color: var(--text-primary);
+    }
+
+    .modal-body {
+        padding: var(--spacing-lg);
+    }
+
+    .form-group {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: var(--spacing-xs);
+        color: var(--text-primary);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 1rem;
+        transition: border-color 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--spacing-md);
+        padding: var(--spacing-lg);
+        border-top: 1px solid var(--border-color);
+    }
+
+    .btn {
+        padding: var(--spacing-sm) var(--spacing-lg);
+        border: none;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+    }
+
+    .btn-outline {
+        background-color: transparent;
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-outline:hover {
+        background-color: var(--bg-secondary);
+        border-color: var(--primary-color);
+    }
+</style>
