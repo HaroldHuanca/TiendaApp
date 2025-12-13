@@ -93,6 +93,9 @@ def buscar_id_por_codigo_barras(codigo_barras: str) -> int:
 def mostrar_productos_paginado(limit: int, offset: int) -> List[Dict[str, Any]]:
     return producto_model.mostrar_productos_paginado(limit, offset)
 
+def obtener_productos_por_filtro(filtro: str) -> List[Dict[str, Any]]:
+    return producto_model.obtener_productos_por_filtro(filtro)
+    
 def obtener_conteo_productos() -> int:
     return producto_model.obtener_conteo_productos()
 
@@ -102,3 +105,7 @@ def mostrar_productos_eliminados() -> List[Dict[str, Any]]:
 def restaurar_producto(id_producto: int) -> None:
     validar_id_smallint(id_producto, "ID de producto")
     producto_model.restaurar_producto(id_producto)
+
+def obtener_producto_por_id(id_producto: int) -> Dict[str, Any]:
+    validar_id_smallint(id_producto, "ID de producto")
+    return producto_model.obtener_producto_por_id(id_producto)

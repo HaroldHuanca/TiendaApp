@@ -66,6 +66,14 @@ def buscar_id_producto(codigo_barras):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+@producto_bp.route('/obtener_productos_por_filtro/<string:filtro>', methods=['GET'])
+def obtener_productos_por_filtro(filtro):
+    try:
+        productos = producto_service.obtener_productos_por_filtro(filtro)
+        return jsonify(productos), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 @producto_bp.route('/mostrar_productos_paginado', methods=['GET'])
 def obtener_productos_paginado():
     try:
@@ -94,6 +102,17 @@ def obtener_conteo_productos():
     try:
         conteo = producto_service.obtener_conteo_productos()
         return jsonify({"total": conteo}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@producto_bp.route('/obtener_producto/<int:id_producto>', methods=['GET'])
+def obtener_producto(id_producto):
+    try:
+        producto = producto_service.obtener_producto_por_id(id_producto)
+        if producto:
+            return jsonify(producto), 200
+        else:
+            return jsonify({"error": "Producto no encontrado"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 

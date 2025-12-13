@@ -18,13 +18,9 @@
 
     <!-- Buscador de Productos -->
     <div style="margin-bottom: 20px;">
-        <input 
-            type="text" 
-            id="filtroNombre" 
-            class="form-control" 
+        <input type="text" id="filtroNombre" class="form-control"
             placeholder="🔍 Buscar producto por nombre o código..."
-            style="padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius); width: 100%;"
-        >
+            style="padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius); width: 100%;">
     </div>
 
     <!-- Tabla Responsiva -->
@@ -58,7 +54,8 @@
     <!-- Paginación -->
     <div class="pagination-wrapper" id="div-paginacion" style="display: none;">
         <div class="pagination-info">
-            <span>Mostrando <strong id="info-desde">1</strong> a <strong id="info-hasta">20</strong> de <strong id="info-total">0</strong> productos</span>
+            <span>Mostrando <strong id="info-desde">1</strong> a <strong id="info-hasta">20</strong> de <strong
+                    id="info-total">0</strong> productos</span>
         </div>
         <div class="pagination-controls">
             <button class="btn btn-outline" onclick="paginaAnterior()" id="btn-anterior">← Anterior</button>
@@ -74,13 +71,13 @@
     const ESTADO_API_URL = `${window.location.origin}/estados`;
     const CATEGORIA_API_URL = `${window.location.origin}/categorias`;
     const UNIDAD_API_URL = `${window.location.origin}/unidades`;
-    
+
     let productoActual = null;
     let todosLosProductos = []; // Para filtrar
     let paginaActual = 1;
     let limitPorPagina = 20;
     let totalProductos = 0;
-    
+
     // Referencias a los elementos del DOM
     const tablaBody = document.getElementById('tbody-tabla');
     const divTabla = document.getElementById('div-tabla');
@@ -157,15 +154,17 @@
 
             const data = await response.json();
             const productos = data.productos || [];
-            
+
             // Cargar total de productos
             await cargarTotalProductos();
-            
+
             renderizarTabla(productos);
             actualizarPaginacion(pagina, productos.length);
-            
+
             paginaActual = pagina;
-            filtroNombre.value = '';
+            paginaActual = pagina;
+            // filtroNombre.value = ''; // No limpiar el filtro automáticamente
+
 
         } catch (error) {
             console.error('Error al cargar los productos:', error);
@@ -204,16 +203,16 @@
     function actualizarPaginacion(pagina, productosEnPagina) {
         const desde = (pagina - 1) * limitPorPagina + 1;
         const hasta = desde + productosEnPagina - 1;
-        
+
         document.getElementById('info-desde').textContent = desde;
         document.getElementById('info-hasta').textContent = hasta;
         document.getElementById('info-total').textContent = totalProductos;
         document.getElementById('numero-pagina').textContent = `Página ${pagina}`;
-        
+
         // Controlar botones de navegación
         document.getElementById('btn-anterior').disabled = pagina === 1;
         document.getElementById('btn-siguiente').disabled = hasta >= totalProductos;
-        
+
         divPaginacion.style.display = 'flex';
         divPaginacion.style.justifyContent = 'space-between';
         divPaginacion.style.alignItems = 'center';
@@ -244,16 +243,49 @@
     /**
      * Filtrar productos por nombre o código
      */
-    function filtrarProductos(termino) {
-        if (!termino.trim()) {
-            cargarProductosPaginado(1);
+    async function filtrarProductos(termino) {
+        const terminoTrim = termino.trim();
+
+        // Si tiene menos de 3 caracteres, volvemos a la paginación normal
+        if (terminoTrim.length < 3) {
+            // Solo recargamos si LA PAGINACIÓN NO ESTÁ VISIBLE (es decir, venimos de una búsqueda)
+            if (divPaginacion.style.display === 'none') {
+                cargarProductosPaginado(1);
+            }
             return;
         }
 
-        const terminoLower = termino.toLowerCase();
-        // Aquí podrías hacer búsqueda en API o en cliente
-        // Por ahora, recargaremos la página 1
-        cargarProductosPaginado(1);
+        try {
+            const response = await fetch(`${API_URL}/obtener_productos_por_filtro/${encodeURIComponent(terminoTrim)}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error en la API: ${response.status}`);
+            }
+
+            const data = await response.json();
+            // El endpoint devuelve una lista de productos directamente según el código revisado
+            // return jsonify(productos), 200
+
+            renderizarTabla(data);
+
+            // Ocultar paginación cuando estamos filtrando
+            divPaginacion.style.display = 'none';
+
+        } catch (error) {
+            console.error('Error al filtrar productos:', error);
+            // En caso de error, podríamos mostrar un mensaje o limpiar la tabla
+            divTabla.style.display = 'none';
+            divVacio.innerHTML = `<div class="empty-state-icon">⚠️</div>
+                                  <h3 class="empty-state-title">Error en la búsqueda</h3>
+                                  <p class="empty-state-message">No se pudieron recuperar los resultados.</p>`;
+            divVacio.style.display = 'block';
+            divPaginacion.style.display = 'none';
+        }
     }
 
     /**
@@ -273,15 +305,23 @@
             }
 
             const estados = await response.json();
+            // Ordenar alfabéticamente
+            estados.sort((a, b) => a.descripcion.localeCompare(b.descripcion));
+
             const selectEstado = document.getElementById('descriptionEstado');
-            selectEstado.innerHTML = '<option value="">-- Seleccionar Estado --</option>';
-            
+            selectEstado.innerHTML = ''; // Remover opción por defecto
+
             estados.forEach(estado => {
                 const option = document.createElement('option');
                 option.value = estado.descripcion;
                 option.textContent = estado.descripcion;
                 selectEstado.appendChild(option);
             });
+
+            // Seleccionar el primero si hay elementos
+            if (estados.length > 0) {
+                selectEstado.selectedIndex = 0;
+            }
 
         } catch (error) {
             console.error('Error al cargar estados:', error);
@@ -305,15 +345,23 @@
             }
 
             const categorias = await response.json();
+            // Ordenar alfabéticamente
+            categorias.sort((a, b) => a.nombre.localeCompare(b.nombre));
+
             const selectCategoria = document.getElementById('nombreCategoria');
-            selectCategoria.innerHTML = '<option value="">-- Seleccionar Categoría --</option>';
-            
+            selectCategoria.innerHTML = ''; // Remover opción por defecto
+
             categorias.forEach(categoria => {
                 const option = document.createElement('option');
                 option.value = categoria.nombre;
                 option.textContent = categoria.nombre;
                 selectCategoria.appendChild(option);
             });
+
+            // Seleccionar el primero
+            if (categorias.length > 0) {
+                selectCategoria.selectedIndex = 0;
+            }
 
         } catch (error) {
             console.error('Error al cargar categorías:', error);
@@ -337,15 +385,23 @@
             }
 
             const unidades = await response.json();
+            // Ordenar alfabéticamente
+            unidades.sort((a, b) => a.nombre.localeCompare(b.nombre));
+
             const selectUnidad = document.getElementById('nombreUnidad');
-            selectUnidad.innerHTML = '<option value="">-- Seleccionar Unidad --</option>';
-            
+            selectUnidad.innerHTML = ''; // Remover opción por defecto
+
             unidades.forEach(unidad => {
                 const option = document.createElement('option');
                 option.value = unidad.nombre;
                 option.textContent = unidad.nombre;
                 selectUnidad.appendChild(option);
             });
+
+            // Seleccionar el primero
+            if (unidades.length > 0) {
+                selectUnidad.selectedIndex = 0;
+            }
 
         } catch (error) {
             console.error('Error al cargar unidades:', error);
@@ -359,6 +415,16 @@
         productoActual = null;
         modalTitulo.textContent = 'Nuevo Producto';
         document.getElementById('formProducto').reset();
+
+        // Asignar primer elemento a los selectores por defecto
+        const selects = ['nombreUnidad', 'nombreCategoria', 'descriptionEstado'];
+        selects.forEach(id => {
+            const select = document.getElementById(id);
+            if (select.options.length > 0) {
+                select.selectedIndex = 0;
+            }
+        });
+
         document.getElementById('mensajeCodigoBarras').style.display = 'none';
         document.getElementById('codigoBarras').disabled = false;
         modal.classList.add('active');
@@ -369,13 +435,31 @@
      */
     async function abrirModalEditar(id) {
         try {
-            // Aquí deberías cargar el producto específico
-            // Por ahora, asumimos que tienes el acceso a los datos
-            productoActual = { id };
+            const response = await fetch(`${API_URL}/obtener_producto/${id}`);
+            if (!response.ok) throw new Error('Error al obtener producto');
+
+            const producto = await response.json();
+
+            productoActual = producto;
             modalTitulo.textContent = 'Editar Producto';
-            document.getElementById('codigoBarras').disabled = true;
+
+            // Llenar formulario
+            document.getElementById('codigoBarras').value = producto.codigo_Barras || '';
+            // Ajustar claves según la respuesta del backend (unidad, categoria, estado)
+            document.getElementById('nombreUnidad').value = producto.unidad || '';
+            document.getElementById('nombreCategoria').value = producto.categoria || '';
+            document.getElementById('descripcion').value = producto.descripcion || '';
+            document.getElementById('precioCompra').value = producto.precio_compra || '';
+            document.getElementById('precioVenta').value = producto.precio_venta || '';
+            document.getElementById('stock').value = producto.stock || '';
+            document.getElementById('stockMinimo').value = producto.stock_minimo || '';
+            document.getElementById('descriptionEstado').value = producto.estado || '';
+
+            document.getElementById('codigoBarras').disabled = false; // Permitir editar para cambiar contexto
+            document.getElementById('mensajeCodigoBarras').style.display = 'none';
+
             modal.classList.add('active');
-            
+
         } catch (error) {
             console.error('Error al cargar producto:', error);
             Swal.fire({
@@ -502,7 +586,7 @@
                 // Crear
                 url = `${API_URL}/insertar_producto`;
                 metodo = 'POST';
-                
+
                 // Validar que el código de barras no exista
                 const existe = await verificarCodigoBarrasExistente(codigoBarras);
                 if (existe) {
@@ -618,8 +702,68 @@
     }
 
     // Agregar listener al filtro
+    filtroNombre.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Prevenir submit si estuviera en form
+            const primeraFila = tablaBody.querySelector('tr');
+            if (primeraFila) {
+                // Asumiendo que el botón de editar tiene onclick="abrirModalEditar(id)"
+                const btnEditar = primeraFila.querySelector('.btn-edit');
+                if (btnEditar) {
+                    btnEditar.click();
+                }
+            }
+        }
+    });
+
     filtroNombre.addEventListener('input', (e) => {
         filtrarProductos(e.target.value);
+    });
+
+    // Listener para el código de barras cuando pierde el foco
+    document.getElementById('codigoBarras').addEventListener('blur', async (e) => {
+        const codigo = e.target.value.trim();
+        if (!codigo) return;
+
+        // Evitar bucle si es el mismo código del producto actual
+        if (productoActual && productoActual.codigo_Barras === codigo) return;
+
+        try {
+            const response = await fetch(`${API_URL}/buscar_id_producto/${codigo}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.id_producto && data.id_producto !== 0) {
+                    // El producto existe, cargar sus datos (Modo Edición)
+                    await abrirModalEditar(data.id_producto);
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'info',
+                        title: 'Modo edición: Producto existente cargado',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                } else {
+                    // El producto NO existe
+                    if (productoActual) {
+                        // Estábamos editando, ahora pasamos a crear nuevo
+                        productoActual = null;
+                        modalTitulo.textContent = 'Nuevo Producto';
+                        document.getElementById('formProducto').reset();
+                        document.getElementById('codigoBarras').value = codigo; // Mantener el código ingresado
+
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Nuevo Producto',
+                            text: 'El código no existe. Estás creando un nuevo producto.',
+                            confirmButtonText: 'Entendido'
+                        });
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error verificando código:', error);
+        }
     });
 
     // Cargar datos al iniciar la página

@@ -221,6 +221,35 @@ ORDER BY
 
 END;
 
+CREATE PROCEDURE proc_obtener_productos_por_filtro (
+    IN p_filtro VARCHAR(255)
+)
+BEGIN
+    SELECT
+        p.id,
+        p.codigo_Barras,
+        u.nombre AS unidad,
+        c.nombre AS categoria,
+        p.descripcion,
+        p.precio_compra,
+        p.precio_venta,
+        p.stock,
+        p.stock_minimo,
+        e.descripcion AS estado
+    FROM
+        tbl_productos p
+        INNER JOIN tbl_unidades u ON u.id = p.id_unidad
+        INNER JOIN tbl_categorias c ON c.id = p.id_categoria
+        INNER JOIN tbl_estados e 
+            ON e.estado = p.estado
+            AND e.nombre_tabla = 'tbl_productos'
+    WHERE
+        p.codigo_Barras LIKE CONCAT('%', p_filtro, '%')
+        OR p.descripcion LIKE CONCAT('%', p_filtro, '%')
+    ORDER BY
+        p.id DESC;
+END;
+
 CREATE PROCEDURE proc_mostrar_productos_paginado (
     IN p_limit INT,
     IN p_offset INT

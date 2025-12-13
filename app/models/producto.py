@@ -125,6 +125,14 @@ def mostrar_productos_paginado(limit: int, offset: int) -> List[Dict[str, Any]]:
         )
         return [dict(row._mapping) for row in result.fetchall()]
 
+def obtener_productos_por_filtro(filtro: str) -> List[Dict[str, Any]]:
+    with DatabaseManager() as db:
+        result = db.execute(
+            text("CALL proc_obtener_productos_por_filtro(:p_filtro)"),
+            {"p_filtro": filtro}
+        )
+        return [dict(row._mapping) for row in result.fetchall()]
+
 def obtener_conteo_productos() -> int:
     with DatabaseManager() as db:
         result = db.execute(text("CALL proc_productos_conteo"))
@@ -146,5 +154,15 @@ def restaurar_producto(id_producto: int) -> None:
             {"p_id": id_producto}
         )
         db.commit()
+
+# ✅ Obtener un producto por su ID
+def obtener_producto_por_id(id_producto: int) -> Optional[Dict[str, Any]]:
+    with DatabaseManager() as db:
+        result = db.execute(
+            text("CALL proc_obtener_producto_por_id(:p_id)"),
+            {"p_id": id_producto}
+        )
+        rows = result.fetchall()
+        return dict(rows[0]._mapping) if rows else None
 
 
