@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- SweetAlert2 CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.all.min.js"></script>
+
+<!-- Modal -->
+{% include 'components/modal_cliente.html' %}
+
+<div class="card">
+    <div class="page-header">
+        <h1 class="page-title">Clientes</h1>
+        <div class="page-actions">
+            <button class="btn btn-primary" onclick="abrirModalNuevo()">+ Nuevo Cliente</button>
+        </div>
+    </div>
+
+    <!-- Tabla Responsiva -->
+    <div class="data-table-wrapper" id="div-tabla">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Documento</th>
+                    <th>Nombre</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-tabla">
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Estado Vacío -->
+    <div class="empty-state" id="div-vacio" style="display: none;">
+        <div class="empty-state-icon">👥</div>
+        <h3 class="empty-state-title">No hay clientes registrados</h3>
+        <p class="empty-state-message">Comienza agregando tu primer cliente</p>
+    </div>
+</div>
+
+<script>
+    // Variables globales
+    const API_URL = `${window.location.origin}/clientes`;
+    const ESTADO_API_URL = `${window.location.origin}/estados`;
+
+    let clienteActual = null;
+
+    // Referencias a los elementos del DOM
+    const tablaBody = document.getElementById('tbody-tabla');
+    const divTabla = document.getElementById('div-tabla');
+    const divVacio = document.getElementById('div-vacio');
+    const modal = document.getElementById('modalCliente');
+    const modalTitulo = document.getElementById('modalTituloCliente');
+
+    /**
+     * Crear una fila de tabla a partir de un objeto de cliente
+     */
+    function crearFila(cliente) {
+        return `
+            <tr>
+                <td>${cliente.ID_Cliente || cliente.id}</td> <!-- Ajustar key segun backend -->
+                <td>${cliente.Documento || cliente.documento}</td>
+                <td>${cliente.Nombre || cliente.nombre}</td>
+                <td><span class="badge badge-${(cliente.Estado || cliente.estado) === 'Activo' ? 'success' : 'danger'}">${cliente.Estado || cliente.estado}</span></td>
+                <td>
+                    <div class="table-actions">
+                        <button class="btn btn-icon btn-edit" title="Editar" onclick="abrirModalEditar(${cliente.ID_Cliente || cliente.id}, '${cliente.Documento || cliente.documento}', '${cliente.Nombre || cliente.nombre}', '${cliente.Estado || cliente.estado}')" style="background: none; border: none; color: var(--info-color); cursor: pointer; font-size: 1.25rem;">✏️</button>
+                        <button class="btn btn-icon btn-delete" title="Eliminar" onclick="eliminarCliente(${cliente.ID_Cliente || cliente.id})" style="background: none; border: none; color: var(--danger-color); cursor: pointer; font-size: 1.25rem;">🗑️</button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+
+    /**
+     * Renderizar tabla con los clientes
+     */
+    function renderizarTabla(clientes) {
+        if (Array.isArray(clientes) && clientes.length > 0) {
+            const filasHTML = clientes.map(crearFila).join('');
+            tablaBody.innerHTML = filasHTML;
+            divTabla.style.display = 'block';
+            divVacio.style.display = 'none';
+        } else {
+            tablaBody.innerHTML = '';
+            divTabla.style.display = 'none';
+            divVacio.style.display = 'block';
+        }
+    }
+
+    /**
+     * Cargar clientes desde la API
+     */
+    async function cargarClientes() {
+        try {
+            const response = await fetch(`${API_URL}/mostrar_clientes`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error en la API: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            renderizarTabla(data);
+
+        } catch (error) {
+            console.error('Error al cargar los clientes:', error);
+            divTabla.style.display = 'none';
+            divVacio.innerHTML = `<div class="empty-state-icon">⚠️</div>
+                                  <h3 class="empty-state-title">Error de Conexión</h3>
+                                  <p class="empty-state-message">No se pudieron cargar los datos. Intenta nuevamente.</p>`;
+            divVacio.style.display = 'block';
+        }
+    }
+
+    /**
+     * Cargar estados desde la API
+     */
+    async function cargarEstados() {
+        try {
+            const response = await fetch(`${ESTADO_API_URL}/mostrar_estados/tbl_clientes`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error en la API: ${response.status}`);
+            }
+
+            const estados = await response.json();
+            // Ordenar alfabéticamente si tienen descripcion
+            if (estados.length > 0 && estados[0].descripcion) {
+                estados.sort((a, b) => a.descripcion.localeCompare(b.descripcion));
+            }
+
+            const selectEstado = document.getElementById('estadoCliente');
+            selectEstado.innerHTML = ''; // Remover opción por defecto
+
+            estados.forEach(estado => {
+                const option = document.createElement('option');
+                option.value = estado.descripcion; // Asumiendo que el valor enviado es la descripción
+                option.textContent = estado.descripcion;
+                selectEstado.appendChild(option);
+            });
+
+            // Seleccionar el primero si hay elementos
+            if (estados.length > 0) {
+                selectEstado.selectedIndex = 0;
+            }
+
+        } catch (error) {
+            console.error('Error al cargar estados:', error);
+        }
+    }
+
+    /**
+     * Abrir modal para crear nuevo cliente
+     */
+    function abrirModalNuevo() {
+        clienteActual = null;
+        modalTitulo.textContent = 'Nuevo Cliente';
+        document.getElementById('formCliente').reset();
+
+        // Reset select estado
+        const selectEstado = document.getElementById('estadoCliente');
+        if (selectEstado.options.length > 0) selectEstado.selectedIndex = 0;
+
+        modal.classList.add('active');
+    }
+
+    /**
+     * Abrir modal para editar cliente existente
+     * Los datos se pasan directamente para evitar otra llamada, pero se podria hacer fetch si hace falta
+     */
+    function abrirModalEditar(id, documento, nombre, estado) {
+        clienteActual = { id, documento, nombre, estado };
+        modalTitulo.textContent = 'Editar Cliente';
+
+        document.getElementById('documentoCliente').value = documento;
+        document.getElementById('nombreCliente').value = nombre;
+        document.getElementById('estadoCliente').value = estado;
+
+        modal.classList.add('active');
+    }
+
+    /**
+     * Cerrar modal
+     */
+    function cerrarModalCliente() {
+        modal.classList.remove('active');
+        clienteActual = null;
+        document.getElementById('formCliente').reset();
+    }
+
+    /**
+     * Guardar cliente (crear o actualizar)
+     */
+    async function guardarCliente() {
+        const documento = document.getElementById('documentoCliente').value.trim();
+        const nombre = document.getElementById('nombreCliente').value.trim();
+        const estado = document.getElementById('estadoCliente').value;
+
+        // Validaciones
+        if (!documento) {
+            Swal.fire({ icon: 'warning', title: 'Campo Requerido', text: 'Por favor ingresa el documento', confirmButtonText: 'Ok' });
+            return;
+        }
+        if (!nombre) {
+            Swal.fire({ icon: 'warning', title: 'Campo Requerido', text: 'Por favor ingresa el nombre', confirmButtonText: 'Ok' });
+            return;
+        }
+        if (!estado) {
+            Swal.fire({ icon: 'warning', title: 'Campo Requerido', text: 'Por favor selecciona un estado', confirmButtonText: 'Ok' });
+            return;
+        }
+
+        try {
+            const datos = {
+                documento: documento,
+                nombre: nombre,
+                descripcion_estado: estado
+            };
+
+            let url, metodo;
+            if (clienteActual) {
+                // Editar
+                url = `${API_URL}/actualizar_cliente/${clienteActual.id}`;
+                metodo = 'PUT';
+            } else {
+                // Crear
+                url = `${API_URL}/insertar_cliente`;
+                metodo = 'POST';
+            }
+
+            const response = await fetch(url, {
+                method: metodo,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(datos)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Error: ${response.status}`);
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: clienteActual ? 'Cliente actualizado correctamente' : 'Cliente creado correctamente',
+                confirmButtonText: 'Ok'
+            }).then(() => {
+                cerrarModalCliente();
+                cargarClientes();
+            });
+
+        } catch (error) {
+            console.error('Error al guardar cliente:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'Error al guardar el cliente'
+            });
+        }
+    }
+
+    /**
+     * Eliminar cliente
+     */
+    async function eliminarCliente(id) {
+        Swal.fire({
+            title: '¿Eliminar Cliente?',
+            text: 'Esta acción no se puede deshacer',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`${API_URL}/eliminar_cliente/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error: ${response.status}`);
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Eliminado',
+                        text: 'Cliente eliminado correctamente',
+                        confirmButtonText: 'Ok'
+                    }).then(() => {
+                        cargarClientes();
+                    });
+
+                } catch (error) {
+                    console.error('Error al eliminar cliente:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al eliminar el cliente'
+                    });
+                }
+            }
+        });
+    }
+
+    // Cargar datos al iniciar la página
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarClientes();
+        cargarEstados();
+    });
+</script>
+
+<style>
+    .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .badge-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .data-table-wrapper {
+        overflow-x: auto;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 600px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: var(--spacing-md);
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .data-table th {
+        background-color: var(--bg-secondary);
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    .data-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table-actions {
+        display: flex;
+        gap: var(--spacing-sm);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: var(--spacing-xl) 0;
+        color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .empty-state-title {
+        font-size: 1.25rem;
+        margin-bottom: var(--spacing-sm);
+        color: var(--text-primary);
+    }
+</style>
+{% endblock %}

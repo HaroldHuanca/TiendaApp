@@ -15,9 +15,8 @@ def validar_descripcion(descripcion: str, nombre: str = "Descripcion") -> None:
         raise ValueError(f"{nombre} debe ser una cadena de texto.")
     if len(descripcion) == 0 or len(descripcion) > 100:
         raise ValueError(f"{nombre} debe tener entre 1 y 100 caracteres.")
-    if not re.fullmatch(r"[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ ]+", descripcion):
+    if not re.fullmatch(r"[a-zA-ZáéíóúüÁÉÍÓÚÜñÑ 0-9()]+", descripcion):
         raise ValueError(f"{nombre} contiene caracteres no permitidos.")
-    
 def validar_fecha(fecha: str) -> None:
     try:
         datetime.strptime(fecha, "%Y-%m-%d")

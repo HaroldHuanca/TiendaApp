@@ -479,8 +479,33 @@
         document.getElementById('formProducto').reset();
     }
 
+    async function buscarIdProducto(codigoBarras) {
+        try {
+            const response = await fetch(`${API_URL}/buscar_id_producto/${codigoBarras}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                return data.id_producto;
+            }
+            return null;
+
+        } catch (error) {
+            console.error('Error al buscar ID del producto:', error);
+            return null;
+        }
+    }
+
     /**
      * Guardar producto (crear o actualizar)
+     */
+    /**
+     * Guardar producto (crear o actualizar)
+     * Lógica basada estrictamente en la existencia del código de barras.
      */
     async function guardarProducto() {
         const codigoBarras = document.getElementById('codigoBarras').value.trim();
@@ -493,74 +518,33 @@
         const stockMinimo = parseFloat(document.getElementById('stockMinimo').value);
         const descriptionEstado = document.getElementById('descriptionEstado').value;
 
-        // Validaciones
+        // --- Validaciones ---
         if (!codigoBarras) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Campo Requerido',
-                text: 'Por favor ingresa el código de barras',
-                confirmButtonText: 'Ok'
-            });
+            Swal.fire({ icon: 'warning', title: 'Campo Requerido', text: 'Por favor ingresa el código de barras' });
             return;
         }
-
         if (!nombreUnidad) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Campo Requerido',
-                text: 'Por favor selecciona una unidad',
-                confirmButtonText: 'Ok'
-            });
+            Swal.fire({ icon: 'warning', title: 'Campo Requerido', text: 'Por favor selecciona una unidad' });
             return;
         }
-
         if (!nombreCategoria) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Campo Requerido',
-                text: 'Por favor selecciona una categoría',
-                confirmButtonText: 'Ok'
-            });
+            Swal.fire({ icon: 'warning', title: 'Campo Requerido', text: 'Por favor selecciona una categoría' });
             return;
         }
-
         if (!descripcion) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Campo Requerido',
-                text: 'Por favor ingresa una descripción',
-                confirmButtonText: 'Ok'
-            });
+            Swal.fire({ icon: 'warning', title: 'Campo Requerido', text: 'Por favor ingresa una descripción' });
             return;
         }
-
         if (isNaN(precioCompra) || precioCompra < 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Precio Inválido',
-                text: 'El precio de compra debe ser un número válido',
-                confirmButtonText: 'Ok'
-            });
+            Swal.fire({ icon: 'warning', title: 'Precio Inválido', text: 'El precio de compra debe ser un número válido' });
             return;
         }
-
         if (isNaN(precioVenta) || precioVenta < 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Precio Inválido',
-                text: 'El precio de venta debe ser un número válido',
-                confirmButtonText: 'Ok'
-            });
+            Swal.fire({ icon: 'warning', title: 'Precio Inválido', text: 'El precio de venta debe ser un número válido' });
             return;
         }
-
         if (!descriptionEstado) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Campo Requerido',
-                text: 'Por favor selecciona un estado',
-                confirmButtonText: 'Ok'
-            });
+            Swal.fire({ icon: 'warning', title: 'Campo Requerido', text: 'Por favor selecciona un estado' });
             return;
         }
 
@@ -577,30 +561,26 @@
                 descripcion_estado: descriptionEstado
             };
 
-            let url, metodo;
-            if (productoActual) {
-                // Editar
-                url = `${API_URL}/actualizar_producto/${productoActual.id}`;
+            // Verificar existencia del código en la BD para decidir acción
+            const idExistente = await buscarIdProducto(codigoBarras);
+
+            let url, metodo, mensajeExito;
+
+            if (idExistente && idExistente !== 0) {
+                // SI EXISTE => ACTUALIZAMOS ESE PRODUCTO ESPECÍFICO
+                url = `${API_URL}/actualizar_producto/${idExistente}`;
                 metodo = 'PUT';
+                mensajeExito = 'Producto actualizado correctamente (se encontró código existente)';
             } else {
-                // Crear
+                // NO EXISTE => CREAMOS UNO NUEVO
                 url = `${API_URL}/insertar_producto`;
                 metodo = 'POST';
-
-                // Validar que el código de barras no exista
-                const existe = await verificarCodigoBarrasExistente(codigoBarras);
-                if (existe) {
-                    document.getElementById('mensajeCodigoBarras').textContent = 'Este código de barras ya existe';
-                    document.getElementById('mensajeCodigoBarras').style.display = 'block';
-                    return;
-                }
+                mensajeExito = 'Producto nuevo creado correctamente';
             }
 
             const response = await fetch(url, {
                 method: metodo,
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(datos)
             });
 
@@ -612,10 +592,12 @@
             Swal.fire({
                 icon: 'success',
                 title: 'Éxito',
-                text: productoActual ? 'Producto actualizado correctamente' : 'Producto creado correctamente',
+                text: mensajeExito,
                 confirmButtonText: 'Ok'
             }).then(() => {
                 cerrarModalProducto();
+                // Si estamos filtrando, quizás convenga recargar el filtro o limpiar.
+                // Por defecto recargamos paginación base.
                 cargarProductosPaginado(1);
             });
 
@@ -632,26 +614,8 @@
     /**
      * Verificar si un código de barras ya existe
      */
-    async function verificarCodigoBarrasExistente(codigoBarras) {
-        try {
-            const response = await fetch(`${API_URL}/buscar_id_producto/${codigoBarras}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
 
-            if (response.ok) {
-                const data = await response.json();
-                return data.id_producto !== null && data.id_producto !== undefined;
-            }
-            return false;
 
-        } catch (error) {
-            console.error('Error al verificar código de barras:', error);
-            return false;
-        }
-    }
 
     /**
      * Eliminar producto
@@ -720,46 +684,44 @@
         filtrarProductos(e.target.value);
     });
 
-    // Listener para el código de barras cuando pierde el foco
+    // Listener para el código de barras cuando pierde el foco (blur)
     document.getElementById('codigoBarras').addEventListener('blur', async (e) => {
         const codigo = e.target.value.trim();
         if (!codigo) return;
 
-        // Evitar bucle si es el mismo código del producto actual
+        // Si ya estamos editando un producto y el código es el mismo, no hacemos nada
         if (productoActual && productoActual.codigo_Barras === codigo) return;
 
         try {
-            const response = await fetch(`${API_URL}/buscar_id_producto/${codigo}`);
-            if (response.ok) {
-                const data = await response.json();
-                if (data.id_producto && data.id_producto !== 0) {
-                    // El producto existe, cargar sus datos (Modo Edición)
-                    await abrirModalEditar(data.id_producto);
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'info',
-                        title: 'Modo edición: Producto existente cargado',
-                        showConfirmButton: false,
-                        timer: 2000
-                    });
-                } else {
-                    // El producto NO existe
-                    if (productoActual) {
-                        // Estábamos editando, ahora pasamos a crear nuevo
-                        productoActual = null;
-                        modalTitulo.textContent = 'Nuevo Producto';
-                        document.getElementById('formProducto').reset();
-                        document.getElementById('codigoBarras').value = codigo; // Mantener el código ingresado
+            const dataId = await buscarIdProducto(codigo);
+            // Si dataId existe y no es 0, es un producto existente
+            if (dataId && dataId !== 0) {
+                // EXISTE => MODO EDICIÓN
+                // Cargamos los datos de ese producto
+                await abrirModalEditar(dataId);
 
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'Nuevo Producto',
-                            text: 'El código no existe. Estás creando un nuevo producto.',
-                            confirmButtonText: 'Entendido'
-                        });
-                    }
-                }
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'info',
+                    title: 'Producto encontrado. Modo Edición activado.',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            } else {
+                // NO EXISTE => MODO CREACIÓN (pero conservando datos)
+                // Es un código nuevo. Si veníamos de edición, "desconectamos" el ID pero mantenemos el form.
+                productoActual = null;
+                modalTitulo.textContent = 'Nuevo Producto';
+
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Código libre. Se creará un nuevo registro.',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
             }
         } catch (error) {
             console.error('Error verificando código:', error);

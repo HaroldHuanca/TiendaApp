@@ -115,7 +115,7 @@ def buscar_id_por_codigo_barras(codigo_barras: str) -> int:
         # Obtener el valor del parámetro OUT
         result = db.execute(text("SELECT @p_id"))
         id_encontrado = result.scalar()
-        return id_encontrado if id_encontrado is not None else 0
+        return id_encontrado
 
 def mostrar_productos_paginado(limit: int, offset: int) -> List[Dict[str, Any]]:
     with DatabaseManager() as db:
@@ -166,3 +166,4 @@ def obtener_producto_por_id(id_producto: int) -> Optional[Dict[str, Any]]:
         return dict(rows[0]._mapping) if rows else None
 
 
+print(buscar_id_por_codigo_barras("12321"))

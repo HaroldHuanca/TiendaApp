@@ -52,6 +52,24 @@ def insertar_producto(
     validar_stock(stock_minimo, "Stock mínimo")
     validar_descripcion(descripcion_estado, "Estado")
 
+    validar_descripcion(descripcion_estado, "Estado")
+
+    # Verificar si el código de barras ya existe
+    id_existente = producto_model.buscar_id_por_codigo_barras(codigo_barras)
+    if id_existente > 0:
+        producto_existente = producto_model.obtener_producto_por_id(id_existente)
+        if producto_existente:
+            estado_actual = producto_existente.get("estado", "").upper()
+            if "ELIMINADO" in estado_actual:
+                # Si existe pero está eliminado, lo actualizamos con los nuevos datos (restauración lógica implícita)
+                producto_model.actualizar_producto(
+                    id_existente, codigo_barras, nombre_unidad, nombre_categoria, descripcion,
+                    precio_compra, precio_venta, stock, stock_minimo, descripcion_estado
+                )
+                return
+            else:
+                 raise ValueError(f"Ya existe un producto con el código de barras {codigo_barras}.")
+
     producto_model.insertar_producto(
         codigo_barras, nombre_unidad, nombre_categoria, descripcion,
         precio_compra, precio_venta, stock, stock_minimo, descripcion_estado
@@ -72,7 +90,7 @@ def actualizar_producto(
     validar_id_smallint(id_producto,"ID Producto")
     validar_descripcion(nombre_categoria, "Categoria")
     validar_descripcion(nombre_unidad, "Unidad")
-    validar_descripcion(descripcion, "DProducto")
+    validar_descripcion(descripcion, "Producto")
     validar_precios(precio_compra, "Precio de compra", precio_venta, "Precio de venta")
     validar_stock(stock, "Stock")
     validar_stock(stock_minimo, "Stock mínimo")

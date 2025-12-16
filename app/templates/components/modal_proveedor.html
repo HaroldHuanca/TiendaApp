@@ -1,0 +1,193 @@
+<!-- Modal para Crear/Editar Proveedores -->
+<div id="modalProveedor" class="modal">
+    <div class="modal-overlay" onclick="cerrarModalProveedor()"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTituloProveedor">Nuevo Proveedor</h3>
+            <button class="modal-close" onclick="cerrarModalProveedor()">&times;</button>
+        </div>
+        <form id="formProveedor" class="modal-body">
+            <!-- RUC -->
+            <div class="form-group">
+                <label for="rucProveedor" class="form-label">RUC</label>
+                <input type="text" id="rucProveedor" class="form-control" placeholder="Ej: 20123456789" required>
+            </div>
+
+            <!-- Nombre -->
+            <div class="form-group">
+                <label for="nombreProveedor" class="form-label">Nombre</label>
+                <input type="text" id="nombreProveedor" class="form-control" placeholder="Ej: Proveedor SAC" required>
+            </div>
+
+            <!-- Estado -->
+            <div class="form-group">
+                <label for="estadoProveedor" class="form-label">Estado</label>
+                <select id="estadoProveedor" class="form-control" required>
+                    <option value="">-- Seleccionar Estado --</option>
+                </select>
+            </div>
+        </form>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="cerrarModalProveedor()">Cancelar</button>
+            <button type="button" class="btn btn-primary" onclick="guardarProveedor()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos reutilizados del modal de productos para consistencia */
+    .modal {
+        display: none !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2000;
+    }
+
+    .modal.active {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+    }
+
+    .modal-content {
+        position: relative;
+        background-color: var(--bg-secondary);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-xl);
+        width: 90%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-50px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--spacing-lg);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-header h3 {
+        margin: 0;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 2rem;
+        cursor: pointer;
+        color: var(--text-secondary);
+        padding: 0;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s ease;
+    }
+
+    .modal-close:hover {
+        color: var(--text-primary);
+    }
+
+    .modal-body {
+        padding: var(--spacing-lg);
+    }
+
+    .form-group {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: var(--spacing-xs);
+        color: var(--text-primary);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 1rem;
+        transition: border-color 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--spacing-md);
+        padding: var(--spacing-lg);
+        border-top: 1px solid var(--border-color);
+    }
+
+    .btn {
+        padding: var(--spacing-sm) var(--spacing-lg);
+        border: none;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+    }
+
+    .btn-outline {
+        background-color: transparent;
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-outline:hover {
+        background-color: var(--bg-secondary);
+        border-color: var(--primary-color);
+    }
+</style>
