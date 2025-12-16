@@ -1,11 +1,15 @@
 <header class="header">
     <div class="header-left">
-        <button class="btn btn-icon" id="sidebarToggle" title="Abrir menú">
+        <button class="btn btn-icon" id="sidebarToggle" title="Abrir menú" style="color: #111827; font-weight: bold;">
             <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path d="M4 6h16M4 12h16M4 18h16" />
             </svg>
         </button>
         <h5 class="mb-0" style="margin-left: 10px;">{% block page_title %}Dashboard{% endblock %}</h5>
+    </div>
+
+    <div class="header-center">
+        <div id="clock" style="font-weight: 500; font-size: 0.95rem; color: var(--text-primary);">--:--</div>
     </div>
 
     <div class="header-right">
@@ -28,6 +32,14 @@
     </div>
 </header>
 
+<style>
+    .header-center {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+    }
+</style>
+
 <script>
     // Controlar dropdown de usuario
     const userDropdown = document.getElementById('userDropdown');
@@ -46,4 +58,56 @@
             }
         });
     }
+
+    // Reloj - Inicializar con tiempo del servidor y actualizar localmente
+    const clockElement = document.getElementById('clock');
+    let serverTime = null;
+
+    async function initializeClock() {
+        try {
+            const response = await fetch('/tiempo/fecha_actual');
+            const data = await response.json();
+            if (data.fecha) {
+                // Parsear formato DD/MM/YYYY HH:MM:SS
+                const parts = data.fecha.split(' ');
+                const dateParts = parts[0].split('/');
+                const timeParts = parts[1].split(':');
+                
+                // Crear objeto Date con la hora del servidor
+                serverTime = new Date(
+                    parseInt(dateParts[2]), // año
+                    parseInt(dateParts[1]) - 1, // mes (0-11)
+                    parseInt(dateParts[0]), // día
+                    parseInt(timeParts[0]), // hora
+                    parseInt(timeParts[1]), // minuto
+                    parseInt(timeParts[2]) // segundo
+                );
+                
+                updateClockDisplay();
+            }
+        } catch (error) {
+            console.error('Error inicializando reloj:', error);
+        }
+    }
+
+    function updateClockDisplay() {
+        if (serverTime) {
+            const year = serverTime.getFullYear();
+            const month = String(serverTime.getMonth() + 1).padStart(2, '0');
+            const day = String(serverTime.getDate()).padStart(2, '0');
+            const hours = String(serverTime.getHours()).padStart(2, '0');
+            const minutes = String(serverTime.getMinutes()).padStart(2, '0');
+            
+            clockElement.textContent = `${year}/${month}/${day} ${hours}:${minutes}`;
+            
+            // Incrementar el tiempo localmente
+            serverTime.setSeconds(serverTime.getSeconds() + 1);
+        }
+    }
+
+    // Inicializar reloj al cargar
+    initializeClock();
+    
+    // Actualizar cada segundo sin consultar el backend
+    setInterval(updateClockDisplay, 1000);
 </script>

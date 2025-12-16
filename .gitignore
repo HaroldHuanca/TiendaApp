@@ -34,6 +34,18 @@ __pycache__/
 .env
 
 # Archivos de bibliotecas externas (pueden descargarse con descargar_assets.sh)
+# Bootstrap
 app/static/css/bootstrap.min.css
 app/static/js/bootstrap.bundle.min.js
+
+# SweetAlert2
+app/static/css/sweetalert2.min.css
 app/static/js/sweetalert2.all.min.js
+
+# Google Fonts - Inter
+app/static/fonts/inter-font.css
+app/static/fonts/inter-300.ttf
+app/static/fonts/inter-400.ttf
+app/static/fonts/inter-500.ttf
+app/static/fonts/inter-600.ttf
+app/static/fonts/inter-700.ttf

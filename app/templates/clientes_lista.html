@@ -1,10 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- SweetAlert2 CDN -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.min.css">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.all.min.js"></script>
-
 <!-- Modal -->
 {% include 'components/modal_cliente.html' %}
 
@@ -14,6 +10,13 @@
         <div class="page-actions">
             <button class="btn btn-primary" onclick="abrirModalNuevo()">+ Nuevo Cliente</button>
         </div>
+    </div>
+
+    <!-- Buscador de Clientes -->
+    <div style="margin-bottom: 20px;">
+        <input type="text" id="filtroNombre" class="form-control"
+            placeholder="🔍 Buscar cliente por nombre o documento..."
+            style="padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius); width: 100%;">
     </div>
 
     <!-- Tabla Responsiva -->
@@ -47,6 +50,7 @@
     const ESTADO_API_URL = `${window.location.origin}/estados`;
 
     let clienteActual = null;
+    let todosLosClientes = []; // Para filtrar
 
     // Referencias a los elementos del DOM
     const tablaBody = document.getElementById('tbody-tabla');
@@ -54,6 +58,7 @@
     const divVacio = document.getElementById('div-vacio');
     const modal = document.getElementById('modalCliente');
     const modalTitulo = document.getElementById('modalTituloCliente');
+    const filtroNombre = document.getElementById('filtroNombre');
 
     /**
      * Crear una fila de tabla a partir de un objeto de cliente
@@ -87,6 +92,15 @@
         } else {
             tablaBody.innerHTML = '';
             divTabla.style.display = 'none';
+            if (todosLosClientes.length === 0) {
+                divVacio.innerHTML = `<div class="empty-state-icon">👥</div>
+                                      <h3 class="empty-state-title">No hay clientes registrados</h3>
+                                      <p class="empty-state-message">Comienza agregando tu primer cliente</p>`;
+            } else {
+                divVacio.innerHTML = `<div class="empty-state-icon">🔍</div>
+                                      <h3 class="empty-state-title">Sin resultados</h3>
+                                      <p class="empty-state-message">No hay clientes que coincidan con tu búsqueda</p>`;
+            }
             divVacio.style.display = 'block';
         }
     }
@@ -108,6 +122,7 @@
             }
 
             const data = await response.json();
+            todosLosClientes = data; // Guardar todos los clientes para filtrar
             renderizarTabla(data);
 
         } catch (error) {
@@ -118,6 +133,27 @@
                                   <p class="empty-state-message">No se pudieron cargar los datos. Intenta nuevamente.</p>`;
             divVacio.style.display = 'block';
         }
+    }
+
+    /**
+     * Filtrar clientes por nombre o documento
+     */
+    function filtrarClientes(termino) {
+        const terminoTrim = termino.trim().toLowerCase();
+
+        // Si tiene menos de 3 caracteres, volvemos a mostrar todos
+        /*if (terminoTrim.length < 3) {
+            renderizarTabla(todosLosClientes);
+            return;
+        }*/
+
+        const clientesFiltrados = todosLosClientes.filter(cliente => {
+            const nombre = (cliente.Nombre || cliente.nombre || '').toLowerCase();
+            const documento = (cliente.Documento || cliente.documento || '').toLowerCase();
+            return nombre.includes(terminoTrim) || documento.includes(terminoTrim);
+        });
+
+        renderizarTabla(clientesFiltrados);
     }
 
     /**
@@ -207,10 +243,10 @@
     async function guardarCliente() {
         const documento = document.getElementById('documentoCliente').value.trim();
         const nombre = document.getElementById('nombreCliente').value.trim();
-        const estado = document.getElementById('estadoCliente').value;
+        const estado = document.getElementById('estadoCliente').value.trim();
 
         // Validaciones
-        if (!documento) {
+        if (!documento && !estado.includes('SIN DOCUMENTO')) {
             Swal.fire({ icon: 'warning', title: 'Campo Requerido', text: 'Por favor ingresa el documento', confirmButtonText: 'Ok' });
             return;
         }
@@ -326,6 +362,11 @@
     document.addEventListener('DOMContentLoaded', () => {
         cargarClientes();
         cargarEstados();
+    });
+
+    // Agregar listener al filtro
+    filtroNombre.addEventListener('input', (e) => {
+        filtrarClientes(e.target.value);
     });
 </script>
 
