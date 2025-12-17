@@ -10,6 +10,7 @@ from app.routes.cliente_routes import cliente_bp
 from app.routes.estado_routes import estado_bp
 from app.routes.producto_routes import producto_bp
 from app.routes.proveedor_routes import proveedor_bp
+from app.routes.serie_routes import serie_bp
 from app.routes.tiempo_routes import tiempo_bp
 from app.routes.unidad_routes import unidad_bp
 from app.routes.usuario_routes import usuario_bp
@@ -54,6 +55,7 @@ def create_app():
     app.register_blueprint(estado_bp, url_prefix="/estados")
     app.register_blueprint(producto_bp, url_prefix="/productos")
     app.register_blueprint(proveedor_bp, url_prefix="/proveedores")
+    app.register_blueprint(serie_bp, url_prefix="/series")
     app.register_blueprint(tiempo_bp, url_prefix="/tiempo")
     app.register_blueprint(unidad_bp, url_prefix="/unidades")
     app.register_blueprint(usuario_bp, url_prefix="/usuarios")

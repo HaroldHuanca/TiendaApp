@@ -111,6 +111,10 @@ def buscar_id_por_codigo_barras(codigo_barras: str) -> int:
 def mostrar_productos_paginado(limit: int, offset: int) -> List[Dict[str, Any]]:
     return producto_model.mostrar_productos_paginado(limit, offset)
 
+def mostrar_productos() -> List[Dict[str, Any]]:
+    """Obtiene todos los productos activos"""
+    return producto_model.mostrar_productos()
+
 def obtener_productos_por_filtro(filtro: str) -> List[Dict[str, Any]]:
     return producto_model.obtener_productos_por_filtro(filtro)
     

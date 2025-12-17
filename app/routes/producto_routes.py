@@ -11,6 +11,14 @@ def obtener_productos_actualizados(tiempo_actualizacion):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+@producto_bp.route('/mostrar_productos', methods=['GET'])
+def mostrar_productos():
+    try:
+        productos = producto_service.mostrar_productos()
+        return jsonify(productos), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 @producto_bp.route('/insertar_producto', methods=['POST'])
 def crear_producto():
     datos = request.get_json()

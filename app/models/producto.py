@@ -125,6 +125,18 @@ def mostrar_productos_paginado(limit: int, offset: int) -> List[Dict[str, Any]]:
         )
         return [dict(row._mapping) for row in result.fetchall()]
 
+def mostrar_productos() -> List[Dict[str, Any]]:
+    """Obtiene todos los productos activos"""
+    with DatabaseManager() as db:
+        result = db.execute(text("""
+            SELECT id, codigo_barras, id_unidad, id_categoria, descripcion, 
+                   precio_compra, precio_venta, stock, stock_minimo, estado
+            FROM tbl_productos
+            WHERE estado = '1' OR estado = 1
+            ORDER BY descripcion ASC
+        """))
+        return [dict(row._mapping) for row in result.fetchall()]
+
 def obtener_productos_por_filtro(filtro: str) -> List[Dict[str, Any]]:
     with DatabaseManager() as db:
         result = db.execute(

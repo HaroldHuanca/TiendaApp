@@ -1,0 +1,576 @@
+{% extends "base.html" %}
+
+{% block title %}Ventas - TiendaApp{% endblock %}
+
+{% block page_title %}Nueva Venta{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <h2>Registrar Nueva Venta</h2>
+        </div>
+        <div class="card-body">
+            <!-- Fila 1: Serie, Contador, Usuario ID -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label for="selectSerie" class="form-label">Serie</label>
+                    <select class="form-control" id="selectSerie">
+                        <option value="">Seleccionar serie...</option>
+                    </select>
+                    <input type="hidden" id="idSerie" />
+                    <small class="text-muted">Contador: <span id="contadorSerie">-</span></small>
+                </div>
+                <div class="col-md-4">
+                    <label for="idUsuario" class="form-label">Usuario ID</label>
+                    <input type="text" class="form-control" id="idUsuario" readonly />
+                </div>
+                <div class="col-md-4">
+                    <label for="fechaHora" class="form-label">Fecha y Hora</label>
+                    <input type="datetime-local" class="form-control" id="fechaHora" required />
+                </div>
+            </div>
+
+            <!-- Fila 2: Búsqueda de Cliente -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <label for="inputCliente" class="form-label">Cliente</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control" id="inputCliente" placeholder="Buscar cliente por documento, nombre o estado..." autocomplete="off">
+                        <input type="hidden" id="idClienteSeleccionado" />
+                        <div class="list-group position-absolute w-100" id="listaClientesSugerencias" style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fila 3: Estado de Venta -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label for="selectEstadoVenta" class="form-label">Estado de Venta</label>
+                    <select class="form-control" id="selectEstadoVenta">
+                        <option value="">Seleccionar estado...</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Fila 4: Búsqueda de Productos -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <label for="inputProducto" class="form-label">Buscar Producto</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control" id="inputProducto" placeholder="Buscar por código de barras, descripción..." autocomplete="off">
+                        <div class="list-group position-absolute w-100" id="listaProductosSugerencias" style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Productos en Venta -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h5>Detalles de la Venta</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="tablaProductosVenta">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Código</th>
+                                    <th>Descripción</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio Venta</th>
+                                    <th>Descuento</th>
+                                    <th>Estado</th>
+                                    <th>Subtotal</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpoTabla">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fila 5: Total de Venta -->
+            <div class="row mb-4">
+                <div class="col-md-12 d-flex justify-content-end align-items-center gap-3">
+                    <label for="totalVenta" class="form-label mb-0">Total de Venta:</label>
+                    <input type="number" class="form-control" id="totalVenta" readonly style="max-width: 150px; font-weight: bold; font-size: 1.2rem;" value="0.00" />
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="row">
+                <div class="col-md-12 d-flex gap-2 justify-content-end">
+                    <button class="btn btn-secondary" id="btnLimpiar">Limpiar</button>
+                    <button class="btn btn-primary" id="btnGuardarVenta">Guardar Venta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .list-group-item {
+        cursor: pointer;
+        padding: 0.5rem 1rem;
+    }
+    
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .list-group-item.active {
+        background-color: #4F46E5;
+        color: white;
+    }
+
+    table tbody tr td {
+        vertical-align: middle;
+    }
+
+    input[type="number"],
+    input[type="datetime-local"] {
+        min-width: 100px;
+    }
+
+    .btn-eliminar-fila {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+</style>
+
+<script>
+    let clientesDisponibles = [];
+    let productosDisponibles = [];
+    let productosEnVenta = {};
+    let idClienteSeleccionado = null;
+
+    // Inicializar la página
+    document.addEventListener('DOMContentLoaded', async function() {
+        // Obtener ID de usuario del header (asumiendo que está en un atributo global)
+        const usuarioElement = document.querySelector('[data-user-id]');
+        if (usuarioElement) {
+            document.getElementById('idUsuario').value = usuarioElement.getAttribute('data-user-id');
+        }
+
+        // Establecer fecha y hora actual en el input
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('fechaHora').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+        // Cargar datos
+        await cargarSeries();
+        await cargarClientes();
+        await cargarEstadosVenta();
+        await cargarProductos();
+
+        // Event listeners
+        document.getElementById('selectSerie').addEventListener('change', manejarCambioSerie);
+        document.getElementById('inputCliente').addEventListener('input', manejarBuscaCliente);
+        document.getElementById('inputProducto').addEventListener('input', manejarBuscaProducto);
+        document.getElementById('btnLimpiar').addEventListener('click', limpiarFormulario);
+        document.getElementById('btnGuardarVenta').addEventListener('click', guardarVenta);
+        document.getElementById('cuerpoTabla').addEventListener('input', manejarCambioTabla);
+
+        // Listeners para seleccionar cliente o producto
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('#listaClientesSugerencias .list-group-item')) {
+                seleccionarClienteDeSugerencias(e.target.closest('.list-group-item'));
+            }
+            if (e.target.closest('#listaProductosSugerencias .list-group-item')) {
+                seleccionarProductoDeSugerencias(e.target.closest('.list-group-item'));
+            }
+        });
+
+        // Cerrar sugerencias al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#inputCliente') && !e.target.closest('#listaClientesSugerencias')) {
+                document.getElementById('listaClientesSugerencias').style.display = 'none';
+            }
+            if (!e.target.closest('#inputProducto') && !e.target.closest('#listaProductosSugerencias')) {
+                document.getElementById('listaProductosSugerencias').style.display = 'none';
+            }
+        });
+    });
+
+    async function cargarSeries() {
+        try {
+            const response = await fetch('/series/mostrar_series');
+            const series = await response.json();
+            const select = document.getElementById('selectSerie');
+            series.forEach(serie => {
+                const option = document.createElement('option');
+                option.value = serie.id;
+                option.textContent = `Serie: ${serie.serie} (Contador: ${serie.contador})`;
+                option.dataset.contador = serie.contador;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error cargando series:', error);
+            Swal.fire('Error', 'No se pudieron cargar las series', 'error');
+        }
+    }
+
+    function manejarCambioSerie() {
+        const select = document.getElementById('selectSerie');
+        const opcionSeleccionada = select.options[select.selectedIndex];
+        if (opcionSeleccionada.value) {
+            document.getElementById('idSerie').value = opcionSeleccionada.value;
+            document.getElementById('contadorSerie').textContent = opcionSeleccionada.dataset.contador;
+        } else {
+            document.getElementById('idSerie').value = '';
+            document.getElementById('contadorSerie').textContent = '-';
+        }
+    }
+
+    async function cargarClientes() {
+        try {
+            const response = await fetch('/clientes/mostrar_clientes');
+            clientesDisponibles = await response.json();
+        } catch (error) {
+            console.error('Error cargando clientes:', error);
+        }
+    }
+
+    function manejarBuscaCliente() {
+        const filtro = document.getElementById('inputCliente').value.toLowerCase();
+        const lista = document.getElementById('listaClientesSugerencias');
+
+        if (filtro.length === 0) {
+            lista.style.display = 'none';
+            return;
+        }
+
+        const sugerencias = clientesDisponibles.filter(cliente => {
+            const texto = `${cliente.documento} ${cliente.nombre} ${cliente.estado}`.toLowerCase();
+            return texto.includes(filtro);
+        });
+
+        mostrarSugerenciasClientes(sugerencias, lista);
+    }
+
+    function mostrarSugerenciasClientes(sugerencias, lista) {
+        lista.innerHTML = '';
+        if (sugerencias.length === 0) {
+            lista.style.display = 'none';
+            return;
+        }
+
+        sugerencias.forEach(cliente => {
+            const item = document.createElement('a');
+            item.href = '#';
+            item.className = 'list-group-item list-group-item-action';
+            item.dataset.idCliente = cliente.id;
+            item.innerHTML = `
+                <strong>${cliente.documento}</strong> - ${cliente.nombre}
+                <small class="d-block text-muted">Estado: ${cliente.estado}</small>
+            `;
+            lista.appendChild(item);
+        });
+
+        lista.style.display = 'block';
+    }
+
+    function seleccionarClienteDeSugerencias(elemento) {
+        const idCliente = elemento.dataset.idCliente;
+        const cliente = clientesDisponibles.find(c => c.id == idCliente);
+        if (cliente) {
+            document.getElementById('inputCliente').value = `${cliente.documento} - ${cliente.nombre}`;
+            document.getElementById('idClienteSeleccionado').value = cliente.id;
+            document.getElementById('listaClientesSugerencias').style.display = 'none';
+        }
+    }
+
+    async function cargarEstadosVenta() {
+        try {
+            const response = await fetch('/estados/mostrar_estados/tbl_ventas');
+            const estados = await response.json();
+            const select = document.getElementById('selectEstadoVenta');
+
+            // Ordenar alfabéticamente por descripción
+            estados.sort((a, b) => a.descripcion.localeCompare(b.descripcion));
+
+            estados.forEach((estado, index) => {
+                const option = document.createElement('option');
+                option.value = estado.descripcion;
+                option.textContent = estado.descripcion;
+                select.appendChild(option);
+                // Seleccionar el primero por defecto
+                if (index === 0) {
+                    option.selected = true;
+                }
+            });
+        } catch (error) {
+            console.error('Error cargando estados de venta:', error);
+        }
+    }
+
+    async function cargarProductos() {
+        try {
+            const response = await fetch('/productos/mostrar_productos');
+            productosDisponibles = await response.json();
+        } catch (error) {
+            console.error('Error cargando productos:', error);
+        }
+    }
+
+    function manejarBuscaProducto() {
+        const filtro = document.getElementById('inputProducto').value.toLowerCase();
+        const lista = document.getElementById('listaProductosSugerencias');
+
+        if (filtro.length === 0) {
+            lista.style.display = 'none';
+            return;
+        }
+
+        const sugerencias = productosDisponibles.filter(producto => {
+            const texto = `${producto.codigo_barras} ${producto.descripcion}`.toLowerCase();
+            return texto.includes(filtro);
+        });
+
+        mostrarSugerenciasProductos(sugerencias, lista);
+    }
+
+    function mostrarSugerenciasProductos(sugerencias, lista) {
+        lista.innerHTML = '';
+        if (sugerencias.length === 0) {
+            lista.style.display = 'none';
+            return;
+        }
+
+        sugerencias.forEach(producto => {
+            const item = document.createElement('a');
+            item.href = '#';
+            item.className = 'list-group-item list-group-item-action';
+            item.dataset.idProducto = producto.id;
+            item.innerHTML = `
+                <strong>${producto.codigo_barras}</strong> - ${producto.descripcion}
+                <small class="d-block text-muted">Stock: ${producto.stock} | Precio: $${parseFloat(producto.precio_venta).toFixed(2)}</small>
+            `;
+            lista.appendChild(item);
+        });
+
+        lista.style.display = 'block';
+    }
+
+    function seleccionarProductoDeSugerencias(elemento) {
+        const idProducto = elemento.dataset.idProducto;
+        const producto = productosDisponibles.find(p => p.id == idProducto);
+
+        if (producto) {
+            // Si el producto ya está en la tabla, solo aumentar cantidad
+            if (productosEnVenta[idProducto]) {
+                const inputCantidad = document.querySelector(`input[data-id-producto="${idProducto}"][data-tipo="cantidad"]`);
+                if (inputCantidad) {
+                    inputCantidad.value = parseFloat(inputCantidad.value) + 1;
+                    manejarCambioTabla({ target: inputCantidad });
+                }
+            } else {
+                // Agregar nueva fila
+                agregarFilaProducto(producto);
+            }
+
+            document.getElementById('inputProducto').value = '';
+            document.getElementById('listaProductosSugerencias').style.display = 'none';
+        }
+    }
+
+    function agregarFilaProducto(producto) {
+        const cuerpo = document.getElementById('cuerpoTabla');
+        const row = cuerpo.insertRow();
+        row.dataset.idProducto = producto.id;
+
+        productosEnVenta[producto.id] = {
+            cantidad: 1,
+            descuento: 0
+        };
+
+        row.innerHTML = `
+            <td>${producto.id}</td>
+            <td>${producto.codigo_barras}</td>
+            <td>${producto.descripcion}</td>
+            <td>
+                <input type="number" class="form-control form-control-sm" value="1" min="1" 
+                       data-id-producto="${producto.id}" data-tipo="cantidad" style="max-width: 80px;">
+            </td>
+            <td>$${parseFloat(producto.precio_venta).toFixed(2)}</td>
+            <td>
+                <input type="number" class="form-control form-control-sm" value="0" min="0" step="0.01"
+                       data-id-producto="${producto.id}" data-tipo="descuento" style="max-width: 100px;">
+            </td>
+            <td><span class="badge bg-success">${producto.estado}</span></td>
+            <td><strong class="subtotal">$0.00</strong></td>
+            <td>
+                <button class="btn btn-danger btn-sm btn-eliminar-fila" data-id-producto="${producto.id}">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </td>
+        `;
+
+        // Event listener para eliminar fila
+        row.querySelector('.btn-eliminar-fila').addEventListener('click', () => {
+            delete productosEnVenta[producto.id];
+            row.remove();
+            calcularTotal();
+        });
+
+        calcularSubtotal(row, producto);
+    }
+
+    function manejarCambioTabla(event) {
+        const input = event.target;
+        const row = input.closest('tr');
+        if (row) {
+            const idProducto = row.dataset.idProducto;
+            const producto = productosDisponibles.find(p => p.id == idProducto);
+
+            if (input.dataset.tipo === 'cantidad') {
+                productosEnVenta[idProducto].cantidad = parseFloat(input.value) || 0;
+            } else if (input.dataset.tipo === 'descuento') {
+                productosEnVenta[idProducto].descuento = parseFloat(input.value) || 0;
+            }
+
+            calcularSubtotal(row, producto);
+        }
+    }
+
+    function calcularSubtotal(row, producto) {
+        const idProducto = producto.id;
+        const cantidad = productosEnVenta[idProducto].cantidad;
+        const descuento = productosEnVenta[idProducto].descuento;
+        const precioVenta = parseFloat(producto.precio_venta);
+
+        const subtotal = (cantidad * precioVenta) - descuento;
+        const subtotalElement = row.querySelector('.subtotal');
+        if (subtotalElement) {
+            subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
+        }
+
+        calcularTotal();
+    }
+
+    function calcularTotal() {
+        let total = 0;
+        const tabla = document.getElementById('tablaProductosVenta');
+        tabla.querySelectorAll('tbody tr').forEach(row => {
+            const subtotal = parseFloat(row.querySelector('.subtotal').textContent.replace('$', ''));
+            total += subtotal;
+        });
+
+        document.getElementById('totalVenta').value = total.toFixed(2);
+    }
+
+    function limpiarFormulario() {
+        document.getElementById('selectSerie').value = '';
+        document.getElementById('idSerie').value = '';
+        document.getElementById('contadorSerie').textContent = '-';
+        document.getElementById('inputCliente').value = '';
+        document.getElementById('idClienteSeleccionado').value = '';
+        document.getElementById('selectEstadoVenta').value = document.getElementById('selectEstadoVenta').options[1].value;
+        document.getElementById('inputProducto').value = '';
+        document.getElementById('cuerpoTabla').innerHTML = '';
+        document.getElementById('totalVenta').value = '0.00';
+        productosEnVenta = {};
+
+        // Restablecer fecha y hora actual
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('fechaHora').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    async function guardarVenta() {
+        // Validaciones
+        if (!document.getElementById('idSerie').value) {
+            Swal.fire('Error', 'Debe seleccionar una serie', 'error');
+            return;
+        }
+        if (!document.getElementById('idClienteSeleccionado').value) {
+            Swal.fire('Error', 'Debe seleccionar un cliente', 'error');
+            return;
+        }
+        if (!document.getElementById('selectEstadoVenta').value) {
+            Swal.fire('Error', 'Debe seleccionar un estado de venta', 'error');
+            return;
+        }
+        if (Object.keys(productosEnVenta).length === 0) {
+            Swal.fire('Error', 'Debe agregar al menos un producto', 'error');
+            return;
+        }
+
+        try {
+            // Convertir fecha del input datetime-local al formato esperado
+            const fechaInput = document.getElementById('fechaHora').value;
+            const fecha = fechaInput.replace('T', ' '); // Convertir a formato YYYY-MM-DD HH:MM
+
+            // Guardar venta
+            const ventaData = {
+                id_serie: parseInt(document.getElementById('idSerie').value),
+                id_usuario: parseInt(document.getElementById('idUsuario').value),
+                id_cliente: parseInt(document.getElementById('idClienteSeleccionado').value),
+                descripcion_estado: document.getElementById('selectEstadoVenta').value,
+                fecha: fecha,
+                total: parseFloat(document.getElementById('totalVenta').value)
+            };
+
+            const responseVenta = await fetch('/ventas/insertar_venta', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(ventaData)
+            });
+
+            const dataVenta = await responseVenta.json();
+
+            if (!responseVenta.ok) {
+                throw new Error(dataVenta.error || 'Error al guardar la venta');
+            }
+
+            const idVentaNueva = dataVenta.id;
+
+            // Guardar detalles de venta
+            for (const [idProducto, datos] of Object.entries(productosEnVenta)) {
+                const producto = productosDisponibles.find(p => p.id == idProducto);
+                const detalleData = {
+                    id_venta: idVentaNueva,
+                    id_producto: parseInt(idProducto),
+                    cantidad: datos.cantidad,
+                    precio_venta: parseFloat(producto.precio_venta),
+                    descuento: datos.descuento,
+                    descripcion_estado: 'Completado'
+                };
+
+                const responseDetalle = await fetch('/venta_detalles/insertar_venta_detalle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(detalleData)
+                });
+
+                if (!responseDetalle.ok) {
+                    const dataDetalle = await responseDetalle.json();
+                    throw new Error(dataDetalle.error || 'Error al guardar detalle de venta');
+                }
+            }
+
+            Swal.fire('Éxito', `Venta #${idVentaNueva} registrada exitosamente`, 'success').then(() => {
+                limpiarFormulario();
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', error.message, 'error');
+        }
+    }
+</script>
+{% endblock %}
