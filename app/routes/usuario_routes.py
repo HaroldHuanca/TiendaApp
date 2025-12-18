@@ -1,9 +1,18 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from app.services import usuario_service
 import bcrypt
 
 usuario_bp = Blueprint('usuario_bp', __name__)
 
+@usuario_bp.route('/usuario_id', methods=['GET'])
+def obtener_usuario_id():
+    if 'id' not in session:
+        return jsonify({'error': 'No autenticado'}), 401
+
+    return jsonify({
+        'id': session['id']
+    })
+    
 @usuario_bp.route('/mostrar_usuarios', methods=['GET'])
 def listar_usuarios():
     try:

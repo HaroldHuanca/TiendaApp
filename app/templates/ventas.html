@@ -16,18 +16,9 @@
                 <div class="col-md-4">
                     <label for="selectSerie" class="form-label">Serie</label>
                     <select class="form-control" id="selectSerie">
-                        <option value="">Seleccionar serie...</option>
                     </select>
                     <input type="hidden" id="idSerie" />
                     <small class="text-muted">Contador: <span id="contadorSerie">-</span></small>
-                </div>
-                <div class="col-md-4">
-                    <label for="idUsuario" class="form-label">Usuario ID</label>
-                    <input type="text" class="form-control" id="idUsuario" readonly />
-                </div>
-                <div class="col-md-4">
-                    <label for="fechaHora" class="form-label">Fecha y Hora</label>
-                    <input type="datetime-local" class="form-control" id="fechaHora" required />
                 </div>
             </div>
 
@@ -36,9 +27,11 @@
                 <div class="col-md-12">
                     <label for="inputCliente" class="form-label">Cliente</label>
                     <div class="position-relative">
-                        <input type="text" class="form-control" id="inputCliente" placeholder="Buscar cliente por documento, nombre o estado..." autocomplete="off">
+                        <input type="text" class="form-control" id="inputCliente"
+                            placeholder="Buscar cliente por documento, nombre o estado..." autocomplete="off">
                         <input type="hidden" id="idClienteSeleccionado" />
-                        <div class="list-group position-absolute w-100" id="listaClientesSugerencias" style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto;">
+                        <div class="list-group position-absolute w-100" id="listaClientesSugerencias"
+                            style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto;">
                         </div>
                     </div>
                 </div>
@@ -49,7 +42,6 @@
                 <div class="col-md-4">
                     <label for="selectEstadoVenta" class="form-label">Estado de Venta</label>
                     <select class="form-control" id="selectEstadoVenta">
-                        <option value="">Seleccionar estado...</option>
                     </select>
                 </div>
             </div>
@@ -59,8 +51,10 @@
                 <div class="col-md-12">
                     <label for="inputProducto" class="form-label">Buscar Producto</label>
                     <div class="position-relative">
-                        <input type="text" class="form-control" id="inputProducto" placeholder="Buscar por código de barras, descripción..." autocomplete="off">
-                        <div class="list-group position-absolute w-100" id="listaProductosSugerencias" style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto;">
+                        <input type="text" class="form-control" id="inputProducto"
+                            placeholder="Buscar por código de barras, descripción..." autocomplete="off">
+                        <div class="list-group position-absolute w-100" id="listaProductosSugerencias"
+                            style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto;">
                         </div>
                     </div>
                 </div>
@@ -96,7 +90,8 @@
             <div class="row mb-4">
                 <div class="col-md-12 d-flex justify-content-end align-items-center gap-3">
                     <label for="totalVenta" class="form-label mb-0">Total de Venta:</label>
-                    <input type="number" class="form-control" id="totalVenta" readonly style="max-width: 150px; font-weight: bold; font-size: 1.2rem;" value="0.00" />
+                    <input type="number" class="form-control" id="totalVenta" readonly
+                        style="max-width: 150px; font-weight: bold; font-size: 1.2rem;" value="0.00" />
                 </div>
             </div>
 
@@ -116,11 +111,11 @@
         cursor: pointer;
         padding: 0.5rem 1rem;
     }
-    
+
     .list-group-item:hover {
         background-color: #f8f9fa;
     }
-    
+
     .list-group-item.active {
         background-color: #4F46E5;
         color: white;
@@ -146,25 +141,24 @@
     let productosDisponibles = [];
     let productosEnVenta = {};
     let idClienteSeleccionado = null;
+    let idUsuario = null;
+    let fechaActual = null;
 
     // Inicializar la página
-    document.addEventListener('DOMContentLoaded', async function() {
-        // Obtener ID de usuario del header (asumiendo que está en un atributo global)
-        const usuarioElement = document.querySelector('[data-user-id]');
-        if (usuarioElement) {
-            document.getElementById('idUsuario').value = usuarioElement.getAttribute('data-user-id');
-        }
-
+    document.addEventListener('DOMContentLoaded', async function () {
         // Establecer fecha y hora actual en el input
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        document.getElementById('fechaHora').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        //const now = new Date();
+        //const year = now.getFullYear();
+        //const month = String(now.getMonth() + 1).padStart(2, '0');
+        //const day = String(now.getDate()).padStart(2, '0');
+        //const hours = String(now.getHours()).padStart(2, '0');
+        //const minutes = String(now.getMinutes()).padStart(2, '0');
+
+        //Obtenemos el id del usuario desde el servidor
 
         // Cargar datos
+        await cargarIdUsuario();
+        await cargarFechaActual();
         await cargarSeries();
         await cargarClientes();
         await cargarEstadosVenta();
@@ -179,7 +173,7 @@
         document.getElementById('cuerpoTabla').addEventListener('input', manejarCambioTabla);
 
         // Listeners para seleccionar cliente o producto
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             if (e.target.closest('#listaClientesSugerencias .list-group-item')) {
                 seleccionarClienteDeSugerencias(e.target.closest('.list-group-item'));
             }
@@ -189,7 +183,7 @@
         });
 
         // Cerrar sugerencias al hacer clic fuera
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             if (!e.target.closest('#inputCliente') && !e.target.closest('#listaClientesSugerencias')) {
                 document.getElementById('listaClientesSugerencias').style.display = 'none';
             }
@@ -199,17 +193,65 @@
         });
     });
 
+    async function cargarIdUsuario() {
+        try {
+            const response = await fetch('/usuarios/usuario_id');
+            const data = await response.json();
+            if (response.ok) {
+                idUsuario = data.id;
+            } else {
+                throw new Error(data.error || 'No se pudo obtener el ID del usuario');
+            }
+        } catch (error) {
+            console.error('Error al cargar el ID del usuario:', error);
+            Swal.fire('Error', 'No se pudo obtener el ID del usuario', 'error');
+        }
+    }
+    function convertirFechaFormato(fechaStr) {
+        // "17/12/2025 19:53:32"
+        const [fecha, hora] = fechaStr.split(' ');
+        const [dia, mes, anio] = fecha.split('/');
+
+        return `${anio}-${mes}-${dia} ${hora}`;
+    }
+
+
+    async function cargarFechaActual() {
+        try {
+            const response = await fetch('/tiempo/fecha_actual');
+            const data = await response.json();
+            if (response.ok) {
+                fechaActual = convertirFechaFormato(data.fecha);
+            } else {
+                throw new Error(data.error || 'No se pudo obtener la fecha y hora actual');
+            }
+        } catch (error) {
+            console.error('Error al cargar la fecha y hora actual:', error);
+            Swal.fire('Error', 'No se pudo obtener la fecha y hora actual', 'error');
+        }
+    }
+
     async function cargarSeries() {
         try {
             const response = await fetch('/series/mostrar_series');
             const series = await response.json();
             const select = document.getElementById('selectSerie');
-            series.forEach(serie => {
+
+            select.innerHTML = '';
+
+            series.forEach((serie, index) => {
                 const option = document.createElement('option');
                 option.value = serie.id;
                 option.textContent = `Serie: ${serie.serie} (Contador: ${serie.contador})`;
                 option.dataset.contador = serie.contador;
                 select.appendChild(option);
+
+                // 👇 Seleccionar la primera automáticamente
+                if (index === 0) {
+                    select.selectedIndex = 0;
+                    document.getElementById('idSerie').value = serie.id;
+                    document.getElementById('contadorSerie').textContent = serie.contador;
+                }
             });
         } catch (error) {
             console.error('Error cargando series:', error);
@@ -509,13 +551,13 @@
 
         try {
             // Convertir fecha del input datetime-local al formato esperado
-            const fechaInput = document.getElementById('fechaHora').value;
+            const fechaInput = fechaActual;
             const fecha = fechaInput.replace('T', ' '); // Convertir a formato YYYY-MM-DD HH:MM
 
             // Guardar venta
             const ventaData = {
                 id_serie: parseInt(document.getElementById('idSerie').value),
-                id_usuario: parseInt(document.getElementById('idUsuario').value),
+                id_usuario: idUsuario,
                 id_cliente: parseInt(document.getElementById('idClienteSeleccionado').value),
                 descripcion_estado: document.getElementById('selectEstadoVenta').value,
                 fecha: fecha,
