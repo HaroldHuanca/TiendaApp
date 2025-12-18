@@ -162,12 +162,34 @@
         await cargarSeries();
         await cargarClientes();
         await cargarEstadosVenta();
-        await cargarProductos();
+        // await cargarProductos(); // Ya no cargamos todos los productos al inicio
 
         // Event listeners
         document.getElementById('selectSerie').addEventListener('change', manejarCambioSerie);
         document.getElementById('inputCliente').addEventListener('input', manejarBuscaCliente);
+        // Agregar listener para Enter en Cliente
+        document.getElementById('inputCliente').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const primeraSugerencia = document.getElementById('listaClientesSugerencias').firstElementChild;
+                if (primeraSugerencia) {
+                    seleccionarClienteDeSugerencias(primeraSugerencia);
+                }
+            }
+        });
+
         document.getElementById('inputProducto').addEventListener('input', manejarBuscaProducto);
+        // Agregar listener para Enter en Producto
+        document.getElementById('inputProducto').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const primeraSugerencia = document.getElementById('listaProductosSugerencias').firstElementChild;
+                if (primeraSugerencia) {
+                    seleccionarProductoDeSugerencias(primeraSugerencia);
+                }
+            }
+        });
+
         document.getElementById('btnLimpiar').addEventListener('click', limpiarFormulario);
         document.getElementById('btnGuardarVenta').addEventListener('click', guardarVenta);
         document.getElementById('cuerpoTabla').addEventListener('input', manejarCambioTabla);
@@ -362,21 +384,29 @@
         }
     }
 
-    function manejarBuscaProducto() {
-        const filtro = document.getElementById('inputProducto').value.toLowerCase();
+    async function manejarBuscaProducto() {
+        const filtro = document.getElementById('inputProducto').value.trim();
         const lista = document.getElementById('listaProductosSugerencias');
 
-        if (filtro.length === 0) {
+        if (filtro.length < 3) {
             lista.style.display = 'none';
             return;
         }
 
-        const sugerencias = productosDisponibles.filter(producto => {
-            const texto = `${producto.codigo_barras} ${producto.descripcion}`.toLowerCase();
-            return texto.includes(filtro);
-        });
-
-        mostrarSugerenciasProductos(sugerencias, lista);
+        try {
+            const response = await fetch(`/productos/obtener_productos_por_filtro/${encodeURIComponent(filtro)}`);
+            if (response.ok) {
+                const productos = await response.json();
+                productosDisponibles = productos; // Actualizamos la lista global para poder buscar por ID luego
+                mostrarSugerenciasProductos(productos, lista);
+            } else {
+                console.error('Error al buscar productos');
+                lista.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error de conexión:', error);
+            lista.style.display = 'none';
+        }
     }
 
     function mostrarSugerenciasProductos(sugerencias, lista) {
