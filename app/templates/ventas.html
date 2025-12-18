@@ -297,6 +297,13 @@
         try {
             const response = await fetch('/clientes/mostrar_clientes');
             clientesDisponibles = await response.json();
+
+            // Seleccionar el primer cliente por defecto si existe
+            if (clientesDisponibles && clientesDisponibles.length > 0) {
+                const primerCliente = clientesDisponibles[0];
+                document.getElementById('inputCliente').value = `${primerCliente.documento} - ${primerCliente.nombre}`;
+                document.getElementById('idClienteSeleccionado').value = primerCliente.id;
+            }
         } catch (error) {
             console.error('Error cargando clientes:', error);
         }
@@ -422,7 +429,7 @@
             item.className = 'list-group-item list-group-item-action';
             item.dataset.idProducto = producto.id;
             item.innerHTML = `
-                <strong>${producto.codigo_barras}</strong> - ${producto.descripcion}
+                <strong>${producto.codigo_Barras}</strong> - ${producto.descripcion}
                 <small class="d-block text-muted">Stock: ${producto.stock} | Precio: $${parseFloat(producto.precio_venta).toFixed(2)}</small>
             `;
             lista.appendChild(item);
@@ -460,12 +467,13 @@
 
         productosEnVenta[producto.id] = {
             cantidad: 1,
-            descuento: 0
+            descuento: 0,
+            precio_venta: parseFloat(producto.precio_venta)
         };
 
         row.innerHTML = `
             <td>${producto.id}</td>
-            <td>${producto.codigo_barras}</td>
+            <td>${producto.codigo_Barras}</td>
             <td>${producto.descripcion}</td>
             <td>
                 <input type="number" class="form-control form-control-sm" value="1" min="1" 
@@ -492,7 +500,7 @@
             calcularTotal();
         });
 
-        calcularSubtotal(row, producto);
+        calcularSubtotal(row, producto.id);
     }
 
     function manejarCambioTabla(event) {
@@ -500,7 +508,6 @@
         const row = input.closest('tr');
         if (row) {
             const idProducto = row.dataset.idProducto;
-            const producto = productosDisponibles.find(p => p.id == idProducto);
 
             if (input.dataset.tipo === 'cantidad') {
                 productosEnVenta[idProducto].cantidad = parseFloat(input.value) || 0;
@@ -508,15 +515,15 @@
                 productosEnVenta[idProducto].descuento = parseFloat(input.value) || 0;
             }
 
-            calcularSubtotal(row, producto);
+            calcularSubtotal(row, idProducto);
         }
     }
 
-    function calcularSubtotal(row, producto) {
-        const idProducto = producto.id;
-        const cantidad = productosEnVenta[idProducto].cantidad;
-        const descuento = productosEnVenta[idProducto].descuento;
-        const precioVenta = parseFloat(producto.precio_venta);
+    function calcularSubtotal(row, idProducto) {
+        const datos = productosEnVenta[idProducto];
+        const cantidad = datos.cantidad;
+        const descuento = datos.descuento;
+        const precioVenta = datos.precio_venta;
 
         const subtotal = (cantidad * precioVenta) - descuento;
         const subtotalElement = row.querySelector('.subtotal');
@@ -612,12 +619,11 @@
 
             // Guardar detalles de venta
             for (const [idProducto, datos] of Object.entries(productosEnVenta)) {
-                const producto = productosDisponibles.find(p => p.id == idProducto);
                 const detalleData = {
                     id_venta: idVentaNueva,
                     id_producto: parseInt(idProducto),
                     cantidad: datos.cantidad,
-                    precio_venta: parseFloat(producto.precio_venta),
+                    precio_venta: datos.precio_venta, // Usar el precio almacenado para evitar TypeErrors
                     descuento: datos.descuento,
                     descripcion_estado: 'Completado'
                 };
