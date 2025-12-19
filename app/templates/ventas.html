@@ -2,28 +2,33 @@
 
 {% block title %}Ventas - TiendaApp{% endblock %}
 
-{% block page_title %}Nueva Venta{% endblock %}
+{% block page_title %}Ventas{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     <div class="card">
         <div class="card-header">
-            <h2>Registrar Nueva Venta</h2>
+            <!-- Header vacío intencional: título principal se muestra en el header global -->
+            <div style="height:1px;"></div>
         </div>
         <div class="card-body">
-            <!-- Fila 1: Serie, Contador, Usuario ID -->
-            <div class="row mb-4">
-                <div class="col-md-4">
+            <!-- Fila 1: Serie y Estado (misma fila en desktop) -->
+            <div class="row mb-2">
+                <div class="col-12 col-md-4">
                     <label for="selectSerie" class="form-label">Serie</label>
                     <select class="form-control" id="selectSerie">
                     </select>
                     <input type="hidden" id="idSerie" />
-                    <small class="text-muted">Contador: <span id="contadorSerie">-</span></small>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label for="selectEstadoVenta" class="form-label">Estado de Venta</label>
+                    <select class="form-control" id="selectEstadoVenta">
+                    </select>
                 </div>
             </div>
 
             <!-- Fila 2: Búsqueda de Cliente -->
-            <div class="row mb-4">
+            <div class="row mb-2">
                 <div class="col-md-12">
                     <label for="inputCliente" class="form-label">Cliente</label>
                     <div class="position-relative">
@@ -37,17 +42,8 @@
                 </div>
             </div>
 
-            <!-- Fila 3: Estado de Venta -->
-            <div class="row mb-4">
-                <div class="col-md-4">
-                    <label for="selectEstadoVenta" class="form-label">Estado de Venta</label>
-                    <select class="form-control" id="selectEstadoVenta">
-                    </select>
-                </div>
-            </div>
-
-            <!-- Fila 4: Búsqueda de Productos -->
-            <div class="row mb-4">
+            <!-- Fila 3: Búsqueda de Productos -->
+            <div class="row mb-2">
                 <div class="col-md-12">
                     <label for="inputProducto" class="form-label">Buscar Producto</label>
                     <div class="position-relative">
@@ -61,7 +57,7 @@
             </div>
 
             <!-- Tabla de Productos en Venta -->
-            <div class="row mb-4">
+            <div class="row mb-2">
                 <div class="col-md-12">
                     <h5>Detalles de la Venta</h5>
                     <div class="table-responsive">
@@ -87,11 +83,11 @@
             </div>
 
             <!-- Fila 5: Total de Venta -->
-            <div class="row mb-4">
+            <div class="row mb-2">
                 <div class="col-md-12 d-flex justify-content-end align-items-center gap-3">
                     <label for="totalVenta" class="form-label mb-0">Total de Venta:</label>
                     <input type="number" class="form-control" id="totalVenta" readonly
-                        style="max-width: 150px; font-weight: bold; font-size: 1.2rem;" value="0.00" />
+                        style="max-width: 150px; font-weight: bold; font-size: 1rem;" value="0.00" />
                 </div>
             </div>
 
@@ -109,7 +105,7 @@
 <style>
     .list-group-item {
         cursor: pointer;
-        padding: 0.5rem 1rem;
+        padding: 0.4rem 0.75rem;
     }
 
     .list-group-item:hover {
@@ -123,6 +119,13 @@
 
     table tbody tr td {
         vertical-align: middle;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    table thead th {
+        padding: 0.5rem;
+        font-size: 0.8rem;
     }
 
     input[type="number"],
@@ -131,8 +134,17 @@
     }
 
     .btn-eliminar-fila {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.875rem;
+        padding: 0.2rem 0.4rem;
+        font-size: 0.7rem;
+    }
+
+    .row {
+        margin-bottom: 0.5rem;
+    }
+
+    h5 {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
     }
 </style>
 
@@ -264,15 +276,18 @@
             series.forEach((serie, index) => {
                 const option = document.createElement('option');
                 option.value = serie.id;
-                option.textContent = `Serie: ${serie.serie} (Contador: ${serie.contador})`;
+                // Formato: B001-00000001
+                const contador = String(serie.contador).padStart(8, '0');
+                const serieFormatted = `${serie.serie}-${contador}`;
+                option.textContent = serieFormatted;
                 option.dataset.contador = serie.contador;
+                option.dataset.serie = serie.serie;
                 select.appendChild(option);
 
                 // 👇 Seleccionar la primera automáticamente
                 if (index === 0) {
                     select.selectedIndex = 0;
                     document.getElementById('idSerie').value = serie.id;
-                    document.getElementById('contadorSerie').textContent = serie.contador;
                 }
             });
         } catch (error) {
@@ -286,10 +301,8 @@
         const opcionSeleccionada = select.options[select.selectedIndex];
         if (opcionSeleccionada.value) {
             document.getElementById('idSerie').value = opcionSeleccionada.value;
-            document.getElementById('contadorSerie').textContent = opcionSeleccionada.dataset.contador;
         } else {
             document.getElementById('idSerie').value = '';
-            document.getElementById('contadorSerie').textContent = '-';
         }
     }
 
@@ -546,12 +559,6 @@
     }
 
     function limpiarFormulario() {
-        document.getElementById('selectSerie').value = '';
-        document.getElementById('idSerie').value = '';
-        document.getElementById('contadorSerie').textContent = '-';
-        document.getElementById('inputCliente').value = '';
-        document.getElementById('idClienteSeleccionado').value = '';
-        document.getElementById('selectEstadoVenta').value = document.getElementById('selectEstadoVenta').options[1].value;
         document.getElementById('inputProducto').value = '';
         document.getElementById('cuerpoTabla').innerHTML = '';
         document.getElementById('totalVenta').value = '0.00';

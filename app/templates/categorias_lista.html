@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 
+{% block page_title %}Categorías{% endblock %}
+
 {% block content %}
 <!-- Modal -->
 {% include 'components/modal_categoria.html' %}
 
 <div class="card">
     <div class="page-header">
-        <h1 class="page-title">Categorías</h1>
         <div class="page-actions">
             <button class="btn btn-primary" onclick="abrirModalNueva()">+ Nueva Categoría</button>
         </div>

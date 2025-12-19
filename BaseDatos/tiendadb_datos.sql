@@ -1196,10 +1196,10 @@ INSERT INTO
     `tbl_proveedores`
 VALUES
     (1, '', 'PROVEEDOR USUAL', 0),
-    (1, '20527925682', 'COCA COLA', 1),
-    (1, '20114876616', 'DON JOSE', 1),
-    (1, '20564526721', 'ALICORP', 1),
-    (1, '20116507596', 'DISUR HELADOS', 1);
+    (2, '20527925682', 'COCA COLA', 1),
+    (3, '20114876616', 'DON JOSE', 1),
+    (4, '20564526721', 'ALICORP', 1),
+    (5, '20116507596', 'DISUR HELADOS', 1);
 
 INSERT INTO
     tbl_series
