@@ -14,11 +14,15 @@
         <div class="card-body">
             <!-- Fila 1: Serie y Estado (misma fila en desktop) -->
             <div class="row mb-2">
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-2">
                     <label for="selectSerie" class="form-label">Serie</label>
                     <select class="form-control" id="selectSerie">
                     </select>
                     <input type="hidden" id="idSerie" />
+                </div>
+                <div class="col-12 col-md-2">
+                    <label for="contadorSerie" class="form-label">Contador</label>
+                    <input type="text" id="contadorSerie" class="form-control"/>
                 </div>
                 <div class="col-12 col-md-4">
                     <label for="selectEstadoVenta" class="form-label">Estado de Venta</label>
@@ -278,8 +282,7 @@
                 option.value = serie.id;
                 // Formato: B001-00000001
                 const contador = String(serie.contador).padStart(8, '0');
-                const serieFormatted = `${serie.serie}-${contador}`;
-                option.textContent = serieFormatted;
+                option.textContent = serie.serie;
                 option.dataset.contador = serie.contador;
                 option.dataset.serie = serie.serie;
                 select.appendChild(option);
@@ -288,6 +291,7 @@
                 if (index === 0) {
                     select.selectedIndex = 0;
                     document.getElementById('idSerie').value = serie.id;
+                    document.getElementById('contadorSerie').value = contador;
                 }
             });
         } catch (error) {

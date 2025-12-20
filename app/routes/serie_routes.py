@@ -16,8 +16,7 @@ def crear_serie():
     datos = request.get_json()
     try:
         serie_service.insertar_serie(
-            datos.get("serie"),
-            datos.get("contador")
+            datos.get("serie")
         )
         return jsonify({"mensaje": "Serie creada exitosamente"}), 201
     except Exception as e:
@@ -33,13 +32,5 @@ def actualizar_serie(id):
             datos.get("contador")
         )
         return jsonify({"mensaje": "Serie actualizada exitosamente"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-
-@serie_bp.route('/eliminar_serie/<int:id>', methods=['DELETE'])
-def eliminar_serie(id):
-    try:
-        serie_service.eliminar_serie(id)
-        return jsonify({"mensaje": "Serie eliminada exitosamente"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
