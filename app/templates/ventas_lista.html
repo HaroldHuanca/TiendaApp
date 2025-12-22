@@ -175,7 +175,12 @@
             const row = document.createElement('tr');
 
             // Formatear fecha
-            const fecha = new Date(venta.fecha).toLocaleString('es-PE');
+            const fecha = new Date(venta.fecha).toLocaleString('es-PE', {
+                timeZone: 'UTC'
+            });
+
+            console.log(venta.fecha);
+            console.log(fecha);
 
             // Badge por estado
             let badgeClass = 'bg-secondary';

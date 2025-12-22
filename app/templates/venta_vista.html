@@ -123,7 +123,9 @@
 
             // Rellenar cabecera
             document.getElementById('txtDocumento').textContent = `${cabecera.serie}-${String(cabecera.contador_serie).padStart(8, '0')}`;
-            document.getElementById('txtFecha').textContent = new Date(cabecera.fecha).toLocaleString('es-PE');
+            document.getElementById('txtFecha').textContent = new Date(cabecera.fecha).toLocaleString('es-PE',{
+                timeZone: 'UTC'
+            });
             document.getElementById('txtUsuario').textContent = cabecera.nombre_usuario;
             document.getElementById('txtCliente').textContent = cabecera.nombre_cliente;
             document.getElementById('txtDocCliente').textContent = `Documento: ${cabecera.documento_cliente}`;
