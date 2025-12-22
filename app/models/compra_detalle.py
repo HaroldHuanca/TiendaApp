@@ -91,3 +91,12 @@ def eliminar_detalle_compra(id_compra: int, id_producto: int) -> None:
             }
         )
         db.commit()
+
+# Obtener detalles con información de productos
+def obtener_detalles_con_productos(id_compra: int) -> List[Dict[str, Any]]:
+    with DatabaseManager() as db:
+        result = db.execute(
+            text("CALL proc_obtener_compra_detalles_con_productos(:p_id_compra)"),
+            {"p_id_compra": id_compra}
+        )
+        return [dict(row._mapping) for row in result.fetchall()]

@@ -43,3 +43,10 @@ def actualizar_compra(
 def eliminar_compra(id: int) -> None:
     validar_id_mediumint(id,"ID de compra")
     compra_model.eliminar_compra(id)
+
+def filtrar_compras(filtro_nombre: str = None, fecha_desde: str = None, fecha_hasta: str = None) -> List[Dict[str, Any]]:
+    return compra_model.filtrar_compras(filtro_nombre, fecha_desde, fecha_hasta)
+
+def obtener_compra_por_id(id_compra: int) -> Optional[Dict[str, Any]]:
+    validar_id_mediumint(id_compra, "ID de compra")
+    return compra_model.obtener_compra_por_id(id_compra)

@@ -91,3 +91,24 @@ def eliminar_detalle_venta(id_venta: int, id_producto: int) -> None:
             }
         )
         db.commit()
+
+# ✅ Obtener detalles de venta con información del producto
+def obtener_detalles_con_productos(id_venta: int) -> List[Dict[str, Any]]:
+    with DatabaseManager() as db:
+        connection = db.connection()
+        raw_connection = connection.connection
+        cursor = raw_connection.cursor()
+        try:
+            cursor.callproc("proc_obtener_venta_detalles_con_productos", [id_venta])
+            detalles = []
+            while True:
+                if cursor.description:
+                    columns = [col[0] for col in cursor.description]
+                    results = cursor.fetchall()
+                    for row in results:
+                        detalles.append(dict(zip(columns, row)))
+                if not cursor.nextset():
+                    break
+            return detalles
+        finally:
+            cursor.close()

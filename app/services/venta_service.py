@@ -47,3 +47,11 @@ def actualizar_venta(
 def eliminar_venta(id: int) -> None:
     validar_id_mediumint(id, "ID de venta")
     venta_model.eliminar_venta(id)
+
+def filtrar_ventas(filtro_nombre: Optional[str] = None, fecha_desde: Optional[str] = None, fecha_hasta: Optional[str] = None) -> List[Dict[str, Any]]:
+    # Las fechas vienen como string de los inputs de fecha (YYYY-MM-DD) o None
+    return venta_model.filtrar_ventas(filtro_nombre, fecha_desde, fecha_hasta)
+
+def obtener_venta_por_id(id_venta: int) -> Optional[Dict[str, Any]]:
+    validar_id_mediumint(id_venta, "ID de venta")
+    return venta_model.obtener_venta_por_id(id_venta)

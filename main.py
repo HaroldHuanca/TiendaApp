@@ -182,8 +182,13 @@ def create_app():
     @app.route('/ventas', strict_slashes=False)
     def ventas_web():
         return render_con_session("ventas.html")
+    
+    @app.route('/compras', strict_slashes=False)
+    def compras_web():
+        return render_con_session("compras.html")
             
     return app
+
 
 if __name__ == "__main__":
     app = create_app()

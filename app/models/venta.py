@@ -65,6 +65,48 @@ def actualizar_venta(
         )
         db.commit()
 
+# ✅ Filtrar ventas por nombre (usuario/cliente) y rango de fechas
+def filtrar_ventas(filtro_nombre: Optional[str], fecha_desde: Optional[str], fecha_hasta: Optional[str]) -> List[Dict[str, Any]]:
+    with DatabaseManager() as db:
+        connection = db.connection()
+        raw_connection = connection.connection
+        cursor = raw_connection.cursor()
+        try:
+            cursor.callproc("proc_filtrar_ventas", [filtro_nombre, fecha_desde, fecha_hasta])
+            ventas = []
+            while True:
+                if cursor.description:
+                    columns = [col[0] for col in cursor.description]
+                    results = cursor.fetchall()
+                    for row in results:
+                        ventas.append(dict(zip(columns, row)))
+                if not cursor.nextset():
+                    break
+            return ventas
+        finally:
+            cursor.close()
+
+# ✅ Obtener cabecera de venta por ID con nombres
+def obtener_venta_por_id(id_venta: int) -> Optional[Dict[str, Any]]:
+    with DatabaseManager() as db:
+        connection = db.connection()
+        raw_connection = connection.connection
+        cursor = raw_connection.cursor()
+        try:
+            cursor.callproc("proc_obtener_venta_por_id", [id_venta])
+            venta = None
+            while True:
+                if cursor.description:
+                    columns = [col[0] for col in cursor.description]
+                    results = cursor.fetchall()
+                    if results and venta is None:
+                        venta = dict(zip(columns, results[0]))
+                if not cursor.nextset():
+                    break
+            return venta
+        finally:
+            cursor.close()
+
 # ✅ Eliminar (anular) una venta
 def eliminar_venta(id: int) -> None:
     with DatabaseManager() as db:

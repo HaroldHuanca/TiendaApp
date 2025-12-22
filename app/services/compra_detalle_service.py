@@ -51,5 +51,10 @@ def eliminar_detalle_compra(id_compra: int, id_producto: int) -> None:
     validar_id_mediumint(id_compra, "ID de Compra")
     validar_id_smallint(id_producto, "ID de Producto")
     compra_detalle_model.eliminar_detalle_compra(id_compra, id_producto)
+
+def obtener_detalles_con_productos(id_compra: int) -> List[Dict[str, Any]]:
+    validar_id_mediumint(id_compra, "ID de compra")
+    return compra_detalle_model.obtener_detalles_con_productos(id_compra)
+
     
 

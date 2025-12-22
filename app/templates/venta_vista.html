@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Detalles de Venta - TiendaApp{% endblock %}
+
+{% block page_title %}Detalles de Venta{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="mb-4">
+        <a href="/ventas/ventas_lista" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver a la lista
+        </a>
+    </div>
+
+    <!-- Cabecera de la Venta -->
+    <div class="card shadow-sm border-0 mb-4 overflow-hidden">
+        <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">VENTA #<span id="txtIdVenta">{{ id_venta }}</span></h5>
+            <span class="badge bg-white text-primary fw-bold" id="badgeEstado">Cargando...</span>
+        </div>
+        <div class="card-body bg-light">
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <label class="text-muted small text-uppercase fw-bold">Documento</label>
+                    <p class="h6 mb-0 fw-bold" id="txtDocumento">---</p>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-muted small text-uppercase fw-bold">Fecha y Hora</label>
+                    <p class="h6 mb-0" id="txtFecha">---</p>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-muted small text-uppercase fw-bold">Usuario</label>
+                    <p class="h6 mb-0" id="txtUsuario">---</p>
+                </div>
+                <div class="col-md-3 text-md-end">
+                    <label class="text-muted small text-uppercase fw-bold">Cliente</label>
+                    <p class="h6 mb-0 text-primary fw-bold" id="txtCliente">---</p>
+                    <small class="text-muted" id="txtDocCliente"></small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalles de la Venta -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3">
+            <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-list me-2"></i>Artículos de la Venta</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Código</th>
+                            <th>Descripción</th>
+                            <th class="text-center">Cantidad</th>
+                            <th class="text-end">Precio Unit.</th>
+                            <th class="text-end">Descuento</th>
+                            <th class="text-end pe-4">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTablaDetalles">
+                        <!-- Se cargará por AJAX -->
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <td colspan="5" class="text-end fw-bold py-3 fs-5">TOTAL FINAL:</td>
+                            <td class="text-end fw-bold py-3 fs-5 text-primary pe-4" id="txtTotal">S/ 0.00</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 12px;
+    }
+
+    .bg-primary {
+        background-color: #4F46E5 !important;
+    }
+
+    .text-primary {
+        color: #4F46E5 !important;
+    }
+
+    .table thead th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .table tbody td {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        vertical-align: middle;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const idVenta = "{{ id_venta }}";
+
+    document.addEventListener('DOMContentLoaded', function () {
+        cargarDatosVenta();
+    });
+
+    async function cargarDatosVenta() {
+        try {
+            const response = await fetch(`/ventas/obtener_venta_completa/${idVenta}`);
+            if (!response.ok) throw new Error('No se pudo obtener la información de la venta');
+
+            const data = await response.json();
+            const { cabecera, detalles } = data;
+
+            // Rellenar cabecera
+            document.getElementById('txtDocumento').textContent = `${cabecera.serie}-${String(cabecera.contador_serie).padStart(8, '0')}`;
+            document.getElementById('txtFecha').textContent = new Date(cabecera.fecha).toLocaleString('es-PE');
+            document.getElementById('txtUsuario').textContent = cabecera.nombre_usuario;
+            document.getElementById('txtCliente').textContent = cabecera.nombre_cliente;
+            document.getElementById('txtDocCliente').textContent = `Documento: ${cabecera.documento_cliente}`;
+            document.getElementById('txtTotal').textContent = `S/ ${parseFloat(cabecera.total).toFixed(2)}`;
+
+            const badge = document.getElementById('badgeEstado');
+            badge.textContent = cabecera.estado.toUpperCase();
+
+            if (cabecera.estado.toLowerCase() === 'completado') badge.className = 'badge bg-white text-success fw-bold';
+            else if (cabecera.estado.toLowerCase() === 'anulado') badge.className = 'badge bg-white text-danger fw-bold';
+            else badge.className = 'badge bg-white text-warning fw-bold';
+
+            // Rellenar detalles
+            const cuerpo = document.getElementById('cuerpoTablaDetalles');
+            cuerpo.innerHTML = '';
+
+            detalles.forEach(detalle => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="ps-4 text-muted small">${detalle.codigo_barras}</td>
+                    <td><span class="fw-medium">${detalle.descripcion}</span></td>
+                    <td class="text-center">${detalle.cantidad}</td>
+                    <td class="text-end">S/ ${parseFloat(detalle.precio_venta).toFixed(2)}</td>
+                    <td class="text-end text-danger">-S/ ${parseFloat(detalle.descuento).toFixed(2)}</td>
+                    <td class="text-end fw-bold pe-4">S/ ${parseFloat(detalle.subtotal).toFixed(2)}</td>
+                `;
+                cuerpo.appendChild(row);
+            });
+
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo cargar la información de la venta.',
+                icon: 'error',
+                confirmButtonText: 'Volver'
+            }).then(() => {
+                window.location.href = '/ventas/ventas_lista';
+            });
+        }
+    }
+</script>
+{% endblock %}

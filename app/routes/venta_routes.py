@@ -1,5 +1,5 @@
-from flask import Blueprint, request, jsonify
-from app.services import venta_service
+from flask import Blueprint, request, jsonify, render_template, session, redirect, url_for, flash
+from app.services import venta_service, venta_detalle_service
 
 venta_bp = Blueprint('venta_bp', __name__)
 
@@ -50,3 +50,59 @@ def eliminar_venta(id):
         return jsonify({"mensaje": "Venta eliminada exitosamente"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+@venta_bp.route('/filtrar_ventas', methods=['POST'])
+def filtrar_ventas_api():
+    datos = request.get_json()
+    try:
+        filtro_nombre = datos.get("filtro_nombre")
+        fecha_desde = datos.get("fecha_desde")
+        fecha_hasta = datos.get("fecha_hasta")
+        
+        ventas = venta_service.filtrar_ventas(filtro_nombre, fecha_desde, fecha_hasta)
+        return jsonify(ventas), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@venta_bp.route('/obtener_venta_completa/<int:id>', methods=['GET'])
+def obtener_venta_completa_api(id):
+    try:
+        cabecera = venta_service.obtener_venta_por_id(id)
+        if not cabecera:
+            return jsonify({"error": "Venta no encontrada"}), 404
+            
+        detalles = venta_detalle_service.obtener_detalles_con_productos(id)
+        
+        return jsonify({
+            "cabecera": cabecera,
+            "detalles": detalles
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+# ============================================
+# RUTAS PARA RENDERIZAR TEMPLATES
+# ============================================
+
+@venta_bp.route('/ventas_lista', methods=['GET'])
+def ventas_lista_web():
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+    return render_template(
+        "ventas_lista.html",
+        usuario=session.get('usuario'),
+        id=session.get('id'),
+        estado=session.get('estado')
+    )
+
+@venta_bp.route('/venta_vista/<int:id>', methods=['GET'])
+def venta_vista_web(id):
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+    return render_template(
+        "venta_vista.html",
+        id_venta=id,
+        usuario=session.get('usuario'),
+        id=session.get('id'),
+        estado=session.get('estado')
+    )

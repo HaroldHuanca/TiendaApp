@@ -1,0 +1,473 @@
+{% extends "base.html" %}
+
+{% block title %}Compras - TiendaApp{% endblock %}
+
+{% block page_title %}Compras{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <div style="height:1px;"></div>
+        </div>
+        <div class="card-body">
+            <!-- Fila 1: Proveedor y Estado -->
+            <div class="row mb-2">
+                <div class="col-12 col-md-8">
+                    <label for="inputProveedor" class="form-label">Proveedor</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control" id="inputProveedor"
+                            placeholder="Buscar proveedor por RUC or nombre..." autocomplete="off">
+                        <input type="hidden" id="idProveedorSeleccionado" />
+                        <div class="list-group position-absolute w-100" id="listaProveedoresSugerencias"
+                            style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto;">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label for="selectEstadoCompra" class="form-label">Estado de Compra</label>
+                    <select class="form-control" id="selectEstadoCompra">
+                    </select>
+                </div>
+            </div>
+
+            <!-- Fila 2: Búsqueda de Productos -->
+            <div class="row mb-2">
+                <div class="col-md-12">
+                    <label for="inputProducto" class="form-label">Buscar Producto</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control" id="inputProducto"
+                            placeholder="Buscar por código de barras, descripción..." autocomplete="off">
+                        <div class="list-group position-absolute w-100" id="listaProductosSugerencias"
+                            style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Productos en Compra -->
+            <div class="row mb-2">
+                <div class="col-md-12">
+                    <h5>Detalles de la Compra</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="tablaProductosCompra">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Código</th>
+                                    <th>Descripción</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio Compra</th>
+                                    <th>Descuento</th>
+                                    <th>Estado</th>
+                                    <th>Subtotal</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpoTabla">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fila 4: Total de Compra -->
+            <div class="row mb-2">
+                <div class="col-md-12 d-flex justify-content-end align-items-center gap-3">
+                    <label for="totalCompra" class="form-label mb-0">Total de Compra:</label>
+                    <input type="number" class="form-control" id="totalCompra" readonly
+                        style="max-width: 150px; font-weight: bold; font-size: 1rem;" value="0.00" />
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="row">
+                <div class="col-md-12 d-flex gap-2 justify-content-end">
+                    <button class="btn btn-secondary" id="btnLimpiar">Limpiar</button>
+                    <button class="btn btn-primary" id="btnGuardarCompra">Guardar Compra</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .list-group-item {
+        cursor: pointer;
+        padding: 0.4rem 0.75rem;
+    }
+
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .list-group-item.active {
+        background-color: #4F46E5;
+        color: white;
+    }
+
+    table tbody tr td {
+        vertical-align: middle;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    table thead th {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    input[type="number"] {
+        min-width: 100px;
+    }
+
+    .btn-eliminar-fila {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.7rem;
+    }
+
+    .row {
+        margin-bottom: 0.5rem;
+    }
+
+    h5 {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
+
+<script>
+    let proveedoresDisponibles = [];
+    let productosDisponibles = [];
+    let productosEnCompra = {};
+    let idUsuario = null;
+    let fechaActual = null;
+    let cacheProductosCompra = null;
+    let terminoPeticionCompra = "";
+
+    document.addEventListener('DOMContentLoaded', async function () {
+        await cargarIdUsuario();
+        await cargarFechaActual();
+        await cargarProveedores();
+        await cargarEstadosCompra();
+
+        document.getElementById('inputProveedor').addEventListener('input', manejarBuscaProveedor);
+        document.getElementById('inputProveedor').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const primeraSugerencia = document.getElementById('listaProveedoresSugerencias').firstElementChild;
+                if (primeraSugerencia) {
+                    seleccionarProveedorDeSugerencias(primeraSugerencia);
+                }
+            }
+        });
+
+        document.getElementById('inputProducto').addEventListener('input', manejarBuscaProducto);
+        document.getElementById('inputProducto').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const primeraSugerencia = document.getElementById('listaProductosSugerencias').firstElementChild;
+                if (primeraSugerencia) {
+                    seleccionarProductoDeSugerencias(primeraSugerencia);
+                }
+            }
+        });
+
+        document.getElementById('btnLimpiar').addEventListener('click', limpiarFormulario);
+        document.getElementById('btnGuardarCompra').addEventListener('click', guardarCompra);
+        document.getElementById('cuerpoTabla').addEventListener('input', manejarCambioTabla);
+
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('#listaProveedoresSugerencias .list-group-item')) {
+                seleccionarProveedorDeSugerencias(e.target.closest('.list-group-item'));
+            }
+            if (e.target.closest('#listaProductosSugerencias .list-group-item')) {
+                seleccionarProductoDeSugerencias(e.target.closest('.list-group-item'));
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('#inputProveedor') && !e.target.closest('#listaProveedoresSugerencias')) {
+                document.getElementById('listaProveedoresSugerencias').style.display = 'none';
+            }
+            if (!e.target.closest('#inputProducto') && !e.target.closest('#listaProductosSugerencias')) {
+                document.getElementById('listaProductosSugerencias').style.display = 'none';
+            }
+        });
+    });
+
+    async function cargarIdUsuario() {
+        try {
+            const response = await fetch('/usuarios/usuario_id');
+            const data = await response.json();
+            if (response.ok) idUsuario = data.id;
+        } catch (error) {
+            console.error('Error al cargar el ID del usuario:', error);
+        }
+    }
+
+    async function cargarFechaActual() {
+        try {
+            const response = await fetch('/tiempo/fecha_actual');
+            const data = await response.json();
+            if (response.ok) {
+                // "17/12/2025 19:53:32" -> "2025-12-17 19:53:32"
+                const [fecha, hora] = data.fecha.split(' ');
+                const [dia, mes, anio] = fecha.split('/');
+                fechaActual = `${anio}-${mes}-${dia} ${hora}`;
+            }
+        } catch (error) {
+            console.error('Error al cargar la fecha y hora actual:', error);
+        }
+    }
+
+    async function cargarProveedores() {
+        try {
+            const response = await fetch('/proveedores/mostrar_proveedores');
+            proveedoresDisponibles = await response.json();
+            // Seleccionar el primero por defecto si existe
+            if (proveedoresDisponibles && proveedoresDisponibles.length > 0) {
+                const primerProv = proveedoresDisponibles[0];
+                document.getElementById('inputProveedor').value = `${primerProv.ruc} - ${primerProv.nombre}`;
+                document.getElementById('idProveedorSeleccionado').value = primerProv.id;
+            }
+        } catch (error) {
+            console.error('Error cargando proveedores:', error);
+        }
+    }
+
+    function manejarBuscaProveedor() {
+        const filtro = document.getElementById('inputProveedor').value.toLowerCase();
+        const lista = document.getElementById('listaProveedoresSugerencias');
+        if (filtro.length === 0) {
+            lista.style.display = 'none';
+            return;
+        }
+        const sugerencias = proveedoresDisponibles.filter(p => {
+            const texto = `${p.ruc} ${p.nombre}`.toLowerCase();
+            return texto.includes(filtro);
+        });
+        mostrarSugerenciasProveedores(sugerencias, lista);
+    }
+
+    function mostrarSugerenciasProveedores(sugerencias, lista) {
+        lista.innerHTML = '';
+        if (sugerencias.length === 0) {
+            lista.style.display = 'none';
+            return;
+        }
+        sugerencias.forEach(p => {
+            const item = document.createElement('a');
+            item.href = '#';
+            item.className = 'list-group-item list-group-item-action';
+            item.dataset.idProveedor = p.id;
+            item.innerHTML = `<strong>${p.ruc}</strong> - ${p.nombre}`;
+            lista.appendChild(item);
+        });
+        lista.style.display = 'block';
+    }
+
+    function seleccionarProveedorDeSugerencias(elemento) {
+        const id = elemento.dataset.idProveedor;
+        const p = proveedoresDisponibles.find(x => x.id == id);
+        if (p) {
+            document.getElementById('inputProveedor').value = `${p.ruc} - ${p.nombre}`;
+            document.getElementById('idProveedorSeleccionado').value = p.id;
+            document.getElementById('listaProveedoresSugerencias').style.display = 'none';
+        }
+    }
+
+    async function cargarEstadosCompra() {
+        try {
+            const response = await fetch('/estados/mostrar_estados/tbl_compras');
+            const estados = await response.json();
+            const select = document.getElementById('selectEstadoCompra');
+            estados.forEach((e, idx) => {
+                const opt = document.createElement('option');
+                opt.value = e.descripcion;
+                opt.textContent = e.descripcion;
+                select.appendChild(opt);
+                if (idx === 0) opt.selected = true;
+            });
+        } catch (error) {
+            console.error('Error cargando estados:', error);
+        }
+    }
+
+    async function manejarBuscaProducto() {
+        const filtro = document.getElementById('inputProducto').value.trim().toLowerCase();
+        const lista = document.getElementById('listaProductosSugerencias');
+        if (filtro.length < 3) {
+            cacheProductosCompra = null;
+            terminoPeticionCompra = "";
+            lista.style.display = 'none';
+            return;
+        }
+        if (cacheProductosCompra && filtro.startsWith(terminoPeticionCompra)) {
+            const resultados = cacheProductosCompra.filter(p => {
+                const texto = `${p.codigo_Barras} ${p.descripcion}`.toLowerCase();
+                return texto.includes(filtro);
+            });
+            mostrarSugerenciasProductos(resultados, lista);
+            return;
+        }
+        try {
+            const response = await fetch(`/productos/obtener_productos_por_filtro/${encodeURIComponent(filtro)}`);
+            if (response.ok) {
+                const productos = await response.json();
+                cacheProductosCompra = productos;
+                terminoPeticionCompra = filtro;
+                productosDisponibles = productos;
+                mostrarSugerenciasProductos(productos, lista);
+            }
+        } catch (error) {
+            console.error('Error buscando productos:', error);
+        }
+    }
+
+    function mostrarSugerenciasProductos(sugerencias, lista) {
+        lista.innerHTML = '';
+        if (sugerencias.length === 0) {
+            lista.style.display = 'none';
+            return;
+        }
+        sugerencias.forEach(p => {
+            const item = document.createElement('a');
+            item.href = '#';
+            item.className = 'list-group-item list-group-item-action';
+            item.dataset.idProducto = p.id;
+            item.innerHTML = `
+                <strong>${p.codigo_Barras}</strong> - ${p.descripcion}
+                <small class="d-block text-muted">Stock: ${p.stock} | P.Compra: $${parseFloat(p.precio_compra).toFixed(2)}</small>
+            `;
+            lista.appendChild(item);
+        });
+        lista.style.display = 'block';
+    }
+
+    function seleccionarProductoDeSugerencias(elemento) {
+        const id = elemento.dataset.idProducto;
+        const p = productosDisponibles.find(x => x.id == id);
+        if (p) {
+            if (productosEnCompra[id]) {
+                const input = document.querySelector(`input[data-id-producto="${id}"][data-tipo="cantidad"]`);
+                if (input) {
+                    input.value = parseFloat(input.value) + 1;
+                    manejarCambioTabla({ target: input });
+                }
+            } else {
+                agregarFilaProducto(p);
+            }
+            document.getElementById('inputProducto').value = '';
+            document.getElementById('listaProductosSugerencias').style.display = 'none';
+        }
+    }
+
+    function agregarFilaProducto(p) {
+        const cuerpo = document.getElementById('cuerpoTabla');
+        const row = cuerpo.insertRow();
+        row.dataset.idProducto = p.id;
+        productosEnCompra[p.id] = {
+            cantidad: 1,
+            descuento: 0,
+            precio_compra: parseFloat(p.precio_compra)
+        };
+        row.innerHTML = `
+            <td>${p.id}</td>
+            <td>${p.codigo_Barras}</td>
+            <td>${p.descripcion}</td>
+            <td><input type="number" class="form-control form-control-sm" value="1" min="1" data-id-producto="${p.id}" data-tipo="cantidad"></td>
+            <td>$${parseFloat(p.precio_compra).toFixed(2)}</td>
+            <td><input type="number" class="form-control form-control-sm" value="0" min="0" step="0.01" data-id-producto="${p.id}" data-tipo="descuento"></td>
+            <td><span class="badge bg-success">${p.estado}</span></td>
+            <td><strong class="subtotal">$0.00</strong></td>
+            <td><button class="btn btn-danger btn-sm btn-eliminar-fila" data-id-producto="${p.id}"><i class="fas fa-trash"></i></button></td>
+        `;
+        row.querySelector('.btn-eliminar-fila').addEventListener('click', () => {
+            delete productosEnCompra[p.id];
+            row.remove();
+            calcularTotal();
+        });
+        calcularSubtotal(row, p.id);
+    }
+
+    function manejarCambioTabla(e) {
+        const input = e.target;
+        const row = input.closest('tr');
+        if (row) {
+            const id = row.dataset.idProducto;
+            if (input.dataset.tipo === 'cantidad') productosEnCompra[id].cantidad = parseFloat(input.value) || 0;
+            if (input.dataset.tipo === 'descuento') productosEnCompra[id].descuento = parseFloat(input.value) || 0;
+            calcularSubtotal(row, id);
+        }
+    }
+
+    function calcularSubtotal(row, id) {
+        const d = productosEnCompra[id];
+        const sub = (d.cantidad * d.precio_compra) - d.descuento;
+        row.querySelector('.subtotal').textContent = `$${sub.toFixed(2)}`;
+        calcularTotal();
+    }
+
+    function calcularTotal() {
+        let total = 0;
+        document.querySelectorAll('#cuerpoTabla tr').forEach(row => {
+            total += parseFloat(row.querySelector('.subtotal').textContent.replace('$', ''));
+        });
+        document.getElementById('totalCompra').value = total.toFixed(2);
+    }
+
+    function limpiarFormulario() {
+        document.getElementById('cuerpoTabla').innerHTML = '';
+        document.getElementById('totalCompra').value = '0.00';
+        productosEnCompra = {};
+    }
+
+    async function guardarCompra() {
+        if (!document.getElementById('idProveedorSeleccionado').value) {
+            Swal.fire('Error', 'Seleccione un proveedor', 'error');
+            return;
+        }
+        if (Object.keys(productosEnCompra).length === 0) {
+            Swal.fire('Error', 'Agregue productos', 'error');
+            return;
+        }
+        try {
+            const compraData = {
+                id_usuario: idUsuario,
+                id_proveedor: parseInt(document.getElementById('idProveedorSeleccionado').value),
+                descripcion_estado: document.getElementById('selectEstadoCompra').value,
+                fecha_hora: fechaActual,
+                total: parseFloat(document.getElementById('totalCompra').value)
+            };
+            const res = await fetch('/compras/insertar_compra', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(compraData)
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            const idComp = data.id_compra;
+            for (const [idProd, d] of Object.entries(productosEnCompra)) {
+                await fetch('/compra_detalles/insertar_compra_detalle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id_compra: idComp,
+                        id_producto: parseInt(idProd),
+                        cantidad: d.cantidad,
+                        precio_compra: d.precio_compra,
+                        descuento: d.descuento,
+                        descripcion_estado: 'Completado'
+                    })
+                });
+            }
+            Swal.fire('Éxito', `Compra #${idComp} registrada`, 'success').then(() => {
+                limpiarFormulario();
+            });
+        } catch (error) {
+            Swal.fire('Error', error.message, 'error');
+        }
+    }
+</script>
+{% endblock %}

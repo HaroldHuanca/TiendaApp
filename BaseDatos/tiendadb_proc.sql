@@ -833,6 +833,78 @@ COMMIT;
 
 END;
 
+-- 1. Filtrar ventas por nombre (usuario/cliente) y rango de fechas
+CREATE PROCEDURE proc_filtrar_ventas (
+    IN p_filtro_nombre VARCHAR(255),
+    IN p_fecha_desde DATE,
+    IN p_fecha_hasta DATE
+)
+BEGIN
+    SELECT 
+        v.id,
+        s.serie,
+        v.contador_serie,
+        u.nombre_usuario,
+        c.nombre AS nombre_cliente,
+        e.descripcion AS estado,
+        v.fecha,
+        v.total
+    FROM 
+        tbl_ventas v
+        JOIN tbl_series s ON v.id_serie = s.id
+        JOIN tbl_usuarios u ON v.id_usuario = u.id
+        JOIN tbl_clientes c ON v.id_cliente = c.id
+        JOIN tbl_estados e ON v.estado = e.estado AND e.nombre_tabla = 'tbl_ventas'
+    WHERE 
+        (p_filtro_nombre IS NULL OR p_filtro_nombre = '' OR 
+         u.nombre_usuario LIKE CONCAT('%', p_filtro_nombre, '%') OR 
+         c.nombre LIKE CONCAT('%', p_filtro_nombre, '%'))
+        AND (p_fecha_desde IS NULL OR DATE(v.fecha) >= p_fecha_desde)
+        AND (p_fecha_hasta IS NULL OR DATE(v.fecha) <= p_fecha_hasta)
+    ORDER BY v.fecha DESC;
+END;
+-- 2. Obtener cabecera de venta por ID con nombres
+CREATE PROCEDURE proc_obtener_venta_por_id (IN p_id_venta MEDIUMINT UNSIGNED)
+BEGIN
+    SELECT 
+        v.id,
+        s.serie,
+        v.contador_serie,
+        u.nombre_usuario,
+        c.nombre AS nombre_cliente,
+        c.documento AS documento_cliente,
+        e.descripcion AS estado,
+        v.fecha,
+        v.total
+    FROM 
+        tbl_ventas v
+        JOIN tbl_series s ON v.id_serie = s.id
+        JOIN tbl_usuarios u ON v.id_usuario = u.id
+        JOIN tbl_clientes c ON v.id_cliente = c.id
+        JOIN tbl_estados e ON v.estado = e.estado AND e.nombre_tabla = 'tbl_ventas'
+    WHERE v.id = p_id_venta;
+END;
+-- 3. Obtener detalles de venta con información del producto
+CREATE PROCEDURE proc_obtener_venta_detalles_con_productos (IN p_id_venta MEDIUMINT UNSIGNED)
+BEGIN
+    SELECT 
+        vd.id_venta,
+        vd.id_producto,
+        p.codigo_barras,
+        p.descripcion,
+        vd.cantidad,
+        vd.precio_venta,
+        vd.descuento,
+        e.descripcion AS estado,
+        (vd.cantidad * vd.precio_venta) - vd.descuento AS subtotal
+    FROM 
+        tbl_venta_detalles vd
+        JOIN tbl_productos p ON vd.id_producto = p.id
+        LEFT JOIN tbl_estados e ON vd.estado = e.estado AND e.nombre_tabla = 'tbl_venta_detalles'
+    WHERE 
+        vd.id_venta = p_id_venta;
+END;
+
 -- Procedimientos para detalles de ventas
 CREATE PROCEDURE proc_mostrar_venta_detalles (IN p_id_venta mediumint unsigned) BEGIN
 SELECT
@@ -844,7 +916,7 @@ SELECT
     e.descripcion as estado
 FROM
     tbl_venta_detalles vd
-    JOIN tbl_estados e ON vd.estado = e.estado
+    LEFT JOIN tbl_estados e ON vd.estado = e.estado
     AND e.nombre_tabla = "tbl_venta_detalles"
 WHERE
     vd.id_venta = p_id_venta;
@@ -1497,4 +1569,72 @@ FROM
     tbl_series
 WHERE
     id = p_id;
+END;
+
+-- 1. Filtrar compras por nombre (proveedor/usuario) y rango de fechas
+CREATE PROCEDURE proc_filtrar_compras (
+    IN p_filtro_nombre VARCHAR(255),
+    IN p_fecha_desde DATE,
+    IN p_fecha_hasta DATE
+)
+BEGIN
+    SELECT 
+        c.id,
+        u.nombre_usuario,
+        pv.nombre AS nombre_proveedor,
+        e.descripcion AS estado,
+        c.fecha_hora,
+        c.total
+    FROM 
+        tbl_compras c
+        JOIN tbl_usuarios u ON c.id_usuario = u.id
+        JOIN tbl_proveedores pv ON c.id_proveedor = pv.id
+        JOIN tbl_estados e ON c.estado = e.estado AND e.nombre_tabla = 'tbl_compras'
+    WHERE 
+        (p_filtro_nombre IS NULL OR p_filtro_nombre = '' OR 
+         u.nombre_usuario LIKE CONCAT('%', p_filtro_nombre, '%') OR 
+         pv.nombre LIKE CONCAT('%', p_filtro_nombre, '%'))
+        AND (p_fecha_desde IS NULL OR DATE(c.fecha_hora) >= p_fecha_desde)
+        AND (p_fecha_hasta IS NULL OR DATE(c.fecha_hora) <= p_fecha_hasta)
+    ORDER BY c.fecha_hora DESC;
+END;
+
+-- 2. Obtener cabecera de compra por ID con nombres
+CREATE PROCEDURE proc_obtener_compra_por_id (IN p_id_compra MEDIUMINT UNSIGNED)
+BEGIN
+    SELECT 
+        c.id,
+        u.nombre_usuario,
+        pv.nombre AS nombre_proveedor,
+        pv.ruc AS ruc_proveedor,
+        e.descripcion AS estado,
+        c.fecha_hora,
+        c.total
+    FROM 
+        tbl_compras c
+        JOIN tbl_usuarios u ON c.id_usuario = u.id
+        JOIN tbl_proveedores pv ON c.id_proveedor = pv.id
+        JOIN tbl_estados e ON c.estado = e.estado AND e.nombre_tabla = 'tbl_compras'
+    WHERE c.id = p_id_compra;
+END;
+
+-- 3. Obtener detalles de compra con información del producto
+CREATE PROCEDURE proc_obtener_compra_detalles_con_productos (IN p_id_compra MEDIUMINT UNSIGNED)
+BEGIN
+    SELECT 
+        cd.id_compra,
+        cd.id_producto,
+        p.codigo_barras,
+        p.descripcion,
+        cd.cantidad,
+        cd.precio_compra,
+        cd.descuento,
+        e.descripcion AS estado,
+        (cd.cantidad * cd.precio_compra) - cd.descuento AS subtotal
+    FROM 
+        tbl_compras_detalles cd
+        JOIN tbl_productos p ON cd.id_producto = p.id
+        LEFT JOIN tbl_estados e ON cd.estado = e.estado AND e.nombre_tabla = 'tbl_compras_detalles'
+    WHERE 
+        cd.id_compra = p_id_compra;
 END;

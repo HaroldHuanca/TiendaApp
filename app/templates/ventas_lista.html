@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Ventas - TiendaApp{% endblock %}
+
+{% block page_title %}Lista de Ventas{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 text-primary"><i class="fas fa-filter me-2"></i>Filtros de Búsqueda</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="filtroNombre" class="form-label">Nombre (Usuario o Cliente)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i
+                                class="fas fa-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0" id="filtroNombre"
+                            placeholder="Buscar por nombre...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="fechaDesde" class="form-label">Desde</label>
+                    <input type="date" class="form-control" id="fechaDesde">
+                </div>
+                <div class="col-md-3">
+                    <label for="fechaHasta" class="form-label">Hasta</label>
+                    <input type="date" class="form-control" id="fechaHasta">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" id="btnFiltrar">
+                        <i class="fas fa-search me-2"></i>Filtrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="tablaVentas">
+                    <thead class="table-light">
+                        <tr>
+                            <th>N° Venta</th>
+                            <th>Serie - Correlativo</th>
+                            <th>Usuario</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTablaVentas">
+                        <!-- Se cargará por AJAX -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="sinResultados" class="text-center py-5 d-none">
+                <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+                <p class="text-muted h5">No se encontraron ventas con los filtros aplicados.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 12px;
+    }
+
+    .table thead th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        border-bottom-width: 1px;
+    }
+
+    .btn-view {
+        background-color: #E0E7FF;
+        color: #4F46E5;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .btn-view:hover {
+        background-color: #4F46E5;
+        color: white;
+    }
+
+    .badge-estado {
+        font-weight: 500;
+        padding: 0.5em 0.8em;
+        border-radius: 6px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Recuperar valores de sessionStorage o usar por defecto
+        const hoy = new Date().toISOString().split('T')[0];
+        const savedNombre = sessionStorage.getItem('ventaFiltroNombre') || '';
+        const savedDesde = sessionStorage.getItem('ventaFiltroDesde') || hoy;
+        const savedHasta = sessionStorage.getItem('ventaFiltroHasta') || hoy;
+
+        document.getElementById('filtroNombre').value = savedNombre;
+        document.getElementById('fechaDesde').value = savedDesde;
+        document.getElementById('fechaHasta').value = savedHasta;
+
+        // Cargar ventas iniciales
+        filtrarVentas();
+
+        // Event listener para el botón de filtrar
+        document.getElementById('btnFiltrar').addEventListener('click', filtrarVentas);
+
+        // Event listener para Enter en el campo de nombre
+        document.getElementById('filtroNombre').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') filtrarVentas();
+        });
+    });
+
+    async function filtrarVentas() {
+        const filtroNombre = document.getElementById('filtroNombre').value;
+        const fechaDesde = document.getElementById('fechaDesde').value;
+        const fechaHasta = document.getElementById('fechaHasta').value;
+
+        // Guardar estado en sessionStorage
+        sessionStorage.setItem('ventaFiltroNombre', filtroNombre);
+        sessionStorage.setItem('ventaFiltroDesde', fechaDesde);
+        sessionStorage.setItem('ventaFiltroHasta', fechaHasta);
+
+        try {
+            const response = await fetch('/ventas/filtrar_ventas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    filtro_nombre: filtroNombre,
+                    fecha_desde: fechaDesde,
+                    fecha_hasta: fechaHasta
+                })
+            });
+
+            if (!response.ok) throw new Error('Error al obtener ventas');
+
+            const ventas = await response.json();
+            mostrarVentas(ventas);
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', 'No se pudieron cargar las ventas', 'error');
+        }
+    }
+
+    function mostrarVentas(ventas) {
+        const cuerpo = document.getElementById('cuerpoTablaVentas');
+        const sinResultados = document.getElementById('sinResultados');
+        cuerpo.innerHTML = '';
+
+        if (ventas.length === 0) {
+            sinResultados.classList.remove('d-none');
+            return;
+        }
+
+        sinResultados.classList.add('d-none');
+
+        ventas.forEach(venta => {
+            const row = document.createElement('tr');
+
+            // Formatear fecha
+            const fecha = new Date(venta.fecha).toLocaleString('es-PE');
+
+            // Badge por estado
+            let badgeClass = 'bg-secondary';
+            if (venta.estado.toLowerCase() === 'completado') badgeClass = 'bg-success';
+            if (venta.estado.toLowerCase() === 'anulado') badgeClass = 'bg-danger';
+            if (venta.estado.toLowerCase() === 'pendiente') badgeClass = 'bg-warning text-dark';
+
+            row.innerHTML = `
+                <td><span class="fw-bold">#${venta.id}</span></td>
+                <td>${venta.serie} - ${String(venta.contador_serie).padStart(8, '0')}</td>
+                <td><span class="text-muted"><i class="fas fa-user-circle me-1"></i>${venta.nombre_usuario}</span></td>
+                <td><span class="fw-medium">${venta.nombre_cliente}</span></td>
+                <td><small>${fecha}</small></td>
+                <td><span class="badge badge-estado ${badgeClass}">${venta.estado}</span></td>
+                <td class="text-end fw-bold text-dark">S/ ${parseFloat(venta.total).toFixed(2)}</td>
+                <td class="text-center">
+                    <a href="/ventas/venta_vista/${venta.id}" class="btn btn-sm btn-view" title="Ver Venta">
+                        <i class="fas fa-eye me-1"></i> Ver Venta
+                    </a>
+                </td>
+            `;
+            cuerpo.appendChild(row);
+        });
+    }
+</script>
+{% endblock %}
