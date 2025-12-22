@@ -1487,3 +1487,14 @@ SET
 WHERE
     id = p_id;
 END;
+
+CREATE PROCEDURE proc_obtener_contador(
+    IN p_id tinyint UNSIGNED
+) BEGIN
+SELECT
+    contador
+FROM
+    tbl_series
+WHERE
+    id = p_id;
+END;

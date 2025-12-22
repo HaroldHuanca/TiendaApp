@@ -22,7 +22,7 @@
                 </div>
                 <div class="col-12 col-md-2">
                     <label for="contadorSerie" class="form-label">Contador</label>
-                    <input type="text" id="contadorSerie" class="form-control"/>
+                    <input type="text" id="contadorSerie" class="form-control" />
                 </div>
                 <div class="col-12 col-md-4">
                     <label for="selectEstadoVenta" class="form-label">Estado de Venta</label>
@@ -159,6 +159,8 @@
     let idClienteSeleccionado = null;
     let idUsuario = null;
     let fechaActual = null;
+    let cacheProductosVenta = null; // Cache para optimizar búsqueda
+    let terminoPeticionVenta = ""; // Término que originó la última petición
 
     // Inicializar la página
     document.addEventListener('DOMContentLoaded', async function () {
@@ -300,13 +302,56 @@
         }
     }
 
-    function manejarCambioSerie() {
+    async function manejarCambioSerie() {
         const select = document.getElementById('selectSerie');
         const opcionSeleccionada = select.options[select.selectedIndex];
         if (opcionSeleccionada.value) {
             document.getElementById('idSerie').value = opcionSeleccionada.value;
+            // Formato: 00000001
+            const contadorStr = String(opcionSeleccionada.dataset.contador).padStart(8, '0');
+            document.getElementById('contadorSerie').value = contadorStr;
         } else {
             document.getElementById('idSerie').value = '';
+            document.getElementById('contadorSerie').value = '';
+        }
+    }
+
+    async function actualizarContadorSerie(idSerie) {
+        console.log("Actualizando contador para serie ID:", idSerie);
+        if (!idSerie) {
+            console.error("ID de serie no proporcionado para actualizar contador");
+            return;
+        }
+        try {
+            const response = await fetch(`/series/obtener_contador/${idSerie}`);
+            if (response.ok) {
+                const data = await response.json();
+                console.log("Datos recibidos del contador:", data);
+                const nuevoContador = data.contador;
+                const contadorStr = String(nuevoContador).padStart(8, '0');
+
+                // Actualizar el campo de texto
+                const inputContador = document.getElementById('contadorSerie');
+                if (inputContador) {
+                    inputContador.value = contadorStr;
+                    console.log("Campo contadorSerie actualizado a:", contadorStr);
+                }
+
+                // Actualizar el dataset de la opción para que persista
+                const select = document.getElementById('selectSerie');
+                const option = Array.from(select.options).find(opt => opt.value == idSerie);
+                if (option) {
+                    option.dataset.contador = nuevoContador;
+                    console.log("Dataset de la opción actualizado");
+                }
+            } else {
+                const errorData = await response.json();
+                console.error('Error al obtener el nuevo contador:', errorData.error);
+                Swal.fire('Error', 'No se pudo actualizar el contador de la serie: ' + errorData.error, 'error');
+            }
+        } catch (error) {
+            console.error('Error de conexión al actualizar contador:', error);
+            Swal.fire('Error', 'Error de conexión al intentar actualizar el contador', 'error');
         }
     }
 
@@ -409,11 +454,23 @@
     }
 
     async function manejarBuscaProducto() {
-        const filtro = document.getElementById('inputProducto').value.trim();
+        const filtro = document.getElementById('inputProducto').value.trim().toLowerCase();
         const lista = document.getElementById('listaProductosSugerencias');
 
         if (filtro.length < 3) {
+            cacheProductosVenta = null;
+            terminoPeticionVenta = "";
             lista.style.display = 'none';
+            return;
+        }
+
+        // Si ya tenemos cache y el término actual contiene el prefijo que activó la búsqueda, filtramos de lo que ya tenemos.
+        if (cacheProductosVenta && filtro.startsWith(terminoPeticionVenta)) {
+            const resultadosFiltrados = cacheProductosVenta.filter(producto => {
+                const texto = `${producto.codigo_Barras} ${producto.descripcion}`.toLowerCase();
+                return texto.includes(filtro);
+            });
+            mostrarSugerenciasProductos(resultadosFiltrados, lista);
             return;
         }
 
@@ -421,6 +478,11 @@
             const response = await fetch(`/productos/obtener_productos_por_filtro/${encodeURIComponent(filtro)}`);
             if (response.ok) {
                 const productos = await response.json();
+
+                // Actualizamos cache y término
+                cacheProductosVenta = productos;
+                terminoPeticionVenta = filtro;
+
                 productosDisponibles = productos; // Actualizamos la lista global para poder buscar por ID luego
                 mostrarSugerenciasProductos(productos, lista);
             } else {
@@ -575,7 +637,7 @@
         const day = String(now.getDate()).padStart(2, '0');
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
-        document.getElementById('fechaHora').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        // document.getElementById('fechaHora').value = `${year}-${month}-${day}T${hours}:${minutes}`;
     }
 
     async function guardarVenta() {
@@ -653,7 +715,11 @@
                 }
             }
 
-            Swal.fire('Éxito', `Venta #${idVentaNueva} registrada exitosamente`, 'success').then(() => {
+            const idSerieParaActualizar = document.getElementById('idSerie').value;
+
+            Swal.fire('Éxito', `Venta #${idVentaNueva} registrada exitosamente`, 'success').then(async () => {
+                console.log("Venta guardada, procediendo a actualizar contador para serie:", idSerieParaActualizar);
+                await actualizarContadorSerie(idSerieParaActualizar);
                 limpiarFormulario();
             });
         } catch (error) {

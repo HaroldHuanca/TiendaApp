@@ -74,6 +74,8 @@
     let paginaActual = 1;
     let limitPorPagina = 20;
     let totalProductos = 0;
+    let cacheProductosFiltro = null; // Cache para optimizar búsqueda
+    let terminoPeticionFiltro = ""; // Término que originó la última petición
 
     // Referencias a los elementos del DOM
     const tablaBody = document.getElementById('tbody-tabla');
@@ -241,14 +243,27 @@
      * Filtrar productos por nombre o código
      */
     async function filtrarProductos(termino) {
-        const terminoTrim = termino.trim();
+        const terminoTrim = termino.trim().toLowerCase();
 
         // Si tiene menos de 3 caracteres, volvemos a la paginación normal
         if (terminoTrim.length < 3) {
+            cacheProductosFiltro = null;
+            terminoPeticionFiltro = "";
             // Solo recargamos si LA PAGINACIÓN NO ESTÁ VISIBLE (es decir, venimos de una búsqueda)
             if (divPaginacion.style.display === 'none') {
                 cargarProductosPaginado(1);
             }
+            return;
+        }
+
+        // Si ya tenemos cache y el término actual contiene el prefijo que activó la búsqueda, filtramos de lo que ya tenemos.
+        if (cacheProductosFiltro && terminoTrim.startsWith(terminoPeticionFiltro)) {
+            const resultadosFiltrados = cacheProductosFiltro.filter(p =>
+                p.descripcion.toLowerCase().includes(terminoTrim) ||
+                p.codigo_Barras.toLowerCase().includes(terminoTrim)
+            );
+            renderizarTabla(resultadosFiltrados);
+            divPaginacion.style.display = 'none';
             return;
         }
 
@@ -265,8 +280,10 @@
             }
 
             const data = await response.json();
-            // El endpoint devuelve una lista de productos directamente según el código revisado
-            // return jsonify(productos), 200
+
+            // Actualizamos cache y término
+            cacheProductosFiltro = data;
+            terminoPeticionFiltro = terminoTrim;
 
             renderizarTabla(data);
 
@@ -275,7 +292,6 @@
 
         } catch (error) {
             console.error('Error al filtrar productos:', error);
-            // En caso de error, podríamos mostrar un mensaje o limpiar la tabla
             divTabla.style.display = 'none';
             divVacio.innerHTML = `<div class="empty-state-icon">⚠️</div>
                                   <h3 class="empty-state-title">Error en la búsqueda</h3>

@@ -34,3 +34,11 @@ def actualizar_serie(id):
         return jsonify({"mensaje": "Serie actualizada exitosamente"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+@serie_bp.route('/obtener_contador/<int:id>', methods=['GET'])
+def obtener_contador(id):
+    try:
+        contador = serie_service.obtener_contador(id)
+        return jsonify({"contador": contador}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400

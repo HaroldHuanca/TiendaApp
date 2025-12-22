@@ -12,3 +12,7 @@ def actualizar_serie(id: int, serie_valor: str, contador: int) -> None:
     """Actualiza una serie existente"""
     serie.actualizar_serie(id, serie_valor, contador)
 
+def obtener_contador(id: int) -> int:
+    """Obtiene el contador de una serie"""
+    return serie.obtener_contador(id)
+

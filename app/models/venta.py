@@ -25,13 +25,16 @@ def insertar_venta(id_serie: int, id_usuario: int, id_cliente: int, descripcion_
                 total
             ])
 
-            # Recorremos todos los resultsets hasta encontrar el resultado del SELECT
+            v_id = None
+            # Recorremos todos los resultsets hasta agotar la respuesta del procedimiento
             while True:
-                result = cursor.fetchall()
-                if result:
-                    return result[0][0]  # ID de la venta insertada
+                if cursor.description:
+                    results = cursor.fetchall()
+                    if results and v_id is None:
+                        v_id = results[0][0]  # Capturamos el ID si se encuentra
                 if not cursor.nextset():
                     break
+            return v_id
 
         finally:
             cursor.close()
