@@ -149,7 +149,9 @@
 
         compras.forEach(c => {
             const row = document.createElement('tr');
-            const f = new Date(c.fecha_hora).toLocaleString('es-PE');
+            const f = new Date(c.fecha_hora).toLocaleString('es-PE',{
+                timeZone: 'UTC'
+            });
             let badgeClass = 'bg-secondary';
             if (c.estado.toLowerCase() === 'completado') badgeClass = 'bg-success';
             if (c.estado.toLowerCase() === 'anulado') badgeClass = 'bg-danger';

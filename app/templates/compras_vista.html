@@ -120,7 +120,9 @@
             const data = await res.json();
             const { cabecera, detalles } = data;
 
-            document.getElementById('txtFecha').textContent = new Date(cabecera.fecha_hora).toLocaleString('es-PE');
+            document.getElementById('txtFecha').textContent = new Date(cabecera.fecha_hora).toLocaleString('es-PE',{
+                timeZone: 'UTC'
+            });
             document.getElementById('txtUsuario').textContent = cabecera.nombre_usuario;
             document.getElementById('txtProveedor').textContent = cabecera.nombre_proveedor;
             document.getElementById('txtRucProveedor').textContent = `RUC: ${cabecera.ruc_proveedor}`;
