@@ -109,7 +109,13 @@ VALUES
     ('tbl_ventas', 2, 'FACTURA'),
     ('tbl_ventas', 255, 'ELIMINADO - NOTA PEDIDO'),
     ('tbl_ventas', 254, 'ELIMINADO - BOLETA'),
-    ('tbl_ventas', 253, 'ELIMINIADO - FACTURA');
+    ('tbl_ventas', 253, 'ELIMINIADO - FACTURA'),
+    ('tbl_compras', 0, 'FACTURA'),
+    ('tbl_compras', 1, 'BOLETA'),
+    ('tbl_compras', 2, 'NOTA PEDIDO'),
+    ('tbl_compras', 255, 'ELIMINADO - FACTURA'),
+    ('tbl_compras', 254, 'ELIMINADO - BOLETA'),
+    ('tbl_compras', 253, 'ELIMINADO - NOTA PEDIDO');
 
 INSERT INTO
     `tbl_productos`
