@@ -5,8 +5,23 @@ from database.connection import DatabaseManager
 # Mostrar todas las compras
 def mostrar_compras() -> List[Dict[str, Any]]:
     with DatabaseManager() as db:
-        result = db.execute(text("CALL proc_mostrar_compras()"))
-        return [dict(row._mapping) for row in result.fetchall()]
+        connection = db.connection()
+        raw_connection = connection.connection
+        cursor = raw_connection.cursor()
+        try:
+            cursor.callproc("proc_mostrar_compras")
+            compras = []
+            while True:
+                if cursor.description:
+                    columns = [col[0] for col in cursor.description]
+                    results = cursor.fetchall()
+                    for row in results:
+                        compras.append(dict(zip(columns, row)))
+                if not cursor.nextset():
+                    break
+            return compras
+        finally:
+            cursor.close()
 
 # Insertar una compra (retorna el ID generado)
 def insertar_compra(
@@ -18,7 +33,7 @@ def insertar_compra(
 ) -> Optional[int]:
     with DatabaseManager() as db:
         connection = db.connection()
-        raw_connection = connection.connection  # conexión real de MariaDB
+        raw_connection = connection.connection
         cursor = raw_connection.cursor()
 
         try:
@@ -30,13 +45,15 @@ def insertar_compra(
                 total
             ])
 
-            # Recorremos todos los resultsets hasta encontrar el resultado del SELECT
+            id_compra = None
             while True:
-                result = cursor.fetchall()
-                if result:
-                    return result[0][0]  # ID de la compra insertada
+                if cursor.description:
+                    results = cursor.fetchall()
+                    if results and id_compra is None:
+                        id_compra = results[0][0]
                 if not cursor.nextset():
                     break
+            return id_compra
 
         finally:
             cursor.close()
@@ -51,14 +68,7 @@ def actualizar_compra(
 ) -> None:
     with DatabaseManager() as db:
         db.execute(
-            text("""
-                CALL proc_actualizar_compra(
-                    :p_id,
-                    :p_id_proveedor,
-                    :p_descripcion_estado,
-                    :p_total
-                )
-            """),
+            text("CALL proc_actualizar_compra(:p_id, :p_id_proveedor, :p_descripcion_estado, :p_total)"),
             {
                 "p_id": id,
                 "p_id_proveedor": id_proveedor,
@@ -80,22 +90,41 @@ def eliminar_compra(id: int) -> None:
 # Filtrar compras (para la lista con nombres)
 def filtrar_compras(filtro_nombre: str = None, fecha_desde: str = None, fecha_hasta: str = None) -> List[Dict[str, Any]]:
     with DatabaseManager() as db:
-        result = db.execute(
-            text("CALL proc_filtrar_compras(:p_filtro_nombre, :p_fecha_desde, :p_fecha_hasta)"),
-            {
-                "p_filtro_nombre": filtro_nombre,
-                "p_fecha_desde": fecha_desde,
-                "p_fecha_hasta": fecha_hasta
-            }
-        )
-        return [dict(row._mapping) for row in result.fetchall()]
+        connection = db.connection()
+        raw_connection = connection.connection
+        cursor = raw_connection.cursor()
+        try:
+            cursor.callproc("proc_filtrar_compras", [filtro_nombre, fecha_desde, fecha_hasta])
+            compras = []
+            while True:
+                if cursor.description:
+                    columns = [col[0] for col in cursor.description]
+                    results = cursor.fetchall()
+                    for row in results:
+                        compras.append(dict(zip(columns, row)))
+                if not cursor.nextset():
+                    break
+            return compras
+        finally:
+            cursor.close()
 
 # Obtener cabecera de compra por ID
 def obtener_compra_por_id(id_compra: int) -> Optional[Dict[str, Any]]:
     with DatabaseManager() as db:
-        result = db.execute(
-            text("CALL proc_obtener_compra_por_id(:p_id_compra)"),
-            {"p_id_compra": id_compra}
-        )
-        row = result.fetchone()
-        return dict(row._mapping) if row else None
+        connection = db.connection()
+        raw_connection = connection.connection
+        cursor = raw_connection.cursor()
+        try:
+            cursor.callproc("proc_obtener_compra_por_id", [id_compra])
+            compra = None
+            while True:
+                if cursor.description:
+                    columns = [col[0] for col in cursor.description]
+                    results = cursor.fetchall()
+                    if results and compra is None:
+                        compra = dict(zip(columns, results[0]))
+                if not cursor.nextset():
+                    break
+            return compra
+        finally:
+            cursor.close()

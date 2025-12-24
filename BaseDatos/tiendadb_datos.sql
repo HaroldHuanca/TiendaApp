@@ -115,7 +115,15 @@ VALUES
     ('tbl_compras', 2, 'NOTA PEDIDO'),
     ('tbl_compras', 255, 'ELIMINADO - FACTURA'),
     ('tbl_compras', 254, 'ELIMINADO - BOLETA'),
-    ('tbl_compras', 253, 'ELIMINADO - NOTA PEDIDO');
+    ('tbl_compras', 253, 'ELIMINADO - NOTA PEDIDO'),
+    ('tbl_compras_detalles',0,'NO TRIBUTA'),
+    ('tbl_compras_detalles',1,'GRAVADO'),
+    ('tbl_compras_detalles',2,'EXONERADO'),
+    ('tbl_compras_detalles',3,'GRATUITO'),
+    ('tbl_compras_detalles',255,'ELIMINADO - NO TRIBUTA'),
+    ('tbl_compras_detalles',254,'ELIMINADO - GRAVADO'),
+    ('tbl_compras_detalles',253,'ELIMINADO - EXONERADO'),
+    ('tbl_compras_detalles',252,'ELIMINADO - GRATUITO');
 
 INSERT INTO
     `tbl_productos`

@@ -15,7 +15,8 @@
     <div class="header-right">
         <!-- Dropdown Usuario -->
         <div class="dropdown">
-            <button class="btn btn-link dropdown-toggle d-flex align-items-center gap-2" id="userDropdown" type="button">
+            <button class="btn btn-link dropdown-toggle d-flex align-items-center gap-2" id="userDropdown"
+                type="button">
                 <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
                     style="width: 40px; height: 40px; flex-shrink: 0;">
                     <strong>{{ usuario[0]|upper if usuario else 'U' }}</strong>
@@ -46,13 +47,13 @@
     const dropdownMenu = userDropdown?.nextElementSibling;
 
     if (userDropdown && dropdownMenu) {
-        userDropdown.addEventListener('click', function(e) {
+        userDropdown.addEventListener('click', function (e) {
             e.preventDefault();
             dropdownMenu.parentElement.classList.toggle('active');
         });
 
         // Cerrar dropdown al hacer clic fuera
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             if (!e.target.closest('.dropdown')) {
                 dropdownMenu.parentElement.classList.remove('active');
             }
@@ -65,14 +66,14 @@
 
     async function initializeClock() {
         try {
-            const response = await fetch('/tiempo/fecha_actual');
+            const response = await fetch('/tiempo/obtener_fecha_actual');
             const data = await response.json();
             if (data.fecha) {
                 // Parsear formato DD/MM/YYYY HH:MM:SS
                 const parts = data.fecha.split(' ');
                 const dateParts = parts[0].split('/');
                 const timeParts = parts[1].split(':');
-                
+
                 // Crear objeto Date con la hora del servidor
                 serverTime = new Date(
                     parseInt(dateParts[2]), // año
@@ -82,7 +83,7 @@
                     parseInt(timeParts[1]), // minuto
                     parseInt(timeParts[2]) // segundo
                 );
-                
+
                 updateClockDisplay();
             }
         } catch (error) {
@@ -97,9 +98,9 @@
             const day = String(serverTime.getDate()).padStart(2, '0');
             const hours = String(serverTime.getHours()).padStart(2, '0');
             const minutes = String(serverTime.getMinutes()).padStart(2, '0');
-            
+
             clockElement.textContent = `${year}/${month}/${day} ${hours}:${minutes}`;
-            
+
             // Incrementar el tiempo localmente
             serverTime.setSeconds(serverTime.getSeconds() + 1);
         }
@@ -107,7 +108,7 @@
 
     // Inicializar reloj al cargar
     initializeClock();
-    
+
     // Actualizar cada segundo sin consultar el backend
     setInterval(updateClockDisplay, 1000);
 </script>

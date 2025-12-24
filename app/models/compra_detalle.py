@@ -5,11 +5,23 @@ from database.connection import DatabaseManager
 # Mostrar detalles de una compra específica
 def mostrar_detalles_compra(id_compra: int) -> List[Dict[str, Any]]:
     with DatabaseManager() as db:
-        result = db.execute(
-            text("CALL proc_mostrar_compra_detalles(:p_id_compra)"),
-            {"p_id_compra": id_compra}
-        )
-        return [dict(row._mapping) for row in result.fetchall()]
+        connection = db.connection()
+        raw_connection = connection.connection
+        cursor = raw_connection.cursor()
+        try:
+            cursor.callproc("proc_mostrar_compra_detalles", [id_compra])
+            detalles = []
+            while True:
+                if cursor.description:
+                    columns = [col[0] for col in cursor.description]
+                    results = cursor.fetchall()
+                    for row in results:
+                        detalles.append(dict(zip(columns, row)))
+                if not cursor.nextset():
+                    break
+            return detalles
+        finally:
+            cursor.close()
 
 # Insertar un detalle de compra
 def insertar_detalle_compra(
@@ -95,8 +107,20 @@ def eliminar_detalle_compra(id_compra: int, id_producto: int) -> None:
 # Obtener detalles con información de productos
 def obtener_detalles_con_productos(id_compra: int) -> List[Dict[str, Any]]:
     with DatabaseManager() as db:
-        result = db.execute(
-            text("CALL proc_obtener_compra_detalles_con_productos(:p_id_compra)"),
-            {"p_id_compra": id_compra}
-        )
-        return [dict(row._mapping) for row in result.fetchall()]
+        connection = db.connection()
+        raw_connection = connection.connection
+        cursor = raw_connection.cursor()
+        try:
+            cursor.callproc("proc_obtener_compra_detalles_con_productos", [id_compra])
+            detalles = []
+            while True:
+                if cursor.description:
+                    columns = [col[0] for col in cursor.description]
+                    results = cursor.fetchall()
+                    for row in results:
+                        detalles.append(dict(zip(columns, row)))
+                if not cursor.nextset():
+                    break
+            return detalles
+        finally:
+            cursor.close()

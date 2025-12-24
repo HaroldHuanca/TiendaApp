@@ -118,7 +118,7 @@
     }
 
     input[type="number"] {
-        min-width: 100px;
+        padding: 0.25rem 0.5rem;
     }
 
     .btn-eliminar-fila {
@@ -147,8 +147,8 @@
 
     document.addEventListener('DOMContentLoaded', async function () {
         await cargarIdUsuario();
-        await cargarFechaActual();
         await cargarProveedores();
+
         await cargarEstadosCompra();
 
         document.getElementById('inputProveedor').addEventListener('input', manejarBuscaProveedor);
@@ -206,9 +206,9 @@
         }
     }
 
-    async function cargarFechaActual() {
+    async function obtenerFechaServidor() {
         try {
-            const response = await fetch('/tiempo/fecha_actual');
+            const response = await fetch('/tiempo/obtener_fecha_actual');
             const data = await response.json();
             if (response.ok) {
                 // "17/12/2025 19:53:32" -> "2025-12-17 19:53:32"
@@ -218,8 +218,10 @@
             }
         } catch (error) {
             console.error('Error al cargar la fecha y hora actual:', error);
+            throw error;
         }
     }
+
 
     async function cargarProveedores() {
         try {
@@ -370,15 +372,16 @@
         productosEnCompra[p.id] = {
             cantidad: 1,
             descuento: 0,
-            precio_compra: parseFloat(p.precio_compra)
+            precio_compra: parseFloat(p.precio_compra),
+            estado: p.estado
         };
         row.innerHTML = `
             <td>${p.id}</td>
             <td>${p.codigo_Barras}</td>
             <td>${p.descripcion}</td>
-            <td><input type="number" class="form-control form-control-sm" value="1" min="1" data-id-producto="${p.id}" data-tipo="cantidad"></td>
+            <td><input type="number" class="form-control form-control-sm" value="1" min="1" data-id-producto="${p.id}" data-tipo="cantidad" style="width: 80px;"></td>
             <td>$${parseFloat(p.precio_compra).toFixed(2)}</td>
-            <td><input type="number" class="form-control form-control-sm" value="0" min="0" step="0.01" data-id-producto="${p.id}" data-tipo="descuento"></td>
+            <td><input type="number" class="form-control form-control-sm" value="0" min="0" step="0.01" data-id-producto="${p.id}" data-tipo="descuento" style="width: 100px;"></td>
             <td><span class="badge bg-success">${p.estado}</span></td>
             <td><strong class="subtotal">$0.00</strong></td>
             <td><button class="btn btn-danger btn-sm btn-eliminar-fila" data-id-producto="${p.id}"><i class="fas fa-trash"></i></button></td>
@@ -433,7 +436,11 @@
             return;
         }
         try {
+            // Obtener fecha fresca del servidor antes de guardar
+            await obtenerFechaServidor();
+
             const compraData = {
+
                 id_usuario: idUsuario,
                 id_proveedor: parseInt(document.getElementById('idProveedorSeleccionado').value),
                 descripcion_estado: document.getElementById('selectEstadoCompra').value,
@@ -449,7 +456,7 @@
             if (!res.ok) throw new Error(data.error);
             const idComp = data.id_compra;
             for (const [idProd, d] of Object.entries(productosEnCompra)) {
-                await fetch('/compra_detalles/insertar_compra_detalle', {
+                const resDetalle = await fetch('/compra_detalles/insertar_detalle_compra', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -458,9 +465,13 @@
                         cantidad: d.cantidad,
                         precio_compra: d.precio_compra,
                         descuento: d.descuento,
-                        descripcion_estado: 'Completado'
+                        descripcion_estado: d.estado
                     })
                 });
+                if (!resDetalle.ok) {
+                    const errorData = await resDetalle.json();
+                    throw new Error(`Error en el producto ${idProd}: ${errorData.error}`);
+                }
             }
             Swal.fire('Éxito', `Compra #${idComp} registrada`, 'success').then(() => {
                 limpiarFormulario();

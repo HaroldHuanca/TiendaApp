@@ -1273,7 +1273,7 @@ UPDATE
 SET
     estado = 255 - estado
 WHERE
-    id = p_id;
+    id = p_id_compra;
 
 COMMIT;
 

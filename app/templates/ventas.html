@@ -176,8 +176,8 @@
 
         // Cargar datos
         await cargarIdUsuario();
-        await cargarFechaActual();
         await cargarSeries();
+
         await cargarClientes();
         await cargarEstadosVenta();
         // await cargarProductos(); // Ya no cargamos todos los productos al inicio
@@ -256,9 +256,9 @@
     }
 
 
-    async function cargarFechaActual() {
+    async function obtenerFechaServidor() {
         try {
-            const response = await fetch('/tiempo/fecha_actual');
+            const response = await fetch('/tiempo/obtener_fecha_actual');
             const data = await response.json();
             if (response.ok) {
                 fechaActual = convertirFechaFormato(data.fecha);
@@ -267,9 +267,10 @@
             }
         } catch (error) {
             console.error('Error al cargar la fecha y hora actual:', error);
-            Swal.fire('Error', 'No se pudo obtener la fecha y hora actual', 'error');
+            throw error;
         }
     }
+
 
     async function cargarSeries() {
         try {
@@ -660,9 +661,13 @@
         }
 
         try {
+            // Obtener fecha fresca del servidor antes de guardar
+            await obtenerFechaServidor();
+
             // Convertir fecha del input datetime-local al formato esperado
             const fechaInput = fechaActual;
             const fecha = fechaInput.replace('T', ' '); // Convertir a formato YYYY-MM-DD HH:MM
+
 
             // Guardar venta
             const ventaData = {
