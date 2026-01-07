@@ -853,4 +853,43 @@
         align-items: center;
     }
 </style>
+<script src="{{ url_for('static', filename='js/scanner_client.js') }}"></script>
+<script>
+    document.addEventListener('scan', (e) => {
+        const barcode = e.detail.barcode;
+        console.log("Barcode recibido en productos:", barcode);
+
+        const filtro = document.getElementById('filtroNombre');
+        if (filtro) {
+            filtro.value = barcode;
+            filtro.focus();
+            filtro.dispatchEvent(new Event('input'));
+
+            // Si hay coincidencia exacta tras filtrar, podríamos querer editarlo automáticamente?
+            // La lógica actual tiene un listener de 'Enter' que edita el primero.
+            // Podríamos simularlo tras un breve delay.
+            setTimeout(() => {
+                const tabla = document.getElementById('tbody-tabla');
+                if (tabla.rows.length === 1) {
+                    // Si solo hay un resultado, es muy probable que sea el buscado.
+                    // Podríamos disparar el clic en editar.
+                    const btnEditar = tabla.rows[0].querySelector('.btn-edit');
+                    if (btnEditar) btnEditar.click();
+                }
+            }, 600);
+        }
+    });
+
+    // También escuchar en el modal de producto si está abierto
+    document.addEventListener('scan', (e) => {
+        const modal = document.getElementById('modalProducto');
+        if (modal && modal.classList.contains('active')) {
+            const codigoInput = document.getElementById('codigoBarras');
+            if (codigoInput && !codigoInput.disabled) {
+                codigoInput.value = e.detail.barcode;
+                codigoInput.dispatchEvent(new Event('blur')); // Trigger logic to check existence
+            }
+        }
+    });
+</script>
 {% endblock %}

@@ -65,6 +65,10 @@ def create_app():
     app.register_blueprint(compra_detalle_bp, url_prefix="/compra_detalles")
     app.register_blueprint(compra_bp, url_prefix="/compras")
     app.register_blueprint(venta_individual_bp, url_prefix="/venta_individuales")
+    
+    # Importar y registrar blueprint de scanner
+    from app.routes.scanner_routes import scanner_bp
+    app.register_blueprint(scanner_bp, url_prefix="/scanner")
 
     def render_con_session(template):
         """Renderiza un template verificando que el usuario tenga una sesión activa."""

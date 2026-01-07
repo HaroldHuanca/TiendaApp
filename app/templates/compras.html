@@ -481,4 +481,23 @@
         }
     }
 </script>
+<script src="{{ url_for('static', filename='js/scanner_client.js') }}"></script>
+<script>
+    document.addEventListener('scan', (e) => {
+        const barcode = e.detail.barcode;
+        console.log("Barcode recibido en compras:", barcode);
+
+        const inputProducto = document.getElementById('inputProducto');
+        inputProducto.value = barcode;
+        inputProducto.focus();
+        inputProducto.dispatchEvent(new Event('input'));
+
+        setTimeout(() => {
+            const lista = document.getElementById('listaProductosSugerencias');
+            if (lista.style.display !== 'none' && lista.firstElementChild) {
+                seleccionarProductoDeSugerencias(lista.firstElementChild);
+            }
+        }, 500);
+    });
+</script>
 {% endblock %}

@@ -733,4 +733,31 @@
         }
     }
 </script>
+<script src="{{ url_for('static', filename='js/scanner_client.js') }}"></script>
+<script>
+    document.addEventListener('scan', (e) => {
+        const barcode = e.detail.barcode;
+        console.log("Barcode recibido en ventas:", barcode);
+
+        const inputProducto = document.getElementById('inputProducto');
+        inputProducto.value = barcode;
+        inputProducto.focus();
+
+        // Disparar evento input para buscar
+        inputProducto.dispatchEvent(new Event('input'));
+
+        // Esperar un poco a que se carguen las sugerencias y seleccionar la primera si es coincidencia exacta
+        // O mejor aún, modificar manejarBuscaProducto para que devuelva una promesa y podamos encadenar
+
+        // Simulación de "Enter" para seleccionar automáticamente
+        setTimeout(() => {
+            const lista = document.getElementById('listaProductosSugerencias');
+            if (lista.style.display !== 'none' && lista.firstElementChild) {
+                // Verificar si la primera sugerencia contiene el código de barras exacto puede ser un plus,
+                // pero por ahora seleccionamos la primera.
+                seleccionarProductoDeSugerencias(lista.firstElementChild);
+            }
+        }, 500); // 500ms de espera para la búsqueda
+    });
+</script>
 {% endblock %}
