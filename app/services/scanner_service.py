@@ -2,7 +2,7 @@ import evdev
 import threading
 import queue
 import time
-from app.services.usuario_service import obtener_usuario_por_id # Example import, not strictly needed but good for structure
+
 
 # Reusing mapping logic from scanner_utils to avoid duplication issues
 # Ideally we would move scanner_utils to app/utils/ but inlining is safer for now to avoid path issues
