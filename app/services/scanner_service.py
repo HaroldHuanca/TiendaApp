@@ -2,7 +2,8 @@ import evdev
 import threading
 import queue
 import time
-
+import json
+import os
 
 # Reusing mapping logic from scanner_utils to avoid duplication issues
 # Ideally we would move scanner_utils to app/utils/ but inlining is safer for now to avoid path issues
@@ -41,6 +42,7 @@ def map_key_to_char(key_event, is_shifted=False):
 
 class ScannerService:
     _instance = None
+    CONFIG_FILE = 'scanner_config.json'
     
     def __new__(cls):
         if cls._instance is None:
@@ -50,7 +52,28 @@ class ScannerService:
             cls._instance.thread = None
             cls._instance.queues = set()
             cls._instance.current_device_path = None
+            cls._instance._load_config()
         return cls._instance
+
+    def _load_config(self):
+        """Attempt to load saved configuration and auto-connect"""
+        if os.path.exists(self.CONFIG_FILE):
+            try:
+                with open(self.CONFIG_FILE, 'r') as f:
+                    config = json.load(f)
+                    path = config.get('device_path')
+                    if path and os.path.exists(path):
+                        print(f"Auto-connecting to saved scanner: {path}")
+                        self.connect_device(path, save=False)
+            except Exception as e:
+                print(f"Error loading scanner config: {e}")
+
+    def _save_config(self, path):
+         try:
+            with open(self.CONFIG_FILE, 'w') as f:
+                json.dump({'device_path': path}, f)
+         except Exception as e:
+             print(f"Error saving scanner config: {e}")
 
     def list_devices(self):
         try:
@@ -59,7 +82,7 @@ class ScannerService:
             print(f"Error listing devices: {e}")
             return []
 
-    def connect_device(self, device_path):
+    def connect_device(self, device_path, save=True):
         self.disconnect_device()
         
         try:
@@ -71,6 +94,10 @@ class ScannerService:
             self.thread = threading.Thread(target=self._read_loop, daemon=True)
             self.thread.start()
             print(f"Connected to scanner: {self.device.name}")
+            
+            if save:
+                self._save_config(device_path)
+                
             return True
         except Exception as e:
             print(f"Failed to connect to scanner: {e}")
@@ -86,6 +113,14 @@ class ScannerService:
                 pass
             self.device = None
             self.current_device_path = None
+            
+            # Remove config file on explicit disconnect
+            if os.path.exists(self.CONFIG_FILE):
+                try:
+                    os.remove(self.CONFIG_FILE)
+                except:
+                    pass
+            
             print("Scanner disconnected")
 
     def _read_loop(self):

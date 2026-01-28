@@ -735,29 +735,108 @@
 </script>
 <script src="{{ url_for('static', filename='js/scanner_client.js') }}"></script>
 <script>
-    document.addEventListener('scan', (e) => {
+    // Variable global para evitar lecturas dobles muy rápidas
+    let procesandoEscaneo = false;
+
+    document.addEventListener('scan', async (e) => {
+        if (procesandoEscaneo) return;
+
         const barcode = e.detail.barcode;
         console.log("Barcode recibido en ventas:", barcode);
 
+        // Limpiar input y poner el código (feedback visual)
         const inputProducto = document.getElementById('inputProducto');
         inputProducto.value = barcode;
-        inputProducto.focus();
+        inputProducto.classList.add('is-valid'); // Feedback visual verde
 
-        // Disparar evento input para buscar
-        inputProducto.dispatchEvent(new Event('input'));
+        procesandoEscaneo = true;
 
-        // Esperar un poco a que se carguen las sugerencias y seleccionar la primera si es coincidencia exacta
-        // O mejor aún, modificar manejarBuscaProducto para que devuelva una promesa y podamos encadenar
+        try {
+            // 1. Buscar producto directamente en el backend
+            const response = await fetch(`/productos/obtener_productos_por_filtro/${encodeURIComponent(barcode)}`);
+            if (response.ok) {
+                const productos = await response.json();
 
-        // Simulación de "Enter" para seleccionar automáticamente
-        setTimeout(() => {
-            const lista = document.getElementById('listaProductosSugerencias');
-            if (lista.style.display !== 'none' && lista.firstElementChild) {
-                // Verificar si la primera sugerencia contiene el código de barras exacto puede ser un plus,
-                // pero por ahora seleccionamos la primera.
-                seleccionarProductoDeSugerencias(lista.firstElementChild);
+                // 2. Buscar coincidencia exacta
+                const match = productos.find(p => p.codigo_Barras === barcode);
+
+                if (match) {
+                    // 3. Añadir automáticamente
+                    // Necesitamos asegurarnos de que productosDisponibles tenga este producto para que las funciones internas funcionen
+                    const existeEnGlobal = productosDisponibles.find(p => p.id === match.id);
+                    if (!existeEnGlobal) {
+                        productosDisponibles.push(match);
+                    }
+
+                    // Simular estructura de elemento para reutilizar función existente
+                    // La función seleccionarProductoDeSugerencias espera un elemento DOM con dataset.idProducto
+                    // PERO podemos llamar a agregarFilaProducto directamente si abstraemos la logica.
+                    // Revisando el código (linea ~428), seleccionarProductoDeSugerencias hace:
+                    // busca en productosDisponibles -> si existe -> si está en tabla suma, sino agrega.
+
+                    // Vamos a reutilizar esa logica creando un elemento fake o factorizando.
+                    // Factoricemos la llamada:
+                    seleccionarProductoPorId(match.id);
+
+                    // Feedback de éxito
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 1500,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer)
+                            toast.addEventListener('mouseleave', Swal.resumeTimer)
+                        }
+                    })
+                    Toast.fire({
+                        icon: 'success',
+                        title: `Agregado: ${match.descripcion}`
+                    })
+
+                    // Limpiar input
+                    inputProducto.value = '';
+                    inputProducto.classList.remove('is-valid');
+                    document.getElementById('listaProductosSugerencias').style.display = 'none';
+
+                } else {
+                    // No hay coincidencia exacta, quizás parcial?
+                    // Dejar que el usuario decida si hay multiples
+                    inputProducto.dispatchEvent(new Event('input'));
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'warning',
+                        title: 'Producto no encontrado o múltiple coincidencia',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                }
             }
-        }, 500); // 500ms de espera para la búsqueda
+        } catch (error) {
+            console.error("Error al procesar escaneo:", error);
+        } finally {
+            setTimeout(() => { procesandoEscaneo = false; }, 500); // Debounce
+        }
     });
+
+    // Nueva función auxiliar para seleccionar sin necesitar evento DOM
+    function seleccionarProductoPorId(id) {
+        const p = productosDisponibles.find(x => x.id == id);
+        if (p) {
+            if (productosEnVenta[id]) {
+                // Si ya existe, sumamos 1
+                const input = document.querySelector(`input[data-id-producto="${id}"][data-tipo="cantidad"]`);
+                if (input) {
+                    input.value = parseFloat(input.value) + 1;
+                    manejarCambioTabla({ target: input });
+                }
+            } else {
+                // Nuevo producto
+                agregarFilaProducto(p);
+            }
+        }
+    }
 </script>
 {% endblock %}

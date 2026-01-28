@@ -1,68 +1,69 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="p-4 sm:ml-64">
-    <div class="p-4 border-2 border-gray-200 border-dashed rounded-lg dark:border-gray-700 mt-14">
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+        <div>
+            <h2 class="mb-0">Configuración de Escáner</h2>
+            <p class="text-muted">Seleccione el dispositivo que corresponde a su lector de código de barras.</p>
+        </div>
+    </div>
 
-        <div class="grid grid-cols-1 gap-4 mb-4">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Configuración de Escáner</h1>
-            <p class="text-gray-500 dark:text-gray-400">Seleccione el dispositivo que corresponde a su lector de código
-                de barras físico. Una vez conectado, el servidor "secuestrará" el dispositivo para uso exclusivo.</p>
+    <div class="row">
+        <!-- Status Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Estado Actual</h5>
+                </div>
+                <div class="card-body">
+                    <div id="status-display" class="mb-3 fs-5">
+                        <span class="spinner-border spinner-border-sm text-primary" role="status"></span> Cargando...
+                    </div>
+                    <button id="btn-disconnect" class="btn btn-danger d-none">
+                        Desconectar
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Status Card -->
-            <div class="p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-                <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Estado Actual</h5>
-                <div id="status-display" class="mb-3 font-normal text-gray-700 dark:text-gray-400">
-                    Cargando...
+        <!-- Device List Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Dispositivos Disponibles</h5>
+                    <button id="btn-refresh" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-sync-alt"></i> Actualizar
+                    </button>
                 </div>
-                <button id="btn-disconnect"
-                    class="hidden px-3 py-2 text-sm font-medium text-center text-white bg-red-700 rounded-lg hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
-                    Desconectar
-                </button>
-            </div>
-
-            <!-- Device List Card -->
-            <div class="p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-                <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Dispositivos
-                    Disponibles</h5>
-                <div id="loading-devices" class="hidden">
-                    <div role="status" class="flex justify-center">
-                        <svg aria-hidden="true"
-                            class="w-8 h-8 mr-2 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
-                            viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                                fill="currentColor" />
-                            <path
-                                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                                fill="currentFill" />
-                        </svg>
+                <div class="card-body">
+                    <div id="loading-devices" class="d-none text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                    <div class="list-group" id="device-list">
+                        <!-- Devices will be listed here -->
                     </div>
                 </div>
-                <ul id="device-list" class="space-y-2 text-left text-gray-500 dark:text-gray-400">
-                    <!-- Devices will be listed here -->
-                </ul>
-                <button id="btn-refresh"
-                    class="mt-4 px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                    Actualizar Lista
-                </button>
             </div>
         </div>
+    </div>
 
-        <!-- Testing Area -->
-        <div class="mt-8 p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-            <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Prueba de Escaneo</h5>
-            <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Escanee un código para verificar que llega
-                correctamente.</p>
-            <div class="relative">
-                <input type="text" id="test-input"
-                    class="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    placeholder="El código aparecerá aquí..." readonly>
+    <!-- Testing Area -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Prueba de Escaneo</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Escanee un código para verificar que llega correctamente.</p>
+                    <input type="text" id="test-input" class="form-control form-control-lg"
+                        placeholder="El código aparecerá aquí..." readonly>
+                </div>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -81,7 +82,7 @@
     async function loadDevices() {
         const listEl = document.getElementById('device-list');
         listEl.innerHTML = '';
-        document.getElementById('loading-devices').classList.remove('hidden');
+        document.getElementById('loading-devices').classList.remove('d-none');
 
         try {
             const response = await fetch('/scanner/list_devices');
@@ -90,23 +91,28 @@
             updateStatusUI(data.status);
 
             data.devices.forEach(device => {
-                const li = document.createElement('li');
-                li.className = 'flex items-center space-x-3 rtl:space-x-reverse p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer';
-                li.innerHTML = `
-                    <svg class="flex-shrink-0 w-3.5 h-3.5 text-green-500 dark:text-green-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 12">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5.917 5.724 10.5 15 1.5"/>
-                    </svg>
-                    <span class="flex-1 font-medium text-gray-900 dark:text-white">${device.name}</span>
-                    <span class="text-xs text-gray-500">${device.path}</span>
+                const button = document.createElement('button');
+                button.className = 'list-group-item list-group-item-action d-flex align-items-center justify-content-between';
+                button.innerHTML = `
+                    <div>
+                        <div class="fw-bold">${device.name}</div>
+                        <small class="text-muted">${device.path}</small>
+                    </div>
+                    <span class="badge bg-secondary rounded-pill">Conectar</span>
                 `;
-                li.onclick = () => connectDevice(device.path);
-                listEl.appendChild(li);
+                button.onclick = () => connectDevice(device.path);
+                listEl.appendChild(button);
             });
+
+            if (data.devices.length === 0) {
+                listEl.innerHTML = '<div class="text-center text-muted py-3">No se encontraron dispositivos de entrada.</div>';
+            }
+
         } catch (error) {
             console.error(error);
-            listEl.innerHTML = 'Error cargando dispositivos.';
+            listEl.innerHTML = '<div class="alert alert-danger">Error cargando dispositivos.</div>';
         } finally {
-            document.getElementById('loading-devices').classList.add('hidden');
+            document.getElementById('loading-devices').classList.add('d-none');
         }
     }
 
@@ -121,7 +127,7 @@
             });
             const result = await response.json();
             if (result.success) {
-                alert('Conectado exitosamente');
+                // alert('Conectado exitosamente'); // Opcional, mejor solo actualizar UI
                 loadStatus();
             } else {
                 alert('Error al conectar: ' + (result.message || 'Desconocido'));
@@ -145,11 +151,11 @@
         const disconnectBtn = document.getElementById('btn-disconnect');
 
         if (status.connected) {
-            display.innerHTML = `<span class="text-green-600 font-bold">Conectado a:</span> ${status.device_name}`;
-            disconnectBtn.classList.remove('hidden');
+            display.innerHTML = `<span class="text-success fw-bold">● Conectado a:</span> ${status.device_name}`;
+            disconnectBtn.classList.remove('d-none');
         } else {
-            display.innerHTML = `<span class="text-gray-500">Ningún dispositivo conectado</span>`;
-            disconnectBtn.classList.add('hidden');
+            display.innerHTML = `<span class="text-secondary">○ Ningún dispositivo conectado</span>`;
+            disconnectBtn.classList.add('d-none');
         }
     }
 
@@ -158,11 +164,11 @@
 
     // Listen to our custom scan event
     document.addEventListener('scan', (e) => {
-        document.getElementById('test-input').value = e.detail.barcode;
-        // Visual feedback
         const input = document.getElementById('test-input');
-        input.classList.add('bg-green-100', 'dark:bg-green-900');
-        setTimeout(() => input.classList.remove('bg-green-100', 'dark:bg-green-900'), 500);
+        input.value = e.detail.barcode;
+        // Visual feedback
+        input.classList.add('bg-success', 'text-white');
+        setTimeout(() => input.classList.remove('bg-success', 'text-white'), 500);
     });
 
     // Load initial data

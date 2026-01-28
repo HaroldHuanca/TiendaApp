@@ -859,36 +859,45 @@
         const barcode = e.detail.barcode;
         console.log("Barcode recibido en productos:", barcode);
 
+        // 1. Si el modal está abierto, priorizar el input del modal
+        const modal = document.getElementById('modalProducto');
+        // Check for 'active' class (custom), 'show' class (Bootstrap), or visible display style
+        const isModalVisible = modal && (
+            modal.classList.contains('active') ||
+            modal.classList.contains('show') ||
+            window.getComputedStyle(modal).display !== 'none'
+        );
+
+        if (isModalVisible) {
+            const codigoInput = document.getElementById('codigoBarras');
+            if (codigoInput && !codigoInput.disabled) {
+                codigoInput.value = barcode;
+                // Disparar blur para que la lógica de validación se ejecute
+                codigoInput.dispatchEvent(new Event('blur'));
+
+                // Feedback visual
+                codigoInput.style.backgroundColor = '#d4edda';
+                setTimeout(() => codigoInput.style.backgroundColor = '', 500);
+            }
+            return; // No filtrar la tabla si estamos en el modal
+        }
+
+        // 2. Si no hay modal, filtrar la lista principal
         const filtro = document.getElementById('filtroNombre');
         if (filtro) {
             filtro.value = barcode;
             filtro.focus();
+            // Disparar input para filtrar
             filtro.dispatchEvent(new Event('input'));
 
-            // Si hay coincidencia exacta tras filtrar, podríamos querer editarlo automáticamente?
-            // La lógica actual tiene un listener de 'Enter' que edita el primero.
-            // Podríamos simularlo tras un breve delay.
-            setTimeout(() => {
-                const tabla = document.getElementById('tbody-tabla');
-                if (tabla.rows.length === 1) {
-                    // Si solo hay un resultado, es muy probable que sea el buscado.
-                    // Podríamos disparar el clic en editar.
-                    const btnEditar = tabla.rows[0].querySelector('.btn-edit');
-                    if (btnEditar) btnEditar.click();
-                }
-            }, 600);
-        }
-    });
-
-    // También escuchar en el modal de producto si está abierto
-    document.addEventListener('scan', (e) => {
-        const modal = document.getElementById('modalProducto');
-        if (modal && modal.classList.contains('active')) {
-            const codigoInput = document.getElementById('codigoBarras');
-            if (codigoInput && !codigoInput.disabled) {
-                codigoInput.value = e.detail.barcode;
-                codigoInput.dispatchEvent(new Event('blur')); // Trigger logic to check existence
-            }
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'info',
+                title: 'Buscando: ' + barcode,
+                showConfirmButton: false,
+                timer: 1000
+            });
         }
     });
 </script>

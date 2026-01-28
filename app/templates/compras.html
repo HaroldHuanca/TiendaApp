@@ -483,21 +483,72 @@
 </script>
 <script src="{{ url_for('static', filename='js/scanner_client.js') }}"></script>
 <script>
-    document.addEventListener('scan', (e) => {
+    let procesandoEscaneoCompra = false;
+
+    document.addEventListener('scan', async (e) => {
+        if (procesandoEscaneoCompra) return;
+
         const barcode = e.detail.barcode;
         console.log("Barcode recibido en compras:", barcode);
 
         const inputProducto = document.getElementById('inputProducto');
         inputProducto.value = barcode;
-        inputProducto.focus();
-        inputProducto.dispatchEvent(new Event('input'));
+        inputProducto.classList.add('is-valid');
 
-        setTimeout(() => {
-            const lista = document.getElementById('listaProductosSugerencias');
-            if (lista.style.display !== 'none' && lista.firstElementChild) {
-                seleccionarProductoDeSugerencias(lista.firstElementChild);
+        procesandoEscaneoCompra = true;
+
+        try {
+            const response = await fetch(`/productos/obtener_productos_por_filtro/${encodeURIComponent(barcode)}`);
+            if (response.ok) {
+                const productos = await response.json();
+                const match = productos.find(p => p.codigo_Barras === barcode);
+
+                if (match) {
+                    // Asegurar globabilidad
+                    if (!productosDisponibles.some(p => p.id === match.id)) {
+                        productosDisponibles.push(match);
+                    }
+
+                    seleccionarProductoPorIdCompra(match.id);
+
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 1500,
+                        timerProgressBar: true
+                    })
+                    Toast.fire({ icon: 'success', title: `Agregado: ${match.descripcion}` })
+
+                    inputProducto.value = '';
+                    inputProducto.classList.remove('is-valid');
+                    document.getElementById('listaProductosSugerencias').style.display = 'none';
+
+                } else {
+                    inputProducto.dispatchEvent(new Event('input'));
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Producto no encontrado', timer: 2000, showConfirmButton: false });
+                }
             }
-        }, 500);
+        } catch (error) {
+            console.error("Error al procesar escaneo:", error);
+        } finally {
+            setTimeout(() => { procesandoEscaneoCompra = false; }, 500);
+        }
     });
+
+    function seleccionarProductoPorIdCompra(id) {
+        const p = productosDisponibles.find(x => x.id == id);
+        if (p) {
+            if (productosEnCompra[id]) {
+                const input = document.querySelector(`input[data-id-producto="${id}"][data-tipo="cantidad"]`);
+                if (input) {
+                    input.value = parseFloat(input.value) + 1;
+                    manejarCambioTabla({ target: input });
+                }
+            } else {
+                agregarFilaProducto(p);
+            }
+        }
+    }
 </script>
 {% endblock %}
