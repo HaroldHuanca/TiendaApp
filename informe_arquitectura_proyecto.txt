@@ -1,0 +1,196 @@
+INFORME TÉCNICO DEL PROYECTO TIENDAAPP
+====================================
+
+1. DESCRIPCIÓN GENERAL
+---------------------
+TiendaApp es un sistema de gestión para una tienda que permite administrar operaciones comerciales como ventas, compras, clientes, productos, proveedores, categorías, unidades, series, usuarios y estados de transacciones. La aplicación está orientada a facilitar el control del negocio de forma local y en red, mediante una interfaz web que se comunica con un backend en Python y una base de datos relacional MariaDB.
+
+El proyecto está pensado como una solución de tipo monolítica web modular, donde el servidor central expone múltiples endpoints y renderiza páginas dinámicas. La arquitectura es bastante organizada, separando responsabilidades entre rutas, servicios, modelos y vistas, lo que facilita su mantenimiento y escalabilidad inicial.
+
+2. ARQUITECTURA UTILIZADA
+-------------------------
+El proyecto sigue una arquitectura de tipo MVC (Modelo-Vista-Controlador) adaptada a Flask, aunque de forma práctica se puede describir como una arquitectura modular por capas:
+
+- Capa de presentación: templates HTML, CSS y JavaScript ubicados en app/templates y app/static.
+- Capa de control: blueprints y routes, encargados de recibir solicitudes HTTP y coordinar la lógica de negocio.
+- Capa de servicios: módulos que contienen la lógica de negocio y la interacción con la base de datos.
+- Capa de acceso a datos: modelos ORM y conexión a la base de datos.
+- Capa de persistencia: MariaDB, donde se almacenan las tablas del negocio.
+
+Esta estructura permite separar claramente:
+- la interfaz del usuario,
+- la lógica de negocio,
+- la gestión del acceso a datos,
+- y la persistencia de información.
+
+Además, el sistema utiliza Flask como framework principal y SQLAlchemy como ORM para interactuar con la base de datos de forma más limpia y mantenible.
+
+3. BACKEND
+----------
+3.1. Framework principal
+El backend se desarrolla con Flask, un framework ligero de Python para construir aplicaciones web.
+
+Flask se utiliza para:
+- definir rutas o endpoints,
+- manejar peticiones HTTP,
+- gestionar sesiones de usuario,
+- renderizar templates HTML,
+- exponer APIs para operaciones AJAX y formularios.
+
+3.2. Estructura del backend
+El backend está organizado en módulos bien diferenciados:
+
+- app/routes: contiene los blueprints o rutas de cada entidad del negocio.
+  Ejemplos: clientes, productos, ventas, compras, usuarios, categorías, proveedores, etc.
+
+- app/services: contiene la lógica de negocio y funciones que realizan operaciones sobre los datos.
+  Aquí se encapsula la lógica que no pertenece directamente a la vista ni a la base de datos.
+
+- app/models: define las clases que representan entidades del sistema y su estructura de datos.
+  Estas clases se utilizan con SQLAlchemy para mapear tablas.
+
+- app/models_test y app/routes_test: contienen pruebas unitarias y de rutas para verificar el funcionamiento del sistema.
+
+3.3. Patrones utilizados en el backend
+El proyecto emplea un enfoque de diseño modular y orientado a servicios. Algunas características importantes son:
+
+- Separación de responsabilidades: las rutas reciben peticiones, los servicios resuelven la lógica y los modelos representan datos.
+- Uso de blueprints: permite organizar la aplicación en módulos reutilizables.
+- Uso de sesiones: se emplea para controlar acceso de usuarios y mantener autenticación.
+- Uso de CORS: se habilita para facilitar el consumo desde diferentes clientes o equipos dentro de una red local.
+- Manejo de errores y respuestas JSON: el sistema responde a peticiones del frontend con datos estructurados, útil para operaciones dinámicas.
+
+3.4. Punto de entrada de la aplicación
+La aplicación inicia desde main.py, donde se crea la instancia de Flask, se cargan los blueprints, se registran las rutas principales y se configura la aplicación para trabajar en red local (modo LAN). También se define la lógica de renderizado con sesión activa y el manejo de login/logout.
+
+4. BASE DE DATOS
+----------------
+4.1. Motor de base de datos
+La base de datos utilizada es MariaDB, un sistema de gestión de bases de datos relacional de código abierto, compatible con MySQL, muy utilizado en entornos empresariales pequeños y medianos.
+
+4.2. Conexión con Python
+La conexión a la base de datos se gestiona mediante SQLAlchemy y un módulo de conexión ubicado en database/connection.py.
+
+Se utiliza:
+- create_engine para crear el motor de conexión.
+- sessionmaker para generar sesiones de base de datos.
+- DatabaseManager como administrador de contexto para abrir y cerrar sesiones de forma segura.
+
+4.3. Cadena de conexión
+La aplicación establece una conexión a la base de datos MariaDB mediante la URL:
+
+mariadb+mariadbconnector://root:mishina123@localhost:3306/tiendadb
+
+Esto indica que:
+- el motor es MariaDB,
+- el usuario es root,
+- la base de datos es tiendadb,
+- y el servidor está en localhost.
+
+4.4. Modelo de datos
+La base de datos está diseñada de manera relacional y contiene tablas para las principales entidades del negocio, entre las que se encuentran:
+
+- usuarios
+- clientes
+- productos
+- proveedores
+- categorías
+- unidades
+- ventas
+- detalles de venta
+- compras
+- detalles de compra
+- series
+- estados
+- bonificaciones
+
+La estructura relacional permite almacenar datos de forma consistente y facilita consultas entre tablas relacionadas, como por ejemplo:
+- ventas vinculadas a clientes y usuarios,
+- detalles de venta relacionados con productos,
+- compras vinculadas a proveedores,
+- productos organizados por categorías y unidades.
+
+4.5. Archivos SQL del proyecto
+En la carpeta BaseDatos se encuentran scripts SQL que probablemente definen:
+- la estructura de la base de datos,
+- procedimientos almacenados,
+- datos iniciales o configuración base.
+
+Esto demuestra que el proyecto no depende únicamente del ORM, sino que también cuenta con soporte de scripts SQL para la definición y carga de datos.
+
+5. FRONTEND
+-----------
+5.1. Tecnologías utilizadas
+El frontend se desarrolla con una mezcla de:
+- HTML para la estructura de las páginas,
+- CSS para el estilo visual,
+- Bootstrap para la interfaz responsiva y componentes predefinidos,
+- JavaScript para la interacción dinámica,
+- Jinja2 como motor de templates de Flask para renderizar contenido desde el backend.
+
+5.2. Forma en que se realiza el frontend
+El frontend no está construido como un SPA (Single Page Application) moderno con React o Vue, sino que se implementa de forma tradicional con páginas renderizadas por Flask.
+
+Esto significa que:
+- el servidor devuelve páginas HTML completas mediante templates,
+- el frontend se vuelve dinámico mediante JavaScript y peticiones AJAX,
+- y algunos módulos tienen comportamiento interactivo como búsquedas, sugerencias, tablas y formularios.
+
+5.3. Estructura del frontend
+Los templates principales están en app/templates, entre ellos:
+- ventas.html
+- compras.html
+- productos_listar.html
+- clientes_lista.html
+- proveedores_lista.html
+- categorias_lista.html
+- unidades_lista.html
+- login.html
+- dashboard.html
+
+Los archivos estáticos se encuentran en app/static y contienen recursos como hojas de estilo, scripts y assets visuales.
+
+5.4. Comportamiento interactivo
+El frontend utiliza JavaScript para tareas como:
+- búsquedas en tiempo real,
+- autocompletado de clientes y productos,
+- carga dinámica de datos,
+- manejo de eventos de teclado y formularios,
+- actualización de tablas de ventas y detalles,
+- cálculo de totales y subtotales,
+- interacción con SweetAlert para mensajes al usuario.
+
+Esto permite que la aplicación tenga un comportamiento muy similar a una aplicación web moderna, aunque sin separar completamente el frontend del backend.
+
+6. FLUJO GENERAL DEL SISTEMA
+----------------------------
+Un flujo típico del sistema sería el siguiente:
+
+1. El usuario accede a la aplicación a través del navegador.
+2. Flask valida la sesión y redirige al login si es necesario.
+3. El usuario navega por módulos como clientes, productos o ventas.
+4. El frontend realiza peticiones al backend mediante rutas o endpoints.
+5. El backend consulta o modifica los datos en MariaDB usando SQLAlchemy.
+6. El sistema devuelve la información renderizada o en formato JSON para mostrarla al usuario.
+
+7. VENTAJAS DEL ENFOQUE ACTUAL
+------------------------------
+- Estructura modular y relativamente clara.
+- Fácil de entender para equipos pequeños.
+- Permite desarrollo rápido sin una gran complejidad inicial.
+- Buen soporte para aplicaciones internas o de uso local.
+- Integración sencilla con Flask + SQLAlchemy + MariaDB.
+
+8. LIMITACIONES O PUNTOS DE MEJORA
+---------------------------------
+- La arquitectura es monolítica, lo que puede complicar el crecimiento futuro si el sistema se vuelve muy grande.
+- El frontend está muy ligado al backend en templates server-rendered, lo que limita la reutilización de componentes.
+- Para entornos de alta concurrencia o mayor escalabilidad, sería conveniente migrar a una arquitectura más desacoplada.
+- Se podría mejorar la seguridad de la configuración de base de datos y credenciales.
+- Se podría adoptar un frontend más moderno como React, Vue o incluso un enfoque SPA con API REST más robusta.
+
+9. CONCLUSIÓN
+-------------
+TiendaApp está desarrollada sobre una arquitectura web modular en Python con Flask, utilizando MariaDB como motor de base de datos relacional y un frontend dinámico basado en templates HTML, Bootstrap, JavaScript y Jinja2.
+
+La solución combina una estructura organizada por capas, lógica de negocio separada en servicios, manejo de sesiones y un enfoque práctico para operaciones comerciales de una tienda. Es una arquitectura adecuada para un sistema interno, funcional y relativamente fácil de mantener, aunque con margen para evolucionar hacia un modelo más escalable y desacoplado.
