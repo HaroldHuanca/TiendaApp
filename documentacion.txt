@@ -22,32 +22,42 @@ REQUERIMIENTOS FUNCIONALES:
   1.4.-eliminar usuarios(no debería ser posible :v, eliminación lógica, parece que tampoco se implemento en el frontend)
 
 2.-GESTIONAR PRODUCTOS
-  2.1.-crear productos
-  2.2.-modificar productos
-  2.3.-listar productos
+  2.1.-crear productos(si mas o menos)
+  2.2.-modificar productos(si mas o menos)
+  2.3.-listar productos(si mas o menos)
   2.4.-eliminar productos(la eliminación debería ser lógica, no real)
 
 3.-GESTIONAR CLIENTES
-  3.1.-crear clientes
-  3.2.-modificar clientes
-  3.3.-listar clientes
+  3.1.-crear clientes(si se crean correctamente)
+  3.2.-modificar clientes(faltan validaciones)
+  3.3.-listar clientes(se listan correctamente)
   3.4.-eliminar clientes(eliminación lógica)
 
 4.-GESTIONAR PROVEEDORES
-  4.1.-crear proveedores
-  4.2.-modificar proveedores
-  4.3.-listar proveedores
+  4.1.-crear proveedores(se crean correctamente)
+  4.2.-modificar proveedores(tampocos se validan, corregir)
+  4.3.-listar proveedores(se listan correctamente)
   4.4.-eliminar proveedores(eliminación lógica)
 
 5.-GESTIONAR VENTAS
-  5.1.-crear ventas
+  5.1.-crear ventas(si se crean correctamente)
+  5.2.-listar ventas(se listan correctamente)
 
 6.-GESTIONAR COMPRAS
-  6.2.-crear compras
+  6.1.-crear compras(si se crean correctamente)
+  6.2.-listar compras(se lista correctamente)
 
 7.-GESTIONAR COMPROBANTES ELECTRONICOS 
-  7.1.-crear boletas
-  7.2.-crear facturas
+  7.1.-crear boletas(no)
+  7.2.-crear facturas(no)
   7.3.-crear notas de credito(no recuerdo el nombre que le tocaba :v)
+
+8.-GESTIONAR VENTAS INDIVIDUALES
+  8.1.-insertar ventas individuales
+  8.2.-modificar ventas individuales
+  8.3.-listar ventas individuales
+  8.4.-eliminar ventas individuales
+
+
 
 
