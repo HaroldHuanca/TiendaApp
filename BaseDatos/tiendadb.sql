@@ -213,3 +213,131 @@ create TABLE tbl_bonificaciones (
     )
 );
 
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS trg_venta_detalle_before_insert;
+
+CREATE TRIGGER trg_venta_detalle_before_insert
+BEFORE INSERT ON tbl_venta_detalles
+FOR EACH ROW
+BEGIN
+    IF NEW.cantidad < 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'La cantidad de la venta no puede ser negativa';
+    END IF;
+
+    IF (SELECT stock FROM tbl_productos WHERE id = NEW.id_producto) < NEW.cantidad THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Stock insuficiente para vender este producto';
+    END IF;
+END$$
+
+DROP TRIGGER IF EXISTS trg_venta_detalle_after_insert;
+
+CREATE TRIGGER trg_venta_detalle_after_insert
+AFTER INSERT ON tbl_venta_detalles
+FOR EACH ROW
+BEGIN
+    UPDATE tbl_productos
+    SET stock = stock - NEW.cantidad
+    WHERE id = NEW.id_producto;
+END$$
+
+DROP TRIGGER IF EXISTS trg_venta_detalle_before_update;
+
+CREATE TRIGGER trg_venta_detalle_before_update
+BEFORE UPDATE ON tbl_venta_detalles
+FOR EACH ROW
+BEGIN
+    IF NEW.cantidad < 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'La cantidad de la venta no puede ser negativa';
+    END IF;
+
+    IF (SELECT stock FROM tbl_productos WHERE id = NEW.id_producto) + OLD.cantidad < NEW.cantidad THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Stock insuficiente para actualizar esta venta';
+    END IF;
+END$$
+
+DROP TRIGGER IF EXISTS trg_venta_detalle_after_update;
+
+CREATE TRIGGER trg_venta_detalle_after_update
+AFTER UPDATE ON tbl_venta_detalles
+FOR EACH ROW
+BEGIN
+    UPDATE tbl_productos
+    SET stock = stock + OLD.cantidad - NEW.cantidad
+    WHERE id = NEW.id_producto;
+END$$
+
+DROP TRIGGER IF EXISTS trg_venta_detalle_after_delete;
+
+CREATE TRIGGER trg_venta_detalle_after_delete
+AFTER DELETE ON tbl_venta_detalles
+FOR EACH ROW
+BEGIN
+    UPDATE tbl_productos
+    SET stock = stock + OLD.cantidad
+    WHERE id = OLD.id_producto;
+END$$
+
+DROP TRIGGER IF EXISTS trg_compra_detalle_before_insert;
+
+CREATE TRIGGER trg_compra_detalle_before_insert
+BEFORE INSERT ON tbl_compras_detalles
+FOR EACH ROW
+BEGIN
+    IF NEW.cantidad < 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'La cantidad de la compra no puede ser negativa';
+    END IF;
+END$$
+
+DROP TRIGGER IF EXISTS trg_compra_detalle_after_insert;
+
+CREATE TRIGGER trg_compra_detalle_after_insert
+AFTER INSERT ON tbl_compras_detalles
+FOR EACH ROW
+BEGIN
+    UPDATE tbl_productos
+    SET stock = stock + NEW.cantidad
+    WHERE id = NEW.id_producto;
+END$$
+
+DROP TRIGGER IF EXISTS trg_compra_detalle_before_update;
+
+CREATE TRIGGER trg_compra_detalle_before_update
+BEFORE UPDATE ON tbl_compras_detalles
+FOR EACH ROW
+BEGIN
+    IF NEW.cantidad < 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'La cantidad de la compra no puede ser negativa';
+    END IF;
+END$$
+
+DROP TRIGGER IF EXISTS trg_compra_detalle_after_update;
+
+CREATE TRIGGER trg_compra_detalle_after_update
+AFTER UPDATE ON tbl_compras_detalles
+FOR EACH ROW
+BEGIN
+    UPDATE tbl_productos
+    SET stock = stock - OLD.cantidad + NEW.cantidad
+    WHERE id = NEW.id_producto;
+END$$
+
+DROP TRIGGER IF EXISTS trg_compra_detalle_after_delete;
+
+CREATE TRIGGER trg_compra_detalle_after_delete
+AFTER DELETE ON tbl_compras_detalles
+FOR EACH ROW
+BEGIN
+    UPDATE tbl_productos
+    SET stock = stock - OLD.cantidad
+    WHERE id = OLD.id_producto;
+END$$
+
+DELIMITER ;
+

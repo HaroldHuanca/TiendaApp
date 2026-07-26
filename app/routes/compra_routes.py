@@ -13,7 +13,7 @@ def mostrar_compras():
 
 @compra_bp.route('/insertar_compra', methods=['POST'])
 def insertar_compra():
-    datos = request.get_json()
+    datos = request.get_json() or {}
     try:
         id_compra = compra_service.insertar_compra(
             datos.get("id_usuario"),
@@ -27,7 +27,7 @@ def insertar_compra():
             "id_compra": id_compra
         }), 201
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"success": False, "error": str(e)}), 400
 
 @compra_bp.route('/actualizar_compra/<int:id>', methods=['PUT'])
 def actualizar_compra(id):

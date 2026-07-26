@@ -13,7 +13,7 @@ def obtener_ventas():
 
 @venta_bp.route('/insertar_venta', methods=['POST'])
 def crear_venta():
-    datos = request.get_json()
+    datos = request.get_json() or {}
     try:
         id_nueva_venta = venta_service.insertar_venta(
             datos.get("id_serie"),
@@ -25,9 +25,7 @@ def crear_venta():
         )
         return jsonify({"mensaje": "Venta registrada exitosamente", "id": id_nueva_venta}), 201
     except Exception as e:
-        print("ESTE ES EL ERROR QUE NO ME DEJA DORMIR")
-        print(str(e))
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"success": False, "error": str(e)}), 400
 
 @venta_bp.route('/actualizar_venta', methods=['PUT'])
 def modificar_venta():
