@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, m
 from flask_cors import CORS
 import app.services.usuario_service as usuario_service
 import os
+from datetime import date
 from config import LANConfig
 
 # Importación de blueprints
@@ -70,7 +71,7 @@ def create_app():
     from app.routes.scanner_routes import scanner_bp
     app.register_blueprint(scanner_bp, url_prefix="/scanner")
 
-    def render_con_session(template):
+    def render_con_session(template, **kwargs):
         """Renderiza un template verificando que el usuario tenga una sesión activa."""
         # Verificar si hay un usuario en la sesión
         if 'usuario' not in session:
@@ -93,7 +94,8 @@ def create_app():
             template,
             usuario=session.get('usuario'),
             id=session.get('id'),
-            estado=session.get('estado')
+            estado=session.get('estado'),
+            **kwargs
         )
 
     @app.route("/login")
@@ -143,7 +145,8 @@ def create_app():
 
     @app.route('/', strict_slashes=False)
     def index():
-        return render_con_session("dashboard.html")
+        hoy = date.today().strftime('%Y-%m-%d')
+        return render_con_session("venta_unitaria_listar.html", fecha_hoy=hoy)
 
     @app.route('/clientes', strict_slashes=False)
     def clientes_web():

@@ -176,6 +176,3 @@ def obtener_producto_por_id(id_producto: int) -> Optional[Dict[str, Any]]:
         )
         rows = result.fetchall()
         return dict(rows[0]._mapping) if rows else None
-
-
-print(buscar_id_por_codigo_barras("12321"))

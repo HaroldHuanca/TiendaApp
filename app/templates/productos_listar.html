@@ -15,6 +15,12 @@
 
     <!-- Buscador de Productos -->
     <div style="margin-bottom: 20px;">
+        <div class="mb-3">
+            <label for="scannerDeviceSelect" class="form-label">Lector de código de barras</label>
+            <select id="scannerDeviceSelect" class="form-select">
+                <option value="">Seleccionar lector...</option>
+            </select>
+        </div>
         <input type="text" id="filtroNombre" class="form-control"
             placeholder="🔍 Buscar producto por nombre o código..."
             style="padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius); width: 100%;">

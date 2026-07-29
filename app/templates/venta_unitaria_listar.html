@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Ventas Unitarias - TiendaApp{% endblock %}
+
+{% block page_title %}Ventas Unitarias{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-primary"><i class="fas fa-calendar-day me-2"></i>Ventas del día</h5>
+            <div class="d-flex gap-2">
+                <input type="date" id="fechaVentaUnitaria" class="form-control" value="{{ fecha_hoy }}">
+                <button class="btn btn-primary" id="btnBuscarVentasUnitarias">
+                    <i class="fas fa-search me-2"></i>Ver
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">Estado del escáner</label>
+                    <div class="alert alert-info mb-0" id="scannerStatus">Esperando conexión...</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Último código leído</label>
+                    <div class="alert alert-secondary mb-0" id="ultimoCodigo">Sin lectura</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="tablaVentasUnitarias">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Producto</th>
+                            <th>Código</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                            <th>Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTablaVentasUnitarias">
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">Cargando ventas...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', async function () {
+        const fechaInput = document.getElementById('fechaVentaUnitaria');
+        const btnBuscar = document.getElementById('btnBuscarVentasUnitarias');
+        const tbody = document.getElementById('cuerpoTablaVentasUnitarias');
+        const scannerStatus = document.getElementById('scannerStatus');
+        const ultimoCodigo = document.getElementById('ultimoCodigo');
+
+        const usuarioId = {{ id or 1 }};
+
+        const cargarVentas = async () => {
+            const fecha = fechaInput.value || '{{ fecha_hoy }}';
+            try {
+                const response = await fetch(`/venta_individuales/mostrar_ventas_individuales/${fecha}`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Error cargando ventas');
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No hay ventas unitarias para esta fecha.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.map(venta => `
+                    <tr>
+                        <td>#${venta.id}</td>
+                        <td>${venta.descripcion || '-'}</td>
+                        <td>${venta.codigo_barras || '-'}</td>
+                        <td>${venta.cantidad}</td>
+                        <td>S/ ${Number(venta.precio_venta || 0).toFixed(2)}</td>
+                        <td>${venta.fecha_hora}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">No se pudieron cargar las ventas.</td></tr>';
+            }
+        };
+
+        const insertarVentaIndividual = async (codigo) => {
+            try {
+                const codigoEscaneado = codigo.trim();
+                if (!codigoEscaneado) return null;
+
+                const responseId = await fetch(`/productos/buscar_id_producto/${encodeURIComponent(codigoEscaneado)}`);
+                if (!responseId.ok) {
+                    console.warn('No se encontró producto para', codigoEscaneado);
+                    return null;
+                }
+                const idPayload = await responseId.json();
+                const idProducto = Number(idPayload.id_producto);
+                if (!idProducto || Number.isNaN(idProducto)) {
+                    console.warn('ID de producto inválido para', codigoEscaneado, idPayload);
+                    return null;
+                }
+
+                const responseProd = await fetch(`/productos/obtener_producto/${idProducto}`);
+                if (!responseProd.ok) {
+                    console.warn('No se pudo obtener producto', idProducto);
+                    return null;
+                }
+                const producto = await responseProd.json();
+                const precioVenta = Number(producto.precio_venta || 0);
+                const cantidad = 1.0;
+                const fechaHora = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+                const responseInsert = await fetch('/venta_individuales/insertar_venta_individual', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id_producto: idProducto,
+                        id_usuario: usuarioId,
+                        cantidad,
+                        precio_venta: precioVenta,
+                        fecha_hora: fechaHora
+                    })
+                });
+
+                if (!responseInsert.ok) {
+                    const errorPayload = await responseInsert.json();
+                    console.warn('Error insertando venta individual:', errorPayload);
+                    return null;
+                }
+
+                return true;
+            } catch (error) {
+                console.error('Error insertando venta individual', error);
+                return null;
+            }
+        };
+
+        const actualizarEstadoScanner = async () => {
+            try {
+                const response = await fetch('/scanner/status');
+                const data = await response.json();
+                if (data.connected) {
+                    scannerStatus.innerHTML = `<strong>Conectado:</strong> ${data.device_name || data.device_path || 'Dispositivo listo'}`;
+                } else {
+                    scannerStatus.innerHTML = 'Esperando conexión...';
+                }
+            } catch (error) {
+                scannerStatus.innerHTML = 'No se pudo consultar el estado del escáner';
+            }
+        };
+
+        btnBuscar.addEventListener('click', cargarVentas);
+        fechaInput.addEventListener('change', cargarVentas);
+
+        cargarVentas();
+        actualizarEstadoScanner();
+        setInterval(actualizarEstadoScanner, 5000);
+
+        const eventSource = new EventSource('/scanner/stream');
+        eventSource.onmessage = async function (event) {
+            const codigo = event.data;
+            if (codigo && codigo.trim().length > 0) {
+                ultimoCodigo.textContent = codigo;
+                const resultado = await insertarVentaIndividual(codigo);
+                if (resultado) {
+                    cargarVentas();
+                }
+            }
+        };
+    });
+</script>
+{% endblock %}

@@ -1,9 +1,14 @@
 import evdev
 import threading
 import queue
-import time
 import json
 import os
+from datetime import datetime
+
+import app.services.producto_service as producto_service
+import app.services.venta_individual_service as venta_individual_service
+
+producto_model = producto_service.producto_model
 
 # Reusing mapping logic from scanner_utils to avoid duplication issues
 # Ideally we would move scanner_utils to app/utils/ but inlining is safer for now to avoid path issues
@@ -31,160 +36,321 @@ SHIFT_MAP = {
     'u': 'U', 'v': 'V', 'w': 'W', 'x': 'X', 'y': 'Y', 'z': 'Z'
 }
 
+
 def map_key_to_char(key_event, is_shifted=False):
     key_code = evdev.ecodes.keys[key_event.code]
     if isinstance(key_code, list):
-         key_code = key_code[0]
+        key_code = key_code[0]
     char = SCANCODE_MAP.get(key_code)
     if char and is_shifted:
         return SHIFT_MAP.get(char, char)
     return char
 
+
+def play_error_sound():
+    return None
+
+
+def speak_text(text):
+    return text
+
+
 class ScannerService:
     _instance = None
     CONFIG_FILE = 'scanner_config.json'
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(ScannerService, cls).__new__(cls)
-            cls._instance.device = None
-            cls._instance.stop_event = threading.Event()
-            cls._instance.thread = None
-            cls._instance.queues = set()
+            cls._instance.connected_devices = {}
+            cls._instance.device_stop_events = {}
+            cls._instance.queues = {}
+            cls._instance.active_device_id = None
             cls._instance.current_device_path = None
             cls._instance._load_config()
         return cls._instance
 
     def _load_config(self):
-        """Attempt to load saved configuration and auto-connect"""
+        """Attempt to load saved configuration and auto-connect using device id."""
         if os.path.exists(self.CONFIG_FILE):
             try:
                 with open(self.CONFIG_FILE, 'r') as f:
                     config = json.load(f)
-                    path = config.get('device_path')
-                    if path and os.path.exists(path):
-                        print(f"Auto-connecting to saved scanner: {path}")
-                        self.connect_device(path, save=False)
+                    self.active_device_id = config.get('selected_device_id')
+                    saved_devices = config.get('devices') or {}
+                    if self.active_device_id and saved_devices.get(self.active_device_id):
+                        print(f"Auto-connecting to saved scanner: {self.active_device_id}")
+                        self.connect_device(self.active_device_id, save=False)
             except Exception as e:
                 print(f"Error loading scanner config: {e}")
 
-    def _save_config(self, path):
-         try:
-            with open(self.CONFIG_FILE, 'w') as f:
-                json.dump({'device_path': path}, f)
-         except Exception as e:
-             print(f"Error saving scanner config: {e}")
-
-    def list_devices(self):
+    def _save_config(self):
         try:
-            return [{'name': dev.name, 'path': dev.path} for dev in [evdev.InputDevice(path) for path in evdev.list_devices()]]
+            payload = {
+                'selected_device_id': self.active_device_id,
+                'devices': {}
+            }
+            for device_id, state in self.connected_devices.items():
+                payload['devices'][device_id] = {
+                    'path': state.get('path'),
+                    'name': state.get('name')
+                }
+            with open(self.CONFIG_FILE, 'w') as f:
+                json.dump(payload, f)
+        except Exception as e:
+            print(f"Error saving scanner config: {e}")
+
+    def _discover_devices(self):
+        try:
+            devices = []
+            for path in evdev.list_devices():
+                try:
+                    device = evdev.InputDevice(path)
+                    devices.append(self._build_device_info(device))
+                except Exception:
+                    continue
+            return devices
         except Exception as e:
             print(f"Error listing devices: {e}")
             return []
 
-    def connect_device(self, device_path, save=True):
-        self.disconnect_device()
-        
-        try:
-            self.device = evdev.InputDevice(device_path)
-            self.device.grab() # Exclusive access
-            self.current_device_path = device_path
-            
-            self.stop_event.clear()
-            self.thread = threading.Thread(target=self._read_loop, daemon=True)
-            self.thread.start()
-            print(f"Connected to scanner: {self.device.name}")
-            
+    def _build_device_info(self, device):
+        info = getattr(device, 'info', None)
+        vendor = getattr(info, 'vendor', None)
+        product = getattr(info, 'product', None)
+        version = getattr(info, 'version', None)
+        phys = getattr(device, 'phys', None) or ''
+        uniq = getattr(device, 'uniq', None) or ''
+        name = getattr(device, 'name', None) or 'Dispositivo desconocido'
+        path = getattr(device, 'path', None) or ''
+
+        raw_parts = [str(value) for value in [vendor, product, version, phys, uniq, name] if value]
+        device_id = ':'.join(raw_parts) or path or name
+        inferred_type = self._infer_device_type(name, path, vendor, product, phys, uniq)
+        return {
+            'id': device_id,
+            'name': name,
+            'path': path,
+            'vendor': vendor,
+            'product': product,
+            'version': version,
+            'phys': phys,
+            'uniq': uniq,
+            'type': inferred_type
+        }
+
+    def _infer_device_type(self, name, path, vendor, product, phys, uniq):
+        haystack = ' '.join(filter(None, [str(name), str(path), str(vendor), str(product), str(phys), str(uniq)])).lower()
+        keywords = ['hid', 'scanner', 'barcode', 'usb', 'input', 'keyboard', 'reader']
+        if any(keyword in haystack for keyword in keywords):
+            return 'scanner'
+        return 'other'
+
+    def _resolve_device(self, identifier):
+        if not identifier:
+            return None
+
+        for device in self._discover_devices():
+            if device['id'] == identifier or device['path'] == identifier:
+                return device
+        return None
+
+    def list_devices(self, only_connected=False):
+        available_devices = self._discover_devices()
+        compatible_devices = [device for device in available_devices if device.get('type') == 'scanner']
+        connected_ids = set(self.connected_devices.keys())
+        filtered_devices = []
+        for device in compatible_devices:
+            if only_connected and device['id'] not in connected_ids:
+                continue
+            device['connected'] = device['id'] in connected_ids
+            device['selected'] = device['id'] == self.active_device_id
+            filtered_devices.append(device)
+        return filtered_devices
+
+    def connect_device(self, identifier, save=True):
+        device_info = self._resolve_device(identifier)
+        if not device_info:
+            return False
+
+        device_id = device_info['id']
+        if device_id in self.connected_devices:
+            self.active_device_id = device_id
+            self.current_device_path = device_info['path']
             if save:
-                self._save_config(device_path)
-                
+                self._save_config()
+            return True
+
+        try:
+            device = evdev.InputDevice(device_info['path'])
+            device.grab()
+            self.connected_devices[device_id] = {
+                'device': device,
+                'path': device_info['path'],
+                'name': device_info['name']
+            }
+            self.device_stop_events[device_id] = threading.Event()
+            self.active_device_id = device_id
+            self.current_device_path = device_info['path']
+
+            thread = threading.Thread(target=self._read_loop, args=(device_id,), daemon=True)
+            thread.start()
+            self.connected_devices[device_id]['thread'] = thread
+            print(f"Connected to scanner: {device_info['name']}")
+
+            if save:
+                self._save_config()
             return True
         except Exception as e:
             print(f"Failed to connect to scanner: {e}")
             return False
 
-    def disconnect_device(self):
-        if self.device:
-            self.stop_event.set()
-            # Try to force ungrab safely
-            try:
-                self.device.ungrab()
-            except:
-                pass
-            self.device = None
-            self.current_device_path = None
-            
-            # Remove config file on explicit disconnect
-            if os.path.exists(self.CONFIG_FILE):
-                try:
-                    os.remove(self.CONFIG_FILE)
-                except:
-                    pass
-            
-            print("Scanner disconnected")
+    def disconnect_device(self, identifier=None):
+        disconnect_ids = []
+        if identifier:
+            disconnect_ids = [identifier] if identifier in self.connected_devices else []
+        else:
+            disconnect_ids = list(self.connected_devices.keys())
 
-    def _read_loop(self):
+        for device_id in disconnect_ids:
+            state = self.connected_devices.pop(device_id, None)
+            if not state:
+                continue
+            stop_event = self.device_stop_events.pop(device_id, None)
+            if stop_event:
+                stop_event.set()
+            device = state.get('device')
+            if device:
+                try:
+                    device.ungrab()
+                except Exception:
+                    pass
+            if self.active_device_id == device_id:
+                self.active_device_id = None
+            if self.current_device_path == state.get('path'):
+                self.current_device_path = None
+
+        if not self.connected_devices:
+            self.active_device_id = None
+            self.current_device_path = None
+
+        self._save_config()
+        print("Scanner disconnected")
+        return True
+
+    def set_active_device(self, identifier):
+        device_info = self._resolve_device(identifier)
+        if not device_info:
+            return False
+        self.active_device_id = device_info['id']
+        self.current_device_path = device_info['path']
+        self._save_config()
+        return True
+
+    def _read_loop(self, device_id):
         current_code = []
         is_shifted = False
-        
+        state = self.connected_devices.get(device_id)
+        if not state:
+            return
+
+        device = state['device']
+        stop_event = self.device_stop_events.get(device_id)
         print("Starting scanner loop")
         try:
-            # We use a non-blocking loop or select, but evdev's read_loop is usually blocking.
-            # to make it stoppable, we can't easily break a blocking read without an event.
-            # However, for simplicity, since we are in a daemon thread, it will die with the app.
-            # But reconnecting requires stopping this loop. 
-            # Ideally we use select to timeout.
-            
-            for event in self.device.read_loop():
-                if self.stop_event.is_set():
+            for event in device.read_loop():
+                if stop_event and stop_event.is_set():
                     break
-                
+
                 if event.type == evdev.ecodes.EV_KEY:
-                    if event.value == 1: # Key down
+                    if event.value == 1:
                         key_str = evdev.ecodes.keys[event.code]
-                        
+
                         if key_str in ['KEY_LEFTSHIFT', 'KEY_RIGHTSHIFT']:
                             is_shifted = True
                             continue
-                        
+
                         char = map_key_to_char(event, is_shifted)
-                        
+
                         if char == '\n':
-                            final_code = "".join(current_code)
-                            self._broadcast(final_code)
+                            final_code = ''.join(current_code).strip()
+                            if final_code:
+                                self._broadcast(final_code, device_id)
                             current_code = []
                         elif char:
                             current_code.append(char)
-                            
-                    elif event.value == 0: # Key up
+
+                    elif event.value == 0:
                         key_str = evdev.ecodes.keys[event.code]
                         if key_str in ['KEY_LEFTSHIFT', 'KEY_RIGHTSHIFT']:
                             is_shifted = False
         except Exception as e:
             print(f"Error in scanner loop: {e}")
-            self.disconnect_device()
+            self.disconnect_device(device_id)
 
-    def _broadcast(self, code):
-        print(f"Broadcasting scan: {code}")
-        # Clean up dead queues
+    def _broadcast(self, code, device_id):
+        print(f"Broadcasting scan from {device_id}: {code}")
         dead_queues = set()
-        for q in self.queues:
+        is_consumed = False
+
+        for q, selected_device_id in list(self.queues.items()):
+            if selected_device_id and selected_device_id != device_id:
+                continue
             try:
                 q.put(code)
-            except:
+                is_consumed = True
+            except Exception:
                 dead_queues.add(q)
-        
-        for q in dead_queues:
-            self.queues.remove(q)
 
-    def listen(self):
+        for q in dead_queues:
+            self.queues.pop(q, None)
+
+        if not is_consumed:
+            self.process_scanned_code(code)
+
+    def listen(self, selected_device_id=None):
         q = queue.Queue()
-        self.queues.add(q)
+        self.queues[q] = selected_device_id
         return q
 
     def get_status(self):
+        active_state = self.connected_devices.get(self.active_device_id) if self.active_device_id else None
         return {
-            'connected': self.device is not None,
-            'device_name': self.device.name if self.device else None,
-            'device_path': self.current_device_path
+            'connected': bool(self.connected_devices),
+            'device_name': active_state.get('name') if active_state else None,
+            'device_path': active_state.get('path') if active_state else None,
+            'active_device_id': self.active_device_id,
+            'active_device_name': active_state.get('name') if active_state else None,
+            'connected_devices': [
+                {'id': device_id, 'name': state.get('name'), 'path': state.get('path')}
+                for device_id, state in self.connected_devices.items()
+            ]
         }
+
+    def process_scanned_code(self, code):
+        code = str(code or '').strip()
+        if not code:
+            return {'success': False, 'message': 'Código vacío'}
+
+        try:
+            id_producto = producto_service.buscar_id_por_codigo_barras(code)
+            if not id_producto:
+                return {'success': False, 'message': 'Producto no encontrado'}
+
+            producto = producto_service.obtener_producto_por_id(id_producto)
+            if not producto:
+                return {'success': False, 'message': 'Producto no encontrado'}
+
+            fecha_hora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            venta_individual_service.insertar_venta_individual(
+                id_producto,
+                1,
+                1.0,
+                float(producto.get('precio_venta', 0)),
+                fecha_hora
+            )
+            speak_text(f"Producto {producto.get('descripcion', code)} agregado")
+            return {'success': True, 'product': producto}
+        except Exception as e:
+            play_error_sound()
+            return {'success': False, 'message': str(e)}
