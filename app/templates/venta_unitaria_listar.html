@@ -24,7 +24,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Último código leído</label>
-                    <div class="alert alert-secondary mb-0" id="ultimoCodigo">Sin lectura</div>
+                    <div class="alert alert-secondary mb-0">Sin lectura</div>
                 </div>
             </div>
         </div>
@@ -63,9 +63,13 @@
         const btnBuscar = document.getElementById('btnBuscarVentasUnitarias');
         const tbody = document.getElementById('cuerpoTablaVentasUnitarias');
         const scannerStatus = document.getElementById('scannerStatus');
-        const ultimoCodigo = document.getElementById('ultimoCodigo');
 
-        const usuarioId = {{ id or 1 }};
+        const formatearFechaHora = (fechaHora) => {
+            if (!fechaHora) return '';
+            const valor = String(fechaHora).trim();
+            if (valor.length < 19) return valor;
+            return valor.slice(0, 19);
+        };
 
         const cargarVentas = async () => {
             const fecha = fechaInput.value || '{{ fecha_hoy }}';
@@ -84,63 +88,11 @@
                         <td>${venta.codigo_barras || '-'}</td>
                         <td>${venta.cantidad}</td>
                         <td>S/ ${Number(venta.precio_venta || 0).toFixed(2)}</td>
-                        <td>${venta.fecha_hora}</td>
+                        <td>${formatearFechaHora(venta.fecha_hora)}</td>
                     </tr>
                 `).join('');
             } catch (error) {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">No se pudieron cargar las ventas.</td></tr>';
-            }
-        };
-
-        const insertarVentaIndividual = async (codigo) => {
-            try {
-                const codigoEscaneado = codigo.trim();
-                if (!codigoEscaneado) return null;
-
-                const responseId = await fetch(`/productos/buscar_id_producto/${encodeURIComponent(codigoEscaneado)}`);
-                if (!responseId.ok) {
-                    console.warn('No se encontró producto para', codigoEscaneado);
-                    return null;
-                }
-                const idPayload = await responseId.json();
-                const idProducto = Number(idPayload.id_producto);
-                if (!idProducto || Number.isNaN(idProducto)) {
-                    console.warn('ID de producto inválido para', codigoEscaneado, idPayload);
-                    return null;
-                }
-
-                const responseProd = await fetch(`/productos/obtener_producto/${idProducto}`);
-                if (!responseProd.ok) {
-                    console.warn('No se pudo obtener producto', idProducto);
-                    return null;
-                }
-                const producto = await responseProd.json();
-                const precioVenta = Number(producto.precio_venta || 0);
-                const cantidad = 1.0;
-                const fechaHora = new Date().toISOString().slice(0, 19).replace('T', ' ');
-
-                const responseInsert = await fetch('/venta_individuales/insertar_venta_individual', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id_producto: idProducto,
-                        id_usuario: usuarioId,
-                        cantidad,
-                        precio_venta: precioVenta,
-                        fecha_hora: fechaHora
-                    })
-                });
-
-                if (!responseInsert.ok) {
-                    const errorPayload = await responseInsert.json();
-                    console.warn('Error insertando venta individual:', errorPayload);
-                    return null;
-                }
-
-                return true;
-            } catch (error) {
-                console.error('Error insertando venta individual', error);
-                return null;
             }
         };
 
@@ -164,18 +116,7 @@
         cargarVentas();
         actualizarEstadoScanner();
         setInterval(actualizarEstadoScanner, 5000);
-
-        const eventSource = new EventSource('/scanner/stream');
-        eventSource.onmessage = async function (event) {
-            const codigo = event.data;
-            if (codigo && codigo.trim().length > 0) {
-                ultimoCodigo.textContent = codigo;
-                const resultado = await insertarVentaIndividual(codigo);
-                if (resultado) {
-                    cargarVentas();
-                }
-            }
-        };
+        setInterval(cargarVentas, 5000);
     });
 </script>
 {% endblock %}

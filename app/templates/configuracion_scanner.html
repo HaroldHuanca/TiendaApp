@@ -40,16 +40,9 @@
                             <span class="visually-hidden">Cargando...</span>
                         </div>
                     </div>
-                    <label for="scanner-device-select" class="form-label">Seleccionar lector para el frontend</label>
-                    <select id="scanner-device-select" class="form-select mb-3">
-                        <option value="">Sin seleccionar</option>
-                    </select>
                     <div class="small text-muted mb-3">Solo se muestran dispositivos compatibles con escáner/HID.</div>
-                    <div class="d-flex gap-2">
-                        <button id="btn-connect-selected" class="btn btn-primary">Conectar seleccionado</button>
-                        <button id="btn-disconnect-selected" class="btn btn-outline-danger">Desconectar seleccionado</button>
-                    </div>
-                    <div class="form-text mt-2">Solo los lectores seleccionados aquí enviarán sus códigos al frontend.</div>
+                    <div id="scanner-device-list" class="list-group"></div>
+                    <div class="form-text mt-3">Los lectores conectados quedan activos para el flujo del backend y la verificación de escaneo.</div>
                 </div>
             </div>
         </div>
@@ -85,8 +78,8 @@
     }
 
     async function loadDevices() {
-        const selectEl = document.getElementById('scanner-device-select');
-        selectEl.innerHTML = '<option value="">Sin seleccionar</option>';
+        const listEl = document.getElementById('scanner-device-list');
+        listEl.innerHTML = '';
         document.getElementById('loading-devices').classList.remove('d-none');
 
         try {
@@ -94,30 +87,59 @@
             const data = await response.json();
             updateStatusUI(data.status);
 
+            if (data.devices.length === 0) {
+                listEl.innerHTML = `
+                    <div class="list-group-item text-muted text-center py-4">
+                        No se encontraron dispositivos de entrada compatibles.
+                    </div>
+                `;
+                return;
+            }
+
             data.devices.forEach(device => {
-                const option = document.createElement('option');
-                option.value = device.id;
-                option.textContent = `${device.name} (${device.path || 'sin ruta'})`;
-                if (device.selected) {
-                    option.selected = true;
-                }
-                selectEl.appendChild(option);
+                const item = document.createElement('div');
+                item.className = `list-group-item list-group-item-action ${device.connected ? 'list-group-item-success' : ''}`;
+                const isActive = data.status.active_device_id === device.id;
+
+                item.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <div class="fw-semibold">${device.name}</div>
+                            <div class="small text-muted">${device.path || 'sin ruta'}</div>
+                            <div class="small mt-1">
+                                <span class="badge ${device.connected ? 'bg-success' : 'bg-secondary'} rounded-pill">
+                                    ${device.connected ? 'Conectado' : 'Disponible'}
+                                </span>
+                                ${isActive ? '<span class="badge bg-primary rounded-pill ms-1">Activo</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-sm btn-primary connect-device-btn" data-device-id="${device.id}">
+                                ${device.connected ? 'Reubicar' : 'Conectar'}
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger disconnect-device-btn" data-device-id="${device.id}">
+                                Desconectar
+                            </button>
+                        </div>
+                    </div>
+                `;
+                listEl.appendChild(item);
             });
 
-            if (data.status.active_device_id) {
-                selectEl.value = data.status.active_device_id;
-            }
-
-            if (data.devices.length === 0) {
-                const emptyOption = document.createElement('option');
-                emptyOption.textContent = 'No se encontraron dispositivos de entrada';
-                emptyOption.disabled = true;
-                selectEl.appendChild(emptyOption);
-            }
+            listEl.querySelectorAll('.connect-device-btn').forEach(btn => {
+                btn.onclick = () => connectDevice(btn.dataset.deviceId);
+            });
+            listEl.querySelectorAll('.disconnect-device-btn').forEach(btn => {
+                btn.onclick = () => disconnectDevice(btn.dataset.deviceId);
+            });
 
         } catch (error) {
             console.error(error);
-            selectEl.innerHTML = '<option value="">Error cargando dispositivos</option>';
+            listEl.innerHTML = `
+                <div class="list-group-item text-danger text-center py-4">
+                    Error cargando dispositivos.
+                </div>
+            `;
         } finally {
             document.getElementById('loading-devices').classList.add('d-none');
         }
@@ -147,6 +169,10 @@
     }
 
     async function disconnectDevice(deviceId) {
+        if (!deviceId) {
+            return;
+        }
+
         try {
             await fetch('/scanner/disconnect', {
                 method: 'POST',
@@ -174,10 +200,7 @@
     }
 
     document.getElementById('btn-refresh').onclick = loadDevices;
-    document.getElementById('btn-disconnect').onclick = () => disconnectDevice(document.getElementById('scanner-device-select').value);
-    document.getElementById('btn-connect-selected').onclick = () => connectDevice(document.getElementById('scanner-device-select').value);
-    document.getElementById('btn-disconnect-selected').onclick = () => disconnectDevice(document.getElementById('scanner-device-select').value);
-    document.getElementById('scanner-device-select').onchange = () => connectDevice(document.getElementById('scanner-device-select').value);
+    document.getElementById('btn-disconnect').onclick = () => disconnectDevice(document.getElementById('scanner-device-list').dataset.activeDeviceId || '');
 
     document.addEventListener('scan', (e) => {
         const input = document.getElementById('test-input');

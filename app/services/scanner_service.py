@@ -1,12 +1,16 @@
+import atexit
+import signal
 import evdev
 import threading
 import queue
 import json
 import os
+import time
 from datetime import datetime
 
 import app.services.producto_service as producto_service
 import app.services.venta_individual_service as venta_individual_service
+import app.services.tiempo_service as tiempo_service
 
 producto_model = producto_service.producto_model
 
@@ -67,20 +71,55 @@ class ScannerService:
             cls._instance.queues = {}
             cls._instance.active_device_id = None
             cls._instance.current_device_path = None
+            cls._instance._last_broadcast = {}
+            cls._instance._last_processed_scans = {}
+            cls._instance._persisted_devices = {}
+            cls._instance._shutdown_registered = False
+            cls._instance._register_shutdown()
             cls._instance._load_config()
         return cls._instance
 
+    def _register_shutdown(self):
+        if not getattr(self, '_shutdown_registered', False):
+            atexit.register(self.shutdown_all_devices)
+            try:
+                signal.signal(signal.SIGINT, self._signal_handler)
+                signal.signal(signal.SIGTERM, self._signal_handler)
+            except Exception:
+                pass
+            self._shutdown_registered = True
+
+    def _signal_handler(self, signum, frame):
+        print(f"Received shutdown signal: {signum}")
+        self.shutdown_all_devices()
+
+    def shutdown_all_devices(self):
+        try:
+            for device_id in list(self.connected_devices.keys()):
+                self.disconnect_device(device_id, persist=False)
+        except Exception as e:
+            print(f"Error during scanner shutdown: {e}")
+
     def _load_config(self):
-        """Attempt to load saved configuration and auto-connect using device id."""
+        """Carga la configuración persistida y auto-conecta solo los dispositivos marcados para reconexión."""
         if os.path.exists(self.CONFIG_FILE):
             try:
                 with open(self.CONFIG_FILE, 'r') as f:
                     config = json.load(f)
                     self.active_device_id = config.get('selected_device_id')
                     saved_devices = config.get('devices') or {}
-                    if self.active_device_id and saved_devices.get(self.active_device_id):
-                        print(f"Auto-connecting to saved scanner: {self.active_device_id}")
-                        self.connect_device(self.active_device_id, save=False)
+                    self._persisted_devices = dict(saved_devices)
+                    reconnect_ids = []
+                    for device_id, metadata in saved_devices.items():
+                        if metadata and metadata.get('connected', False):
+                            reconnect_ids.append(device_id)
+
+                    if reconnect_ids:
+                        print(f"Auto-connecting saved scanners: {reconnect_ids}")
+                        for device_id, metadata in saved_devices.items():
+                            if metadata and metadata.get('connected', False):
+                                identifier = metadata.get('path') or metadata.get('id') or device_id
+                                self.connect_device(identifier, save=False)
             except Exception as e:
                 print(f"Error loading scanner config: {e}")
 
@@ -90,11 +129,24 @@ class ScannerService:
                 'selected_device_id': self.active_device_id,
                 'devices': {}
             }
+
+            for device_id, metadata in self._persisted_devices.items():
+                payload['devices'][device_id] = dict(metadata)
+
             for device_id, state in self.connected_devices.items():
                 payload['devices'][device_id] = {
+                    'id': device_id,
                     'path': state.get('path'),
-                    'name': state.get('name')
+                    'name': state.get('name'),
+                    'connected': True
                 }
+                self._persisted_devices[device_id] = payload['devices'][device_id]
+
+            for device_id, metadata in list(payload['devices'].items()):
+                if metadata.get('path'):
+                    payload['devices'][metadata['path']] = dict(metadata)
+                    payload['devices'][metadata['path']]['connected'] = metadata.get('connected', False)
+
             with open(self.CONFIG_FILE, 'w') as f:
                 json.dump(payload, f)
         except Exception as e:
@@ -192,6 +244,12 @@ class ScannerService:
             self.device_stop_events[device_id] = threading.Event()
             self.active_device_id = device_id
             self.current_device_path = device_info['path']
+            self._persisted_devices[device_id] = {
+                'id': device_id,
+                'path': device_info['path'],
+                'name': device_info['name'],
+                'connected': True
+            }
 
             thread = threading.Thread(target=self._read_loop, args=(device_id,), daemon=True)
             thread.start()
@@ -201,14 +259,28 @@ class ScannerService:
             if save:
                 self._save_config()
             return True
+        except OSError as e:
+            if getattr(e, 'errno', None) == 16:
+                print(f"Scanner device busy on connect: {device_info['path']}")
+                try:
+                    self.disconnect_device(device_id, persist=False)
+                except Exception:
+                    pass
+            print(f"Failed to connect to scanner: {e}")
+            return False
         except Exception as e:
             print(f"Failed to connect to scanner: {e}")
             return False
 
-    def disconnect_device(self, identifier=None):
+    def disconnect_device(self, identifier=None, persist=True):
         disconnect_ids = []
         if identifier:
-            disconnect_ids = [identifier] if identifier in self.connected_devices else []
+            if identifier in self.connected_devices:
+                disconnect_ids = [identifier]
+            else:
+                for device_id, state in self.connected_devices.items():
+                    if state.get('path') == identifier:
+                        disconnect_ids.append(device_id)
         else:
             disconnect_ids = list(self.connected_devices.keys())
 
@@ -216,25 +288,43 @@ class ScannerService:
             state = self.connected_devices.pop(device_id, None)
             if not state:
                 continue
+
             stop_event = self.device_stop_events.pop(device_id, None)
             if stop_event:
                 stop_event.set()
+
             device = state.get('device')
             if device:
                 try:
                     device.ungrab()
                 except Exception:
                     pass
+                try:
+                    device.close()
+                except Exception:
+                    pass
+
             if self.active_device_id == device_id:
                 self.active_device_id = None
             if self.current_device_path == state.get('path'):
                 self.current_device_path = None
 
+            persistence_metadata = {
+                'id': device_id,
+                'path': state.get('path'),
+                'name': state.get('name'),
+                'connected': False if persist else True
+            }
+            self._persisted_devices[device_id] = persistence_metadata
+            if state.get('path'):
+                self._persisted_devices[state.get('path')] = dict(persistence_metadata)
+
         if not self.connected_devices:
             self.active_device_id = None
             self.current_device_path = None
 
-        self._save_config()
+        if persist:
+            self._save_config()
         print("Scanner disconnected")
         return True
 
@@ -289,24 +379,29 @@ class ScannerService:
             self.disconnect_device(device_id)
 
     def _broadcast(self, code, device_id):
+        now = time.monotonic()
+        last_scan = self._last_broadcast.get(device_id)
+        if last_scan and last_scan.get('code') == code and (now - last_scan.get('time', 0)) < 1.5:
+            print(f"Skipping duplicate scan from {device_id}: {code}")
+            return
+
+        self._last_broadcast[device_id] = {'code': code, 'time': now}
+
         print(f"Broadcasting scan from {device_id}: {code}")
         dead_queues = set()
-        is_consumed = False
 
         for q, selected_device_id in list(self.queues.items()):
             if selected_device_id and selected_device_id != device_id:
                 continue
             try:
                 q.put(code)
-                is_consumed = True
             except Exception:
                 dead_queues.add(q)
 
         for q in dead_queues:
             self.queues.pop(q, None)
 
-        if not is_consumed:
-            self.process_scanned_code(code)
+        self.process_scanned_code(code, device_id=device_id)
 
     def listen(self, selected_device_id=None):
         q = queue.Queue()
@@ -327,10 +422,18 @@ class ScannerService:
             ]
         }
 
-    def process_scanned_code(self, code):
+    def process_scanned_code(self, code, device_id=None):
         code = str(code or '').strip()
         if not code:
             return {'success': False, 'message': 'Código vacío'}
+
+        now = time.monotonic()
+        dedupe_key = f"{device_id or 'default'}:{code}"
+        last_seen = self._last_processed_scans.get(dedupe_key)
+        if last_seen and (now - last_seen) < 1.5:
+            print(f"Skipping already processed scan: {code}")
+            return {'success': False, 'message': 'Escaneo duplicado'}
+        self._last_processed_scans[dedupe_key] = now
 
         try:
             id_producto = producto_service.buscar_id_por_codigo_barras(code)
@@ -341,7 +444,8 @@ class ScannerService:
             if not producto:
                 return {'success': False, 'message': 'Producto no encontrado'}
 
-            fecha_hora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            fecha_hora = tiempo_service.obtener_fecha_actual_formateada_YYYYmmddHHMMSS()
+            print(fecha_hora)
             venta_individual_service.insertar_venta_individual(
                 id_producto,
                 1,

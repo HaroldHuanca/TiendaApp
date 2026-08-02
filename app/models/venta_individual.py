@@ -17,7 +17,7 @@ def mostrar_ventas_individuales(fecha: str) -> List[Dict[str, Any]]:
                     u.nombre_usuario AS nombre_usuario,
                     vi.cantidad,
                     vi.precio_venta,
-                    vi.fecha_hora
+                    DATE_FORMAT(vi.fecha_hora, '%Y-%m-%d %H:%i:%s') AS fecha_hora
                 FROM
                     tbl_venta_individual vi
                     JOIN tbl_productos p ON vi.id_producto = p.id
